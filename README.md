@@ -10,3 +10,6 @@ Commands:
 /gesture wave
 /gesture zombie
 ```
+
+
+[Checkout the discord for more info](https://discord.gg/9X6w2kfy89)
