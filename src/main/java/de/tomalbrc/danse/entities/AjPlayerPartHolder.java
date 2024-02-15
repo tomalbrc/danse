@@ -9,13 +9,13 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
-import org.provim.nylon.api.AjEntity;
-import org.provim.nylon.holders.entity.simple.SimpleEntityHolder;
-import org.provim.nylon.holders.wrappers.Bone;
-import org.provim.nylon.holders.wrappers.DisplayWrapper;
-import org.provim.nylon.model.AjModel;
-import org.provim.nylon.model.AjNode;
-import org.provim.nylon.model.AjPose;
+import de.tomalbrc.resin.api.AjEntity;
+import de.tomalbrc.resin.holders.entity.simple.SimpleEntityHolder;
+import de.tomalbrc.resin.holders.wrappers.Bone;
+import de.tomalbrc.resin.holders.wrappers.DisplayWrapper;
+import de.tomalbrc.resin.model.AjModel;
+import de.tomalbrc.resin.model.AjNode;
+import de.tomalbrc.resin.model.AjPose;
 
 import java.util.List;
 

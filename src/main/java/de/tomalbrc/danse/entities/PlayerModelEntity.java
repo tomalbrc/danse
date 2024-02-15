@@ -15,12 +15,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.provim.nylon.api.AjEntity;
-import org.provim.nylon.data.AjLoader;
-import org.provim.nylon.extra.DisplayElementUpdateListener;
-import org.provim.nylon.holders.wrappers.DisplayWrapper;
-import org.provim.nylon.holders.wrappers.Locator;
-import org.provim.nylon.model.AjModel;
+import de.tomalbrc.resin.api.AjEntity;
+import de.tomalbrc.resin.data.AjLoader;
+import de.tomalbrc.resin.extra.DisplayElementUpdateListener;
+import de.tomalbrc.resin.holders.wrappers.DisplayWrapper;
+import de.tomalbrc.resin.holders.wrappers.Locator;
+import de.tomalbrc.resin.model.AjModel;
 
 public class PlayerModelEntity extends Entity implements AjEntity {
     public static final ResourceLocation ID = Util.id("player_model");
