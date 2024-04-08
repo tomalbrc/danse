@@ -1,6 +1,7 @@
 package de.tomalbrc.danse;
 
 import de.tomalbrc.danse.registries.EntityRegistry;
+import de.tomalbrc.danse.registries.PlayerModelRegistry;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -14,6 +15,7 @@ public class Danse implements ModInitializer {
         PolymerResourcePackUtils.addModAssets(MODID);
         PolymerResourcePackUtils.markAsRequired();
 
+        PlayerModelRegistry.load();
         EntityRegistry.registerMobs();
 
         CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> {

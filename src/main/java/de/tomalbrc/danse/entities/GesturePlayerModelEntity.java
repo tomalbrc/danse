@@ -1,5 +1,6 @@
 package de.tomalbrc.danse.entities;
 
+import de.tomalbrc.bil.core.model.Model;
 import de.tomalbrc.danse.Util;
 import de.tomalbrc.danse.registries.EntityRegistry;
 import net.minecraft.nbt.CompoundTag;
@@ -17,13 +18,15 @@ public class GesturePlayerModelEntity extends PlayerModelEntity {
         this.checkDistance = checkDistance;
     }
 
-    public GesturePlayerModelEntity(ServerPlayer player, Consumer<GesturePlayerModelEntity> onRemoved) {
+    public GesturePlayerModelEntity(ServerPlayer player, Model model, Consumer<GesturePlayerModelEntity> onRemoved) {
         super(EntityRegistry.PLAYER_MODEL, player.level());
         this.onRemoved = onRemoved;
         this.player = player;
         this.setPos(player.position());
         this.setYRot(player.getYRot());
-        this.setPlayer(player);
+
+        this.setModel(model);
+        this.setPlayer(player); // important to set this *after* model was set
     }
 
     @Override

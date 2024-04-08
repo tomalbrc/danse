@@ -1,6 +1,12 @@
 package de.tomalbrc.danse.entities;
 
+import de.tomalbrc.bil.api.AnimatedEntity;
+import de.tomalbrc.bil.core.extra.DisplayElementUpdateListener;
+import de.tomalbrc.bil.core.holder.wrapper.DisplayWrapper;
+import de.tomalbrc.bil.core.holder.wrapper.Locator;
+import de.tomalbrc.bil.core.model.Model;
 import de.tomalbrc.danse.Util;
+import de.tomalbrc.danse.registries.PlayerModelRegistry;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
@@ -15,47 +21,58 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import de.tomalbrc.resin.api.AjEntity;
-import de.tomalbrc.resin.data.AjLoader;
-import de.tomalbrc.resin.extra.DisplayElementUpdateListener;
-import de.tomalbrc.resin.holders.wrappers.DisplayWrapper;
-import de.tomalbrc.resin.holders.wrappers.Locator;
-import de.tomalbrc.resin.model.AjModel;
 
-public class PlayerModelEntity extends Entity implements AjEntity {
+public class PlayerModelEntity extends Entity implements AnimatedEntity {
     public static final ResourceLocation ID = Util.id("player_model");
-    public static final AjModel MODEL = AjLoader.require(ID);
     private static final String ANIMATION = "Animation";
     private static final String PLAYER = "Player";
-    private final AjPlayerPartHolder<?> holder;
+    private PlayerPartHolder<?> holder;
 
     @NotNull
     private String animation = "walk";
     @Nullable
     private String playerName;
 
+    @Nullable
+    private ServerPlayer player;
+
     @Override
-    public AjPlayerPartHolder<?> getHolder() {
+    public PlayerPartHolder<?> getHolder() {
         return this.holder;
     }
 
     public PlayerModelEntity(EntityType<? extends Entity> entityType, Level level) {
         super(entityType, level);
+    }
 
-        this.holder = new AjPlayerPartHolder<>(this, MODEL);
+    public void setModel(Model model) {
+        this.holder = new PlayerPartHolder<>(this, model);
         EntityAttachment.ofTicking(this.holder, this);
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
+        if (tag.contains(ANIMATION)) {
+            if (this.animation != tag.getString(ANIMATION) && this.holder != null) {
+                this.holder.getAttachment().destroy();
+                this.holder.destroy();
+            }
+
+            this.animation = tag.getString(ANIMATION);
+
+            this.setModel(PlayerModelRegistry.getModel(this.animation));
+
+            this.holder.getAnimator().playAnimation(this.animation);
+        }
+
+        if (this.holder == null) {
+            // get any/first animation
+            this.setModel(PlayerModelRegistry.getModel(PlayerModelRegistry.getAnimations().get(0)));
+        }
+
         if (tag.contains(PLAYER)) {
             this.playerName = tag.getString(PLAYER);
             this.holder.setSkin(this.playerName);
-        }
-
-        if (tag.contains(ANIMATION)) {
-            this.animation = tag.getString(ANIMATION);
-            this.holder.getAnimator().playAnimation(this.animation);
         }
     }
 

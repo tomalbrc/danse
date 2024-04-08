@@ -8,6 +8,7 @@ import de.tomalbrc.danse.entities.GestureCamera;
 import de.tomalbrc.danse.entities.GesturePlayerModelEntity;
 import de.tomalbrc.danse.entities.PlayerModelEntity;
 import de.tomalbrc.danse.registries.EntityRegistry;
+import de.tomalbrc.danse.registries.PlayerModelRegistry;
 import eu.pb4.polymer.core.api.utils.PolymerUtils;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.commands.CommandSourceStack;
@@ -31,7 +32,7 @@ public class GestureCommand {
 
         dispatcher.getRoot().addChild(gestureNode);
 
-        for (String animation : PlayerModelEntity.MODEL.animations().keySet()) {
+        for (String animation : PlayerModelRegistry.getAnimations()) {
             gestureNode.addChild(literal(animation).executes(ctx -> execute(ctx.getSource().getPlayerOrException(), animation)).build());
         }
     }
@@ -44,11 +45,10 @@ public class GestureCommand {
         int id = GESTURES.getInt(player.getUUID());
         Entity entity = id == 0 ? null : player.level().getEntity(id);
         if (entity instanceof GesturePlayerModelEntity playerModel) {
-            playerModel.setAnimation(animationName);
-            return Command.SINGLE_SUCCESS;
+            playerModel.discard();
         }
 
-        GesturePlayerModelEntity playerModel = new GesturePlayerModelEntity(player, (model) -> {});
+        GesturePlayerModelEntity playerModel = new GesturePlayerModelEntity(player, PlayerModelRegistry.getModel(animationName), (model) -> {});
         playerModel.setCheckDistance(false);
 
         GestureCamera gestureCamera = new GestureCamera(EntityRegistry.GESTURE_CAMERA, player.level());
