@@ -126,11 +126,9 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
         return element;
     }
 
-    public void setAnimation(String animation) {
+    public void playAnimation(String animation, Runnable onFinish) {
         this.animation = animation;
-        this.holder.getAnimator().playAnimation(animation, () -> {
-            this.discard();
-        });
+        this.holder.getAnimator().playAnimation(animation, onFinish);
     }
 
     @Override

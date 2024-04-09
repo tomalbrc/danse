@@ -6,7 +6,6 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import de.tomalbrc.danse.Util;
 import de.tomalbrc.danse.entities.GestureCamera;
 import de.tomalbrc.danse.entities.GesturePlayerModelEntity;
-import de.tomalbrc.danse.entities.PlayerModelEntity;
 import de.tomalbrc.danse.registries.EntityRegistry;
 import de.tomalbrc.danse.registries.PlayerModelRegistry;
 import eu.pb4.polymer.core.api.utils.PolymerUtils;
@@ -69,7 +68,9 @@ public class GestureCommand {
             player.connection.send(new ClientboundSetCameraPacket(player));
         });
         gestureCamera.setPlayer(player);
-        playerModel.setAnimation(animationName);
+        playerModel.playAnimation(animationName, () -> {
+            player.stopRiding(); // removes model etc
+        });
         player.level().addFreshEntity(playerModel);
         player.level().addFreshEntity(gestureCamera);
 
