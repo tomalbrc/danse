@@ -33,9 +33,6 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
     @Nullable
     private String playerName;
 
-    @Nullable
-    private ServerPlayer player;
-
     @Override
     public PlayerPartHolder<?> getHolder() {
         return this.holder;
@@ -97,7 +94,7 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
 
         ItemStack offHand = player.getOffhandItem();
         if (!offHand.isEmpty()) {
-            this.addElement("offhand", offHand, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND);
+            this.addElement("offhand", offHand, ItemDisplayContext.THIRD_PERSON_LEFT_HAND);
         }
 
         ItemStack head = player.getItemBySlot(EquipmentSlot.HEAD);
@@ -131,7 +128,9 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
 
     public void setAnimation(String animation) {
         this.animation = animation;
-        this.holder.getAnimator().playAnimation(animation);
+        this.holder.getAnimator().playAnimation(animation, () -> {
+            this.discard();
+        });
     }
 
     @Override

@@ -302,7 +302,7 @@
 		{
 			"name": "mainhand",
 			"position": [6, 11.5, -2],
-			"rotation": [-90, 0, 0],
+			"rotation": [-90, 0, -180],
 			"ignore_inherited_scale": false,
 			"visibility": true,
 			"locked": false,
@@ -314,7 +314,7 @@
 		{
 			"name": "offhand",
 			"position": [-6, 11.5, -2],
-			"rotation": [-90, 0, 0],
+			"rotation": [-90, 0, -180],
 			"ignore_inherited_scale": false,
 			"visibility": true,
 			"locked": false,
@@ -326,7 +326,7 @@
 		{
 			"name": "hat",
 			"position": [0, 26.75, 0],
-			"rotation": [0, 0, 0],
+			"rotation": [0, -180, 0],
 			"ignore_inherited_scale": false,
 			"visibility": true,
 			"locked": false,
@@ -359,7 +359,7 @@
 					"uuid": "fd7c0f39-b83e-d6fa-63ec-59ea1c8a668a",
 					"export": true,
 					"mirror_uv": false,
-					"isOpen": false,
+					"isOpen": true,
 					"locked": false,
 					"visibility": true,
 					"autouv": 0,
@@ -373,7 +373,7 @@
 					"uuid": "2c3db723-21d8-1f80-412e-e73c14ee4cb3",
 					"export": true,
 					"mirror_uv": false,
-					"isOpen": false,
+					"isOpen": true,
 					"locked": false,
 					"visibility": true,
 					"autouv": 0,
@@ -387,7 +387,7 @@
 					"uuid": "787fcc9f-ba12-5313-1639-bdf9ba2e79cf",
 					"export": true,
 					"mirror_uv": false,
-					"isOpen": false,
+					"isOpen": true,
 					"locked": false,
 					"visibility": true,
 					"autouv": 0,
@@ -459,9 +459,9 @@
 			"name": "wave",
 			"loop": "once",
 			"override": false,
-			"length": 3.1,
+			"length": 4,
 			"snapping": 20,
-			"selected": false,
+			"selected": true,
 			"anim_time_update": "",
 			"blend_weight": "",
 			"start_delay": "",
@@ -1509,21 +1509,97 @@
 			"override": false,
 			"length": 0.05,
 			"snapping": 20,
-			"selected": true,
+			"selected": false,
 			"anim_time_update": "",
 			"blend_weight": "",
 			"start_delay": "",
 			"loop_delay": "",
 			"affected_bones": [],
 			"affected_bones_is_a_whitelist": false,
-			"animators": {}
+			"animators": {
+				"fd7c0f39-b83e-d6fa-63ec-59ea1c8a668a": {
+					"name": "head",
+					"type": "bone",
+					"keyframes": [
+						{
+							"channel": "rotation",
+							"data_points": [
+								{
+									"x": "0",
+									"y": "0",
+									"z": "0"
+								}
+							],
+							"uuid": "548741bc-0e07-b2e8-3cf6-35c09d9c0162",
+							"time": 0,
+							"color": -1,
+							"interpolation": "linear",
+							"bezier_linked": true,
+							"bezier_left_time": [-0.1, -0.1, -0.1],
+							"bezier_left_value": [0, 0, 0],
+							"bezier_right_time": [0.1, 0.1, 0.1],
+							"bezier_right_value": [0, 0, 0]
+						}
+					]
+				},
+				"2c3db723-21d8-1f80-412e-e73c14ee4cb3": {
+					"name": "arm_r",
+					"type": "bone",
+					"keyframes": [
+						{
+							"channel": "rotation",
+							"data_points": [
+								{
+									"x": "0",
+									"y": "0",
+									"z": "0"
+								}
+							],
+							"uuid": "b5744a92-764a-8c07-57ab-b516f3f66f21",
+							"time": 0,
+							"color": -1,
+							"interpolation": "linear",
+							"bezier_linked": true,
+							"bezier_left_time": [-0.1, -0.1, -0.1],
+							"bezier_left_value": [0, 0, 0],
+							"bezier_right_time": [0.1, 0.1, 0.1],
+							"bezier_right_value": [0, 0, 0]
+						}
+					]
+				},
+				"787fcc9f-ba12-5313-1639-bdf9ba2e79cf": {
+					"name": "arm_l",
+					"type": "bone",
+					"keyframes": [
+						{
+							"channel": "rotation",
+							"data_points": [
+								{
+									"x": "0",
+									"y": "0",
+									"z": "0"
+								}
+							],
+							"uuid": "5b0477a0-7498-1fec-8b13-f6991fab898c",
+							"time": 0,
+							"color": -1,
+							"interpolation": "linear",
+							"bezier_linked": true,
+							"bezier_left_time": [-0.1, -0.1, -0.1],
+							"bezier_left_value": [0, 0, 0],
+							"bezier_right_time": [0.1, 0.1, 0.1],
+							"bezier_right_value": [0, 0, 0]
+						}
+					]
+				}
+			}
 		},
 		{
 			"uuid": "88775ce8-1424-e321-2c15-c6a6d3bf7ad7",
 			"name": "dramatic",
 			"loop": "hold",
 			"override": false,
-			"length": 0,
+			"length": 0.05,
 			"snapping": 20,
 			"selected": false,
 			"anim_time_update": "",
