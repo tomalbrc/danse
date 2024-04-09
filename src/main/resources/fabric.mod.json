@@ -10,7 +10,7 @@
   "contact": {
     "repo": "https://github.com/tomalbrc/danse"
   },
-  "license": "All-Rights-Reserved",
+  "license": "LGPL-3.0-only",
   "environment": "*",
   "entrypoints": {
     "main": [
