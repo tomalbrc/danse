@@ -50,8 +50,7 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
         if (tag.contains(ANIMATION)) {
-            if (this.animation != tag.getString(ANIMATION) && this.holder != null) {
-                this.holder.getAttachment().destroy();
+            if (!this.animation.equals(tag.getString(ANIMATION)) && this.holder != null) {
                 this.holder.destroy();
             }
 
