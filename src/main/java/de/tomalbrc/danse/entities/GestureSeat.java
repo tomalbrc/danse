@@ -1,69 +1,60 @@
 package de.tomalbrc.danse.entities;
 
-import com.mojang.math.Axis;
 import de.tomalbrc.danse.Util;
-import de.tomalbrc.danse.registries.EntityRegistry;
 import eu.pb4.polymer.core.api.entity.PolymerEntity;
 import eu.pb4.polymer.virtualentity.api.tracker.EntityTrackedData;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
-import net.minecraft.network.protocol.game.ClientboundSetCameraPacket;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.decoration.ArmorStand;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
 
+import java.util.Collection;
 import java.util.List;
 
-public class GestureCamera extends ArmorStand implements PolymerEntity {
-    public static final ResourceLocation ID = Util.id("gesture_camerax");
+public class GestureSeat extends ArmorStand implements PolymerEntity {
+    public static final ResourceLocation ID = Util.id("gesture_seat");
 
     private ServerPlayer player;
+    private Runnable onRemoved;
 
-    private Vec3 origin;
+    private boolean didGlow = false;
+    private Collection<MobEffectInstance> effects;
 
     public static AttributeSupplier.Builder createAttributes() {
         return ArmorStand.createLivingAttributes();
     }
 
+    public void setOnRemoved(Runnable onRemoved) {
+        this.onRemoved = onRemoved;
+    }
 
-    public GestureCamera(EntityType<? extends ArmorStand> type, Level level) {
+    public GestureSeat(EntityType<? extends ArmorStand> type, Level level) {
         super(type, level);
     }
 
-
-    GestureSeat seat;
-
-    public void setPlayer(ServerPlayer player, Runnable runnable) {
-        if (seat != null)
-            seat.discard();
-
-        this.origin = player.position();
+    public void setPlayer(ServerPlayer player) {
+        this.setPos(player.position());
         this.player = player;
-        this.seat = EntityRegistry.GESTURE_SEAT.create(player.level());
-        this.seat.setOnRemoved(runnable);
+        player.startRiding(this);
+        player.setInvisible(true);
+        player.setInvulnerable(true);
 
-        player.level().addFreshEntity(seat);
+        this.didGlow = player.hasGlowingTag();
+        player.setGlowingTag(false);
 
-        this.seat.setPlayer(player); // makes the player start ride the seat
-    }
-
-    public void spectate() {
-        this.player.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.CHANGE_GAME_MODE, GameType.SPECTATOR.getId()));
-        this.player.connection.send(new ClientboundSetCameraPacket(this));
+        this.effects = player.getActiveEffects();
+        player.removeAllEffects();
     }
 
     @Override
@@ -78,17 +69,14 @@ public class GestureCamera extends ArmorStand implements PolymerEntity {
         setNoGravity(true);
         setInvulnerable(true);
 
-        if (this.player == null || this.player.isRemoved() || !this.player.isPassenger()) {
+        if (this.player == null || player.isRemoved() || !hasControllingPassenger() || getPassengers().isEmpty()) {
+            this.ejectPassengers();
+
+            if (didGlow) player.setGlowingTag(true);
+            if (this.effects != null && !this.effects.isEmpty()) this.effects.forEach(e -> player.addEffect(e));
+
+            if (this.onRemoved != null) this.onRemoved.run();
             this.discard();
-        } else {
-            Quaternionf rot = Axis.XP.rotationDegrees(this.player.getXRot());
-            Quaternionf rot2 = Axis.YN.rotationDegrees(this.player.getYRot() + 180.f).normalize();
-
-            Vector3f rotatedPoint = new Vector3f(0, 0, -4).rotate(rot2.mul(rot)).add(this.origin.toVector3f());
-
-            this.move(MoverType.PLAYER, new Vec3(rotatedPoint.add(0, 0.5f, 0)).subtract(this.position()));
-            this.setXRot(this.player.getXRot());
-            this.setYHeadRot(this.player.getYRot() - 180.f);
         }
     }
 

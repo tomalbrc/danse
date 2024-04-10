@@ -1,12 +1,12 @@
 package de.tomalbrc.danse.mixins;
 
 import com.mojang.authlib.GameProfile;
+import de.tomalbrc.danse.commands.GestureCommand;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import de.tomalbrc.danse.commands.GestureCommand;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

@@ -12,10 +12,13 @@ import eu.pb4.polymer.core.api.utils.PolymerUtils;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
 import net.minecraft.network.protocol.game.ClientboundSetCameraPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.UUID;
 
@@ -50,31 +53,45 @@ public class GestureCommand {
         GesturePlayerModelEntity playerModel = new GesturePlayerModelEntity(player, PlayerModelRegistry.getModel(animationName), (model) -> {});
         playerModel.setCheckDistance(false);
 
-        GestureCamera gestureCamera = new GestureCamera(EntityRegistry.GESTURE_CAMERA, player.level());
-        gestureCamera.setOnRemoved(() -> {
+
+
+        GestureCamera gestureCamera = EntityRegistry.GESTURE_CAMERA.create(player.level());
+        gestureCamera.setPos(player.position());
+        player.level().addFreshEntity(gestureCamera);
+
+        // todo: move to the part where we restore effects etc
+        Vec3 pos = player.position();
+        var y = player.getYHeadRot();
+        var x = player.getXRot();
+
+        gestureCamera.setPlayer(player, () -> {
+            player.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.CHANGE_GAME_MODE, GameType.SURVIVAL.getId()));
+
             // Refresh equipment and inventory
             playerModel.getHolder().sendPacket(new ClientboundSetEquipmentPacket(player.getId(), Util.getEquipment(player, false)));
             if (!player.hasDisconnected()) {
                 PolymerUtils.reloadInventory(player);
+
+                player.setInvulnerable(false);
+                player.setInvisible(false);
+                GESTURES.removeInt(player.getUUID());
+
+                player.connection.send(new ClientboundSetCameraPacket(player));
+                player.setPos(pos);
+                player.setXRot(x);
+                player.setYHeadRot(y);
             }
-
-            player.setInvisible(false);
-            GESTURES.removeInt(player.getUUID());
             playerModel.discard();
-
-            player.startRiding(playerModel);
-            playerModel.ejectPassengers();
-
-            player.connection.send(new ClientboundSetCameraPacket(player));
         });
-        gestureCamera.setPlayer(player);
+
         playerModel.playAnimation(animationName, () -> {
-            player.stopRiding(); // removes model etc
+            player.stopRiding(); // removes model etc when animation finishes
         });
-        player.level().addFreshEntity(playerModel);
-        player.level().addFreshEntity(gestureCamera);
 
-        player.connection.send(new ClientboundSetCameraPacket(gestureCamera));
+        player.level().addFreshEntity(playerModel);
+
+        // make spayer spectate the camera, on the server they are riding the gesture seat where they left off
+        gestureCamera.spectate();
 
         GESTURES.put(player.getUUID(), playerModel.getId());
         return Command.SINGLE_SUCCESS;
