@@ -33,7 +33,6 @@ public class Danse implements ModInitializer {
             Files.createDirectories(path.getParent()); // Create parent directories if they don't exist
             Files.createFile(path);
         } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 }
