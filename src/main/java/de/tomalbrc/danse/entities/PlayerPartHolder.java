@@ -33,8 +33,7 @@ public class PlayerPartHolder<T extends Entity & AnimatedEntity> extends SimpleE
     public void applyPose(Pose pose, DisplayWrapper display) {
         super.applyPose(pose, display);
 
-        // fix for player head blocks & the player entities' head
-        // also helps to determine which texture UV to apply
+        // apply offsets that help to determine which texture UV to apply inside the shader
         switch (display.node().name()) {
             case "body" -> display.element().setTranslation(display.element().getTranslation().sub(0, 1024, 0, new Vector3f()));
             case "arm_r" -> display.element().setTranslation(display.element().getTranslation().sub(0, 2 * 1024, 0, new Vector3f()));
