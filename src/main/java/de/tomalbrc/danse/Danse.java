@@ -17,7 +17,6 @@ public class Danse implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        forceAutohost();
         PolymerResourcePackUtils.addModAssets(MODID);
         PolymerResourcePackUtils.markAsRequired();
 
@@ -25,14 +24,5 @@ public class Danse implements ModInitializer {
         EntityRegistry.registerMobs();
 
         CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> GestureCommand.register(dispatcher));
-    }
-
-    void forceAutohost() {
-        try {
-            Path path = FabricLoader.getInstance().getGameDir().resolve("polymer/.force_autohost");
-            Files.createDirectories(path.getParent()); // Create parent directories if they don't exist
-            Files.createFile(path);
-        } catch (IOException e) {
-        }
     }
 }

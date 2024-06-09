@@ -58,8 +58,9 @@ public class GestureSeat extends ArmorStand implements PolymerEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        // no-op
     }
 
     @Override

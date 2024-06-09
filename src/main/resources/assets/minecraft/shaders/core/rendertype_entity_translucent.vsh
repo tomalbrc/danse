@@ -117,7 +117,7 @@ void main() {
     
     wpos.y += SPACING * partId;
     gl_Position = ProjMat * ModelViewMat * vec4(inverse(IViewRotMat) * wpos, 1.0);
-    vertexDistance = fog_distance(ModelViewMat, wpos, FogShape);
+    vertexDistance = fog_distance(wpos, FogShape);
     
     if (partId == 2) { // right arm
       modifiedUV = armrT(currentCube);
@@ -137,7 +137,7 @@ void main() {
     player = 0;
     texCoord0 = UV0;
     texCoord1 = vec2(0);
-    vertexDistance = fog_distance(ModelViewMat, IViewRotMat * Position, FogShape);
+    vertexDistance = fog_distance(IViewRotMat * Position, FogShape);
     gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
   }
 }

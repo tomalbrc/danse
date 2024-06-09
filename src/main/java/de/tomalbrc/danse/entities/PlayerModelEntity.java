@@ -11,6 +11,7 @@ import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -131,11 +132,12 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
+    public float getShadowRadius() {
+        return this.getBbWidth() * 0.5f;
     }
 
     @Override
-    public float getShadowRadius() {
-        return this.getBbWidth() * 0.5f;
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+
     }
 }
