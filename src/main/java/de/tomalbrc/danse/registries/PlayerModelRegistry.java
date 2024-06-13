@@ -20,7 +20,7 @@ public class PlayerModelRegistry {
         );
 
         for (String filename : sourceModels) {
-            Model model = new PlayerModelLoader().loadResource(new ResourceLocation("danse", filename));
+            Model model = new PlayerModelLoader().loadResource(ResourceLocation.fromNamespaceAndPath("danse", filename));
             for (String animationName : model.animations().keySet()) {
                 animationModelMap.put(animationName, model);
             }

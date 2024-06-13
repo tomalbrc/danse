@@ -13,7 +13,7 @@ public class Util {
     public static final EquipmentSlot[] SLOTS = EquipmentSlot.values();
 
     public static ResourceLocation id(String path) {
-        return new ResourceLocation(Danse.MODID, path);
+        return ResourceLocation.fromNamespaceAndPath(Danse.MODID, path);
     }
 
     public static List<Pair<EquipmentSlot, ItemStack>> getEquipment(LivingEntity entity, boolean empty) {
