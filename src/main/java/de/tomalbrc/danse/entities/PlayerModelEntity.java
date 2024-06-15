@@ -9,7 +9,6 @@ import de.tomalbrc.danse.Util;
 import de.tomalbrc.danse.registries.PlayerModelRegistry;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
-import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -121,7 +120,7 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
         element.setItem(stack.copy());
         element.setModelTransformation(context);
         element.setInterpolationDuration(2);
-        element.getDataTracker().set(DisplayTrackedData.TELEPORTATION_DURATION, 2);
+        //element.getDataTracker().set(DisplayTrackedData.TELEPORTATION_DURATION, 2);
         return element;
     }
 
