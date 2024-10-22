@@ -1,31 +1,34 @@
 package de.tomalbrc.danse.entities;
 
-import com.mojang.authlib.properties.PropertyMap;
+import com.mojang.authlib.GameProfile;
 import de.tomalbrc.bil.api.AnimatedEntity;
 import de.tomalbrc.bil.core.holder.entity.simple.SimpleEntityHolder;
 import de.tomalbrc.bil.core.holder.wrapper.Bone;
 import de.tomalbrc.bil.core.holder.wrapper.DisplayWrapper;
 import de.tomalbrc.bil.core.model.Model;
 import de.tomalbrc.bil.core.model.Pose;
+import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.PlayerHeadItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ResolvableProfile;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.util.Optional;
-
 public class PlayerPartHolder<T extends Entity & AnimatedEntity> extends SimpleEntityHolder<T> {
-    public static final String SKULL_OWNER = "SkullOwner";
 
     public PlayerPartHolder(T parent, Model model) {
         super(parent, model);
     }
 
-    public void setSkin(String playerName) {
+    public void setSkin(GameProfile profile) {
+        ResolvableProfile profile1 = new ResolvableProfile(profile);
         for (Bone bone : this.bones) {
-            bone.element().getItem().set(DataComponents.PROFILE, new ResolvableProfile(Optional.of(playerName), Optional.empty(), new PropertyMap()));
+            var item = bone.element().getItem();
+            item.set(DataComponents.PROFILE, profile1);
+            bone.element().setItem(item);
         }
     }
 
@@ -49,5 +52,18 @@ public class PlayerPartHolder<T extends Entity & AnimatedEntity> extends SimpleE
             case "hat" -> display.element().setScale(display.element().getScale().mul(0.6f, new Vector3f()));
             default -> {}
         }
+    }
+
+    @Nullable
+    protected ItemDisplayElement createBoneDisplay(ResourceLocation modelData) {
+        var display = super.createBoneDisplay(modelData);
+
+        if (display == null)
+            return null;
+
+        ItemStack itemStack = new ItemStack(Items.PLAYER_HEAD);
+        itemStack.set(DataComponents.ITEM_MODEL, modelData);
+        display.setItem(itemStack);
+        return display;
     }
 }

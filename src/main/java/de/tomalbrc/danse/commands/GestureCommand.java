@@ -17,6 +17,7 @@ import net.minecraft.network.protocol.game.ClientboundSetCameraPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.UUID;
@@ -54,7 +55,8 @@ public class GestureCommand {
 
 
 
-        GestureCamera gestureCamera = EntityRegistry.GESTURE_CAMERA.create(player.level());
+        GestureCamera gestureCamera = EntityRegistry.GESTURE_CAMERA.create(player.level(), EntitySpawnReason.TRIGGERED);
+        assert gestureCamera != null;
         gestureCamera.setPos(player.position());
         player.level().addFreshEntity(gestureCamera);
 
@@ -83,9 +85,8 @@ public class GestureCommand {
             playerModel.discard();
         });
 
-        playerModel.playAnimation(animationName, () -> {
-            player.stopRiding(); // removes model etc when animation finishes
-        });
+        // removes model etc when animation finishes
+        playerModel.playAnimation(animationName, player::stopRiding);
 
         player.level().addFreshEntity(playerModel);
 

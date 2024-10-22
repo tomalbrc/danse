@@ -6,6 +6,7 @@ import eu.pb4.polymer.virtualentity.api.tracker.EntityTrackedData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -16,8 +17,9 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.Collection;
 import java.util.List;
@@ -31,6 +33,7 @@ public class GestureSeat extends ArmorStand implements PolymerEntity {
     private boolean didGlow = false;
     private Collection<MobEffectInstance> effects;
 
+    @NotNull
     public static AttributeSupplier.Builder createAttributes() {
         return ArmorStand.createLivingAttributes();
     }
@@ -93,7 +96,7 @@ public class GestureSeat extends ArmorStand implements PolymerEntity {
     }
 
     @Override
-    public EntityType<?> getPolymerEntityType(ServerPlayer player) {
+    public EntityType<?> getPolymerEntityType(PacketContext context) {
         return EntityType.ARMOR_STAND;
     }
 
@@ -107,7 +110,7 @@ public class GestureSeat extends ArmorStand implements PolymerEntity {
     }
 
     @Override
-    public boolean hurt(DamageSource damageSource, float f) {
+    public boolean hurtServer(ServerLevel serverLevel, DamageSource damageSource, float f) {
         return false;
     }
 

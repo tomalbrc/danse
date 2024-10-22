@@ -13,7 +13,9 @@ import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -22,6 +24,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
 
 public class PlayerModelEntity extends Entity implements AnimatedEntity {
     public static final ResourceLocation ID = Util.id("player_model");
@@ -69,7 +73,10 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
 
         if (tag.contains(PLAYER)) {
             this.playerName = tag.getString(PLAYER);
-            this.holder.setSkin(this.playerName);
+            if (this.getServer() != null && this.getServer().getProfileCache() != null) {
+                var opt = this.getServer().getProfileCache().get(this.playerName);
+                opt.ifPresent(gameProfile -> this.holder.setSkin(gameProfile));
+            }
         }
     }
 
@@ -102,7 +109,7 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
             this.addElement("hat", head, ItemDisplayContext.HEAD);
         }
 
-        this.holder.setSkin(this.playerName);
+        this.holder.setSkin(player.getGameProfile());
     }
 
     private void addElement(String name, ItemStack stack, ItemDisplayContext context) {
@@ -139,5 +146,10 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
 
+    }
+
+    @Override
+    public boolean hurtServer(ServerLevel serverLevel, DamageSource damageSource, float f) {
+        return false;
     }
 }
