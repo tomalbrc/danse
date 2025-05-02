@@ -83,12 +83,7 @@ public class GestureSeat extends ArmorStand implements PolymerEntity {
             this.discard();
         }
     }
-
-    @Override
-    public boolean isControlledByLocalInstance() {
-        return false;
-    }
-
+    
     @Nullable
     @Override
     public LivingEntity getControllingPassenger() {

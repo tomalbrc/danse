@@ -7,10 +7,14 @@ import de.tomalbrc.bil.file.extra.ResourcePackModel;
 import de.tomalbrc.bil.file.importer.AjModelImporter;
 import de.tomalbrc.bil.util.ResourcePackUtil;
 import eu.pb4.polymer.resourcepack.api.AssetPaths;
+import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Vector3f;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 public class PlayerModelImporter extends AjModelImporter {
     static Vector3f LIMB_SCALE = new Vector3f(0.46875f,1.40625f,0.46875f);
@@ -43,6 +47,19 @@ public class PlayerModelImporter extends AjModelImporter {
     }
 
     public static ResourceLocation addItemModel(BbModel model, String partName, ResourcePackModel resourcePackModel) {
+        PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(resourcePackBuilder -> {
+            try {
+                var dataMap = PerPixelModelGenerator.generatePerPixelModels(4, 4, 4, FabricLoader.getInstance().getGameDir());
+                for (Map.Entry<String, byte[]> entry : dataMap.entrySet()) {
+                    resourcePackBuilder.addData(entry.getKey(), entry.getValue());
+                }
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+
         var modelPath = BbResourcePackGenerator.addModelPart(model, partName, resourcePackModel);
 
         var str = """
@@ -63,6 +80,6 @@ public class PlayerModelImporter extends AjModelImporter {
         var id = ResourceLocation.fromNamespaceAndPath("bil", partName);
         ResourcePackUtil.add(ResourceLocation.parse(":" + AssetPaths.itemAsset(id)), bytes);
 
-        return id;
+        return ResourceLocation.fromNamespaceAndPath("danse", "composite");
     }
 }

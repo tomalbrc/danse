@@ -14,17 +14,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ServerPlayer.class)
 public abstract class ServerPlayerMixin extends Player {
+
     public ServerPlayerMixin(Level level, BlockPos blockPos, float f, GameProfile gameProfile) {
         super(level, blockPos, f, gameProfile);
     }
 
-    @Override
-    public boolean equipmentHasChanged(ItemStack itemStack, ItemStack itemStack2) {
-        return super.equipmentHasChanged(itemStack, itemStack2) && !GestureCommand.GESTURES.containsKey(this.uuid);
-    }
-
     @Inject(method = "disconnect", at = @At("TAIL"))
-    private void am_onDisconnect(CallbackInfo ci) {
+    private void danse$onDisconnect(CallbackInfo ci) {
         GestureCommand.GESTURES.removeInt(this.uuid);
     }
 }

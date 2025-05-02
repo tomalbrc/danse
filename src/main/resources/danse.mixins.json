@@ -4,6 +4,7 @@
   "package": "de.tomalbrc.danse.mixins",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "LivingEntityMixin",
     "ServerGamePacketListenerImplMixin",
     "ServerPlayerMixin"
   ],

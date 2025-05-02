@@ -13,9 +13,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.item.component.ResolvableProfile;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3f;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class PlayerPartHolder<T extends Entity & AnimatedEntity> extends SimpleEntityHolder<T> {
 
@@ -43,15 +47,7 @@ public class PlayerPartHolder<T extends Entity & AnimatedEntity> extends SimpleE
         super.applyPose(pose, display);
 
         // apply offsets that help to determine which texture UV to apply inside the shader
-        switch (display.node().name()) {
-            case "body" -> display.element().setTranslation(display.element().getTranslation().sub(0, 1024, 0, new Vector3f()));
-            case "arm_r" -> display.element().setTranslation(display.element().getTranslation().sub(0, 2 * 1024, 0, new Vector3f()));
-            case "arm_l" -> display.element().setTranslation(display.element().getTranslation().sub(0, 3 * 1024, 0, new Vector3f()));
-            case "leg_r" -> display.element().setTranslation(display.element().getTranslation().sub(0, 4 * 1024, 0, new Vector3f()));
-            case "leg_l" -> display.element().setTranslation(display.element().getTranslation().sub(0, 5 * 1024, 0, new Vector3f()));
-            case "hat" -> display.element().setScale(display.element().getScale().mul(0.6f, new Vector3f()));
-            default -> {}
-        }
+
     }
 
     @Nullable
@@ -62,8 +58,38 @@ public class PlayerPartHolder<T extends Entity & AnimatedEntity> extends SimpleE
             return null;
 
         ItemStack itemStack = new ItemStack(Items.PLAYER_HEAD);
+        itemStack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.of(), generateRandomBooleanList(8 * 8 * 8), List.of(), generateRandomIntegerList(8 * 8 * 8, 0x111111, 0xffffff)));
         itemStack.set(DataComponents.ITEM_MODEL, modelData);
         display.setItem(itemStack);
         return display;
+    }
+
+
+    private static final Random random = new Random();
+
+    public static List<Integer> generateRandomIntegerList(int size, int min, int max) {
+        if (min > max) {
+            throw new IllegalArgumentException("min must be less than or equal to max");
+        }
+        if (size <= 0) {
+            return new ArrayList<>();
+        }
+        List<Integer> randomList = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            int randomNumber = random.nextInt(max - min + 1) + min;
+            randomList.add(randomNumber);
+        }
+        return randomList;
+    }
+
+    public static List<Boolean> generateRandomBooleanList(int size) {
+        if (size <= 0) {
+            return new ArrayList<>();
+        }
+        List<Boolean> randomList = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            randomList.add(random.nextBoolean());
+        }
+        return randomList;
     }
 }

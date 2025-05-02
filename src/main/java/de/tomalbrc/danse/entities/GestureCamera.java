@@ -94,11 +94,6 @@ public class GestureCamera extends ArmorStand implements PolymerEntity {
         }
     }
 
-    @Override
-    public boolean isControlledByLocalInstance() {
-        return false;
-    }
-
     @Nullable
     @Override
     public LivingEntity getControllingPassenger() {

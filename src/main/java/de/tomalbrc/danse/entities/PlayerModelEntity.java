@@ -59,7 +59,7 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
                 this.holder.destroy();
             }
 
-            this.animation = tag.getString(ANIMATION);
+            this.animation = tag.getString(ANIMATION).orElseThrow();
 
             this.setModel(PlayerModelRegistry.getModel(this.animation));
 
@@ -72,7 +72,7 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
         }
 
         if (tag.contains(PLAYER)) {
-            this.playerName = tag.getString(PLAYER);
+            this.playerName = tag.getString(PLAYER).orElseThrow();
             if (this.getServer() != null && this.getServer().getProfileCache() != null) {
                 var opt = this.getServer().getProfileCache().get(this.playerName);
                 opt.ifPresent(gameProfile -> this.holder.setSkin(gameProfile));
@@ -127,7 +127,7 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
     private ItemDisplayElement makeItemDisplay(ItemStack stack, ItemDisplayContext context) {
         ItemDisplayElement element = new ItemDisplayElement();
         element.setItem(stack.copy());
-        element.setModelTransformation(context);
+        element.setItemDisplayContext(context);
         element.setInterpolationDuration(2);
         element.getDataTracker().set(DisplayTrackedData.TELEPORTATION_DURATION, 2);
         return element;
