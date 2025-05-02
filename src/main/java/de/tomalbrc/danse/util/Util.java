@@ -1,6 +1,7 @@
-package de.tomalbrc.danse;
+package de.tomalbrc.danse.util;
 
 import com.mojang.datafixers.util.Pair;
+import de.tomalbrc.danse.Danse;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;

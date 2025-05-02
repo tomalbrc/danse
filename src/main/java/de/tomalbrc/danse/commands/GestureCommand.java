@@ -3,7 +3,7 @@ package de.tomalbrc.danse.commands;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import de.tomalbrc.danse.Util;
+import de.tomalbrc.danse.util.Util;
 import de.tomalbrc.danse.entities.GestureCamera;
 import de.tomalbrc.danse.entities.GesturePlayerModelEntity;
 import de.tomalbrc.danse.registries.EntityRegistry;

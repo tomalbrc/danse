@@ -7,7 +7,10 @@ import de.tomalbrc.bil.core.holder.wrapper.Bone;
 import de.tomalbrc.bil.core.holder.wrapper.DisplayWrapper;
 import de.tomalbrc.bil.core.model.Model;
 import de.tomalbrc.bil.core.model.Pose;
+import de.tomalbrc.danse.util.MinecraftSkinFetcher;
+import de.tomalbrc.danse.util.MinecraftSkinParser;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
+import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -23,9 +26,20 @@ import java.util.List;
 import java.util.Random;
 
 public class PlayerPartHolder<T extends Entity & AnimatedEntity> extends SimpleEntityHolder<T> {
+    CustomModelData data;
 
     public PlayerPartHolder(T parent, Model model) {
         super(parent, model);
+
+        List<Integer> colors = new ArrayList<>();
+        MinecraftSkinFetcher.fetchSkin("Pinnit", image -> {
+            MinecraftSkinParser.extractTextureRGB(image, MinecraftSkinParser.BodyPart.BODY, MinecraftSkinParser.Layer.INNER, Direction.NORTH, colorData -> {
+                colors.add(colorData.color());
+            });
+        });
+
+        //colors = generateColors(64*64);
+        this.data = new CustomModelData(List.of(), generateAlphaBools(64*64), List.of(), colors);
     }
 
     public void setSkin(GameProfile profile) {
@@ -36,7 +50,7 @@ public class PlayerPartHolder<T extends Entity & AnimatedEntity> extends SimpleE
         for (Bone bone : this.bones) {
             var item = bone.element().getItem();
             item.set(DataComponents.PROFILE, profile1);
-            item.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.of(), generateAlphaBools(64*64), List.of(), generateColors(64*64)));
+            item.set(DataComponents.CUSTOM_MODEL_DATA, this.data);
             bone.element().setItem(item);
         }
     }

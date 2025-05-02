@@ -5,7 +5,7 @@ import de.tomalbrc.bil.core.extra.DisplayElementUpdateListener;
 import de.tomalbrc.bil.core.holder.wrapper.DisplayWrapper;
 import de.tomalbrc.bil.core.holder.wrapper.Locator;
 import de.tomalbrc.bil.core.model.Model;
-import de.tomalbrc.danse.Util;
+import de.tomalbrc.danse.util.Util;
 import de.tomalbrc.danse.registries.PlayerModelRegistry;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
@@ -24,8 +24,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.UUID;
 
 public class PlayerModelEntity extends Entity implements AnimatedEntity {
     public static final ResourceLocation ID = Util.id("player_model");

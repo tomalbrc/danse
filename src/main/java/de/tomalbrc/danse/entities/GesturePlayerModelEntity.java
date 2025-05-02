@@ -1,7 +1,7 @@
 package de.tomalbrc.danse.entities;
 
 import de.tomalbrc.bil.core.model.Model;
-import de.tomalbrc.danse.Util;
+import de.tomalbrc.danse.util.Util;
 import de.tomalbrc.danse.registries.EntityRegistry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;

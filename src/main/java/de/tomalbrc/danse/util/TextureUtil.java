@@ -1,7 +1,6 @@
-package de.tomalbrc.danse;
+package de.tomalbrc.danse.util;
 
 import net.minecraft.core.Vec3i;
-import net.minecraft.world.phys.Vec3;
 
 public class TextureUtil {
     public static Vec3i sizeFor(String name) {

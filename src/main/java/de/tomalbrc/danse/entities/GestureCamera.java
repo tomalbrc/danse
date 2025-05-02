@@ -1,7 +1,7 @@
 package de.tomalbrc.danse.entities;
 
 import com.mojang.math.Axis;
-import de.tomalbrc.danse.Util;
+import de.tomalbrc.danse.util.Util;
 import de.tomalbrc.danse.registries.EntityRegistry;
 import eu.pb4.polymer.core.api.entity.PolymerEntity;
 import eu.pb4.polymer.virtualentity.api.tracker.EntityTrackedData;

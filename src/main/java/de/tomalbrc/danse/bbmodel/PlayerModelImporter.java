@@ -4,19 +4,14 @@ import de.tomalbrc.bil.file.bbmodel.BbElement;
 import de.tomalbrc.bil.file.bbmodel.BbModel;
 import de.tomalbrc.bil.file.bbmodel.BbOutliner;
 import de.tomalbrc.bil.file.extra.BbModelUtils;
-import de.tomalbrc.bil.file.extra.BbResourcePackGenerator;
 import de.tomalbrc.bil.file.extra.ResourcePackModel;
 import de.tomalbrc.bil.file.importer.AjModelImporter;
-import de.tomalbrc.bil.util.ResourcePackUtil;
-import de.tomalbrc.danse.TextureUtil;
-import eu.pb4.polymer.resourcepack.api.AssetPaths;
+import de.tomalbrc.danse.util.TextureUtil;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Vector3f;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class PlayerModelImporter extends AjModelImporter {
