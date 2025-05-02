@@ -1,12 +1,14 @@
 package de.tomalbrc.danse.bbmodel;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.SerializedName;
+import de.tomalbrc.bil.file.extra.ResourcePackModel;
+import de.tomalbrc.bil.json.JSON;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.*;
 
 public class PerPixelModelGenerator {
@@ -17,7 +19,7 @@ public class PerPixelModelGenerator {
         int tintindex;
 
         Face(int tintindex) {
-            this.tintindex = tintindex;
+            this.tintindex = 0;
         }
     }
 
@@ -36,9 +38,11 @@ public class PerPixelModelGenerator {
     static class Model {
         Map<String, String> textures = Collections.singletonMap("p", "danse:item/model");
         List<Element> elements;
+        Map<String, ResourcePackModel.DisplayTransform> display;
 
-        Model(List<Element> elements) {
+        Model(List<Element> elements, Map<String, ResourcePackModel.DisplayTransform> display) {
             this.elements = elements;
+            this.display = display;
         }
     }
 
@@ -47,11 +51,11 @@ public class PerPixelModelGenerator {
         String property = "minecraft:custom_model_data";
         int index;
         Map<String, Object> on_true;
-        Map<String, Object> on_false = Collections.singletonMap("type", "minecraft:empty");
+        Map<String, Object> on_false = ImmutableMap.of("type", "minecraft:empty");
 
-        ConditionModel(int index, String modelPath) {
-            this.index = index;
-            this.on_true = Map.of("type", "minecraft:model", "model", modelPath);
+        ConditionModel(int tintIndex, String modelPath) {
+            this.index = tintIndex;
+            this.on_true = ImmutableMap.of("type", "minecraft:model", "model", modelPath, "tints", List.of(new Tint(tintIndex)));
         }
     }
 
@@ -60,16 +64,25 @@ public class PerPixelModelGenerator {
         List<ConditionModel> models = new ArrayList<>();
     }
 
-    private static void createModelForFace(int ix, int iy, int iz, double sizeX, double sizeY, double sizeZ, int tintIndex, String faceDirection, List<Map<String, Object>> pixelModels, Map<String, byte[]> res, Gson gson, Path dir) throws IOException {
-        // Calculate the correct bounds for the face
-        double fromX = ix * sizeX;
+    static class Tint {
+        String type = "minecraft:custom_model_data";
+        int index;
+        @SerializedName("default")
+        int def = 0xFF_FF_FF;
+
+        public Tint(int index) {
+            this.index = index;
+        }
+    }
+
+    private static void createModelForFace(int ix, int iy, int iz, double sizeX, double sizeY, double sizeZ, int tintIndex, String faceDirection, List<Map<String, Object>> pixelModels, Map<String, byte[]> res, Map<String, ResourcePackModel.DisplayTransform> transformMap, String partName, Gson gson) throws IOException {
+        double fromX = ix * sizeX + (8 - 4);
         double toX = fromX + sizeX;
-        double fromY = iy * sizeY;
+        double fromY = iy * sizeY + (0);
         double toY = fromY + sizeY;
-        double fromZ = iz * sizeZ;
+        double fromZ = iz * sizeZ + (8 - 4);
         double toZ = fromZ + sizeZ;
 
-        // Adjust for the specific face direction (north, south, east, west, up, down)
         Map<String, Face> faces = new HashMap<>();
         switch (faceDirection) {
             case "north":
@@ -92,82 +105,73 @@ public class PerPixelModelGenerator {
                 break;
         }
 
-        // Create the element for the face
         Element element = new Element(
                 Arrays.asList(fromX, fromY, fromZ),
                 Arrays.asList(toX, toY, toZ),
                 faces
         );
 
-        // Create the model for that face
-        Model model = new Model(Collections.singletonList(element));
+        Model model = new Model(Collections.singletonList(element), transformMap);
 
-        // Save the model to a file
-        String filename = String.format("face_%d_%d_%d_%s.json", ix, iy, iz, faceDirection);
-        var bytes = gson.toJson(model).getBytes(StandardCharsets.UTF_8);
-        res.put("assets/danse/models/item/" + filename, bytes);
+        String filename = String.format("f%d_%d_%d%s.json", ix, iy, iz, faceDirection);
+        String filenameWithoutExt = String.format("f%d_%d_%d%s", ix, iy, iz, faceDirection);
+        byte[] bytes = gson.toJson(model).getBytes(StandardCharsets.UTF_8);
+        res.put("assets/danse/models/item/" + partName + "/" + filename, bytes);
 
-        System.out.println("Saved " + filename);
-
-        pixelModels.add(Map.of(
-                "index", pixelModels.size(),
-                "model_path", String.format("danse:item/face_%d_%d_%d_%s", ix, iy, iz, faceDirection)
+        pixelModels.add(ImmutableMap.of(
+                "index", tintIndex,
+                "model_path", String.format("danse:item/" + partName + "/" + filenameWithoutExt)
         ));
     }
 
-    public static Map<String, byte[]> generatePerPixelModels(int px, int py, int pz, Path dir) throws IOException {
+    public static Map<String, byte[]> generatePerPixelModels(int px, int py, int pz, String partName, Map<String, ResourcePackModel.DisplayTransform> transformMap) throws IOException {
         Map<String, byte[]> res = new Object2ObjectArrayMap<>();
 
         double sizeX = 8.0 / px;
         double sizeY = 8.0 / py;
         double sizeZ = 8.0 / pz;
 
-        var file = dir.toFile();
-        if (!file.exists()) {
-            file.mkdirs();
-        }
-
-        Gson gson = new GsonBuilder().create();
+        Gson gson = JSON.GENERIC_BUILDER.create();
         int tintIndex = 0;
         List<Map<String, Object>> pixelModels = new ArrayList<>();
 
-        // Generate models for the faces of the structure, not the internal pixels
         for (int ix = 0; ix < px; ix++) {
             for (int iy = 0; iy < py; iy++) {
                 for (int iz = 0; iz < pz; iz++) {
-
-                    // Only create models for faces that are on the boundary of the structure
-                    // North face (for iz == 0)
+                    // north
                     if (iz == 0) {
-                        createModelForFace(ix, iy, iz, sizeX, sizeY, sizeZ, tintIndex, "north", pixelModels, res, gson, dir);
+                        createModelForFace(ix, iy, iz, sizeX, sizeY, sizeZ, tintIndex, "north", pixelModels, res, transformMap, partName, gson);
+                        tintIndex++;
                     }
-                    // South face (for iz == pz - 1)
+                    // south
                     if (iz == pz - 1) {
-                        createModelForFace(ix, iy, iz, sizeX, sizeY, sizeZ, tintIndex, "south", pixelModels, res, gson, dir);
+                        createModelForFace(ix, iy, iz, sizeX, sizeY, sizeZ, tintIndex, "south", pixelModels, res, transformMap, partName, gson);
+                        tintIndex++;
                     }
-                    // East face (for ix == px - 1)
+                    // east
                     if (ix == px - 1) {
-                        createModelForFace(ix, iy, iz, sizeX, sizeY, sizeZ, tintIndex, "east", pixelModels, res, gson, dir);
+                        createModelForFace(ix, iy, iz, sizeX, sizeY, sizeZ, tintIndex, "east", pixelModels, res, transformMap, partName, gson);
+                        tintIndex++;
                     }
-                    // West face (for ix == 0)
+                    // west
                     if (ix == 0) {
-                        createModelForFace(ix, iy, iz, sizeX, sizeY, sizeZ, tintIndex, "west", pixelModels, res, gson, dir);
+                        createModelForFace(ix, iy, iz, sizeX, sizeY, sizeZ, tintIndex, "west", pixelModels, res, transformMap, partName, gson);
+                        tintIndex++;
                     }
-                    // Up face (for iy == py - 1)
+                    // up
                     if (iy == py - 1) {
-                        createModelForFace(ix, iy, iz, sizeX, sizeY, sizeZ, tintIndex, "up", pixelModels, res, gson, dir);
+                        createModelForFace(ix, iy, iz, sizeX, sizeY, sizeZ, tintIndex, "up", pixelModels, res, transformMap, partName, gson);
+                        tintIndex++;
                     }
-                    // Down face (for iy == 0)
+                    // down
                     if (iy == 0) {
-                        createModelForFace(ix, iy, iz, sizeX, sizeY, sizeZ, tintIndex, "down", pixelModels, res, gson, dir);
+                        createModelForFace(ix, iy, iz, sizeX, sizeY, sizeZ, tintIndex, "down", pixelModels, res, transformMap, partName, gson);
+                        tintIndex++;
                     }
-
-                    tintIndex++;
                 }
             }
         }
 
-        // Generate the composite model
         CompositeModel composite = new CompositeModel();
         for (Map<String, Object> pixel : pixelModels) {
             int index = (Integer) pixel.get("index");
@@ -176,10 +180,8 @@ public class PerPixelModelGenerator {
             composite.models.add(condition);
         }
 
-        var bytes = gson.toJson(Map.of("model", composite)).getBytes(StandardCharsets.UTF_8);
-        res.put("assets/danse/items/composite.json", bytes);
-
-        System.out.println("Saved composite.json");
+        var bytes = gson.toJson(ImmutableMap.of("model", composite)).getBytes(StandardCharsets.UTF_8);
+        res.put("assets/danse/items/composite_" + partName + ".json", bytes);
 
         return res;
     }

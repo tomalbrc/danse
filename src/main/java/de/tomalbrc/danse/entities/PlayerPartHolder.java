@@ -18,6 +18,7 @@ import net.minecraft.world.item.component.ResolvableProfile;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -29,9 +30,13 @@ public class PlayerPartHolder<T extends Entity & AnimatedEntity> extends SimpleE
 
     public void setSkin(GameProfile profile) {
         ResolvableProfile profile1 = new ResolvableProfile(profile);
+
+        // todo: parse cmd for each
+
         for (Bone bone : this.bones) {
             var item = bone.element().getItem();
             item.set(DataComponents.PROFILE, profile1);
+            item.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.of(), generateAlphaBools(64*64), List.of(), generateColors(64*64)));
             bone.element().setItem(item);
         }
     }
@@ -42,14 +47,6 @@ public class PlayerPartHolder<T extends Entity & AnimatedEntity> extends SimpleE
         super.updateElement(display, pose);
     }
 
-    @Override
-    public void applyPose(Pose pose, DisplayWrapper display) {
-        super.applyPose(pose, display);
-
-        // apply offsets that help to determine which texture UV to apply inside the shader
-
-    }
-
     @Nullable
     protected ItemDisplayElement createBoneDisplay(ResourceLocation modelData) {
         var display = super.createBoneDisplay(modelData);
@@ -57,8 +54,7 @@ public class PlayerPartHolder<T extends Entity & AnimatedEntity> extends SimpleE
         if (display == null)
             return null;
 
-        ItemStack itemStack = new ItemStack(Items.PLAYER_HEAD);
-        itemStack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.of(), generateRandomBooleanList(8 * 8 * 8), List.of(), generateRandomIntegerList(8 * 8 * 8, 0x111111, 0xffffff)));
+        ItemStack itemStack = new ItemStack(Items.PAPER);
         itemStack.set(DataComponents.ITEM_MODEL, modelData);
         display.setItem(itemStack);
         return display;
@@ -67,29 +63,27 @@ public class PlayerPartHolder<T extends Entity & AnimatedEntity> extends SimpleE
 
     private static final Random random = new Random();
 
-    public static List<Integer> generateRandomIntegerList(int size, int min, int max) {
-        if (min > max) {
-            throw new IllegalArgumentException("min must be less than or equal to max");
-        }
-        if (size <= 0) {
-            return new ArrayList<>();
-        }
+    public static List<Integer> generateColors(int size) {
         List<Integer> randomList = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
-            int randomNumber = random.nextInt(max - min + 1) + min;
-            randomList.add(randomNumber);
+            randomList.add(getRandomRGBColor());
         }
         return randomList;
     }
 
-    public static List<Boolean> generateRandomBooleanList(int size) {
-        if (size <= 0) {
-            return new ArrayList<>();
-        }
+    public static List<Boolean> generateAlphaBools(int size) {
         List<Boolean> randomList = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
-            randomList.add(random.nextBoolean());
+            //randomList.add(random.nextBoolean());
+            randomList.add(true);
         }
         return randomList;
+    }
+
+    public static int getRandomRGBColor() {
+        int r = random.nextInt(256);
+        int g = random.nextInt(256);
+        int b = random.nextInt(256);
+        return (r << 16) | (g << 8) | b;
     }
 }

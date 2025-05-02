@@ -128,8 +128,8 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
         ItemDisplayElement element = new ItemDisplayElement();
         element.setItem(stack.copy());
         element.setItemDisplayContext(context);
-        element.setInterpolationDuration(2);
-        element.getDataTracker().set(DisplayTrackedData.TELEPORTATION_DURATION, 2);
+        element.setInterpolationDuration(3);
+        element.getDataTracker().set(DisplayTrackedData.TELEPORTATION_DURATION, 3);
         return element;
     }
 

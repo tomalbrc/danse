@@ -1,11 +1,14 @@
 package de.tomalbrc.danse.bbmodel;
 
+import de.tomalbrc.bil.file.bbmodel.BbElement;
 import de.tomalbrc.bil.file.bbmodel.BbModel;
 import de.tomalbrc.bil.file.bbmodel.BbOutliner;
+import de.tomalbrc.bil.file.extra.BbModelUtils;
 import de.tomalbrc.bil.file.extra.BbResourcePackGenerator;
 import de.tomalbrc.bil.file.extra.ResourcePackModel;
 import de.tomalbrc.bil.file.importer.AjModelImporter;
 import de.tomalbrc.bil.util.ResourcePackUtil;
+import de.tomalbrc.danse.TextureUtil;
 import eu.pb4.polymer.resourcepack.api.AssetPaths;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.loader.api.FabricLoader;
@@ -39,17 +42,17 @@ public class PlayerModelImporter extends AjModelImporter {
     }
 
     protected ResourceLocation generateHeadModel(BbOutliner outliner, Vector3f pos, Vector3f scale) {
-        ResourcePackModel.Builder builder = new ResourcePackModel.Builder(model.modelIdentifier)
-                .withParent("builtin/entity")
-                .addDisplayTransform("head", new ResourcePackModel.DisplayTransform(null, pos, scale));
+        var elements = BbModelUtils.elementsForOutliner(model, outliner, BbElement.ElementType.CUBE);
+        var element = elements.getFirst();
 
-        return addItemModel(model, outliner.name.toLowerCase(), builder.build());
+        return addItemModel(model, outliner.name.toLowerCase(), Map.of("head", new ResourcePackModel.DisplayTransform(null, pos, scale)));
     }
 
-    public static ResourceLocation addItemModel(BbModel model, String partName, ResourcePackModel resourcePackModel) {
+    public static ResourceLocation addItemModel(BbModel model, String partName, Map<String, ResourcePackModel.DisplayTransform> transformMap) {
         PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(resourcePackBuilder -> {
             try {
-                var dataMap = PerPixelModelGenerator.generatePerPixelModels(4, 4, 4, FabricLoader.getInstance().getGameDir());
+                var size = TextureUtil.sizeFor(partName);
+                var dataMap = PerPixelModelGenerator.generatePerPixelModels(size.getX(), size.getY(), size.getZ(), partName, transformMap);
                 for (Map.Entry<String, byte[]> entry : dataMap.entrySet()) {
                     resourcePackBuilder.addData(entry.getKey(), entry.getValue());
                 }
@@ -59,27 +62,6 @@ public class PlayerModelImporter extends AjModelImporter {
             }
         });
 
-
-        var modelPath = BbResourcePackGenerator.addModelPart(model, partName, resourcePackModel);
-
-        var str = """
-                {
-                  "model": {
-                    "type": "minecraft:special",
-                    "base": "%s",
-                    "model": {
-                      "type": "minecraft:head",
-                      "kind": "player"
-                    }
-                  }
-                }
-                """;
-
-        var bytes = str.formatted(modelPath.toString()).getBytes(StandardCharsets.UTF_8);
-
-        var id = ResourceLocation.fromNamespaceAndPath("bil", partName);
-        ResourcePackUtil.add(ResourceLocation.parse(":" + AssetPaths.itemAsset(id)), bytes);
-
-        return ResourceLocation.fromNamespaceAndPath("danse", "composite");
+        return ResourceLocation.fromNamespaceAndPath("danse", "composite_"+partName);
     }
 }
