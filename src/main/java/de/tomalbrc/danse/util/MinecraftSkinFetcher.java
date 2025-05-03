@@ -21,16 +21,16 @@ import java.util.function.Consumer;
 
 public class MinecraftSkinFetcher {
     private static final Gson gson = new Gson();
-    private static final Map<String, BufferedImage> skinCache = new ConcurrentHashMap<>();
-    private static final Map<String, CompletableFuture<BufferedImage>> futureCache = new ConcurrentHashMap<>();
+    private static final Map<String, BufferedImage> CACHED_SKINS = new ConcurrentHashMap<>();
+    private static final Map<String, CompletableFuture<BufferedImage>> FUTURE_CACHE = new ConcurrentHashMap<>();
 
     public static void fetchSkin(String base64val, Consumer<BufferedImage> callback) {
-        if (skinCache.containsKey(base64val)) {
-            callback.accept(skinCache.get(base64val));
+        if (CACHED_SKINS.containsKey(base64val)) {
+            callback.accept(CACHED_SKINS.get(base64val));
             return;
         }
 
-        futureCache.computeIfAbsent(base64val, key ->
+        FUTURE_CACHE.computeIfAbsent(base64val, key ->
                 CompletableFuture.supplyAsync(() -> {
                     String decodedJson = new String(Base64.getDecoder().decode(base64val));
                     JsonObject textureData = gson.fromJson(decodedJson, JsonObject.class);
@@ -49,9 +49,9 @@ public class MinecraftSkinFetcher {
                         try {
                             var img = ImageIO.read(new ByteArrayInputStream(skinData));
                             if (img != null) {
-                                skinCache.put(base64val, img);
+                                CACHED_SKINS.put(base64val, img);
                             }
-                            futureCache.remove(base64val);
+                            FUTURE_CACHE.remove(base64val);
                             return img;
 
                         } catch (IOException e) {

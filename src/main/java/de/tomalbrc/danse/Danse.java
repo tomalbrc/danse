@@ -6,6 +6,7 @@ import de.tomalbrc.danse.registries.PlayerModelRegistry;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 
 public class Danse implements ModInitializer {
     public static final String MODID = "danse";
@@ -18,6 +19,9 @@ public class Danse implements ModInitializer {
         PlayerModelRegistry.load();
         EntityRegistry.registerMobs();
 
+        ServerPlayConnectionEvents.JOIN.register((serverGamePacketListener, packetSender, minecraftServer) -> {
+
+        });
         CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> GestureCommand.register(dispatcher));
     }
 }

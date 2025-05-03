@@ -193,40 +193,75 @@ public class MinecraftSkinParser {
         int width = region[2];
         int height = region[3];
 
+        // ok so the textures are flipped in the sprite
+        // but there is no way in hell i will adjust the item model generator to fix the model.
+        // so just flip the textures
         switch (direction) {
-            case EAST -> {
-                for (int dx = 0; dx < width; dx++) {
-                    for (int dy = height - 1; dy >= 0; dy--) {
-                        try {
-                            int argb = image.getRGB(startX + dx, startY + dy);
-                            consumer.accept(new ColorData(argb, dx, dy, width, height));
-                        } catch (Exception e) {
-                            consumer.accept(new ColorData(0xFF_FF_FF, dx, dy, width, height));
-                        }
-                    }
+            case EAST -> eastTex(image, consumer, width, height, startX, startY);
+            case WEST -> westTex(image, consumer, width, height, startX, startY);
+            case UP -> upTex(image, consumer, height, width, startX, startY);
+            case SOUTH -> southTex(image, consumer, height, width, startX, startY);
+            case NORTH, DOWN -> northTex(image, consumer, height, width, startX, startY);
+        }
+    }
+
+    private static void eastTex(BufferedImage image, Consumer<ColorData> consumer, int width, int height, int startX, int startY) {
+        // flip
+        for (int dx = 0; dx < width; dx++) {
+            for (int dy = height - 1; dy >= 0; dy--) {
+                try {
+                    int argb = image.getRGB(startX + dx, startY + dy);
+                    consumer.accept(new ColorData(argb, dx, dy, width, height));
+                } catch (Exception e) {
+                    consumer.accept(new ColorData(0xFF_FF_FF, dx, dy, width, height));
                 }
-            }
-            case WEST -> {
-                for (int dx = width-1; dx >= 0; dx--) {
-                    for (int dy = height - 1; dy >= 0; dy--) {
-                        try {
-                            int argb = image.getRGB(startX + dx, startY + dy);
-                            consumer.accept(new ColorData(argb, dx, dy, width, height));
-                        } catch (Exception e) {
-                            consumer.accept(new ColorData(0xFF_FF_FF, dx, dy, width, height));
-                        }
-                    }
-                }
-            }
-            case null, default -> {
-                extracted(image, consumer, height, width, startX, startY);
             }
         }
     }
 
-    private static void extracted(BufferedImage image, Consumer<ColorData> consumer, int height, int width, int startX, int startY) {
+    private static void westTex(BufferedImage image, Consumer<ColorData> consumer, int width, int height, int startX, int startY) {
+        // flip the other way
+        for (int dx = width -1; dx >= 0; dx--) {
+            for (int dy = height - 1; dy >= 0; dy--) {
+                try {
+                    int argb = image.getRGB(startX + dx, startY + dy);
+                    consumer.accept(new ColorData(argb, dx, dy, width, height));
+                } catch (Exception e) {
+                    consumer.accept(new ColorData(0xFF_FF_FF, dx, dy, width, height));
+                }
+            }
+        }
+    }
+
+    private static void northTex(BufferedImage image, Consumer<ColorData> consumer, int height, int width, int startX, int startY) {
         for (int dy = height - 1; dy >= 0; dy--) {
             for (int dx = 0; dx < width; dx++) {
+                try {
+                    int argb = image.getRGB(startX + dx, startY + dy);
+                    consumer.accept(new ColorData(argb, dx, dy, width, height));
+                } catch (Exception e) {
+                    consumer.accept(new ColorData(0xFF_FF_FF, dx, dy, width, height));
+                }
+            }
+        }
+    }
+
+    private static void upTex(BufferedImage image, Consumer<ColorData> consumer, int height, int width, int startX, int startY) {
+        for (int dy = 0; dy < height; dy++) {
+            for (int dx = 0; dx < width; dx++) {
+                try {
+                    int argb = image.getRGB(startX + dx, startY + dy);
+                    consumer.accept(new ColorData(argb, dx, dy, width, height));
+                } catch (Exception e) {
+                    consumer.accept(new ColorData(0xFF_FF_FF, dx, dy, width, height));
+                }
+            }
+        }
+    }
+
+    private static void southTex(BufferedImage image, Consumer<ColorData> consumer, int height, int width, int startX, int startY) {
+        for (int dy = height - 1; dy >= 0; dy--) {
+            for (int dx = width - 1; dx >= 0; dx--) {
                 try {
                     int argb = image.getRGB(startX + dx, startY + dy);
                     consumer.accept(new ColorData(argb, dx, dy, width, height));

@@ -1,12 +1,15 @@
 package de.tomalbrc.danse.entities;
 
 import de.tomalbrc.bil.core.model.Model;
-import de.tomalbrc.danse.util.Util;
 import de.tomalbrc.danse.registries.EntityRegistry;
+import de.tomalbrc.danse.util.MinecraftSkinParser;
+import de.tomalbrc.danse.util.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.component.CustomModelData;
 
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class GesturePlayerModelEntity extends PlayerModelEntity {
@@ -18,7 +21,7 @@ public class GesturePlayerModelEntity extends PlayerModelEntity {
         this.checkDistance = checkDistance;
     }
 
-    public GesturePlayerModelEntity(ServerPlayer player, Model model, Consumer<GesturePlayerModelEntity> onRemoved) {
+    public GesturePlayerModelEntity(ServerPlayer player, Model model, Map<MinecraftSkinParser.BodyPart, CustomModelData> data, Consumer<GesturePlayerModelEntity> onRemoved) {
         super(EntityRegistry.PLAYER_MODEL, player.level());
         this.onRemoved = onRemoved;
         this.player = player;
@@ -26,7 +29,7 @@ public class GesturePlayerModelEntity extends PlayerModelEntity {
         this.setYRot(player.getYRot());
 
         this.setModel(model);
-        this.setPlayer(player); // important to set this *after* model was set
+        this.setPlayer(player, data); // important to set this *after* model was set
     }
 
     @Override

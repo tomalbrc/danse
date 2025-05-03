@@ -1,8 +1,8 @@
 package de.tomalbrc.danse.entities;
 
 import com.mojang.math.Axis;
-import de.tomalbrc.danse.util.Util;
 import de.tomalbrc.danse.registries.EntityRegistry;
+import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.core.api.entity.PolymerEntity;
 import eu.pb4.polymer.virtualentity.api.tracker.EntityTrackedData;
 import net.minecraft.core.BlockPos;

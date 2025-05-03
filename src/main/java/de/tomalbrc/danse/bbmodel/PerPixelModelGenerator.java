@@ -6,23 +6,22 @@ import com.google.gson.annotations.SerializedName;
 import de.tomalbrc.bil.file.extra.ResourcePackModel;
 import de.tomalbrc.bil.json.JSON;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import net.minecraft.core.Direction;
 import org.joml.Vector3f;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class PerPixelModelGenerator {
     private static final String MODEL_PREFIX = "danse:item/";
-    private static final List<String> DIRECTIONS = List.of(
-            "north", "south", "east", "west", "up", "down"
+    private static final List<Direction> DIRECTIONS = List.of(
+            Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST, Direction.UP, Direction.DOWN
     );
 
     static class Face {
         List<Integer> uv = Arrays.asList(0, 0, 16, 16);
         String texture = "#p";
         int tintindex = 0;
-
         public static Face ZERO = new Face();
     }
 
@@ -104,23 +103,20 @@ public class PerPixelModelGenerator {
 
         private int[] calculateDirectionCounts() {
             return new int[]{
-                    px * py,  // North/South
-                    px * py,   // North/South
-                    py * pz,  // East/West
-                    py * pz,   // East/West
-                    px * pz,  // Up/Down
-                    px * pz    // Up/Down
+                    px * py,  // North
+                    px * py,   // South
+                    py * pz,  // East
+                    py * pz,   // West
+                    px * pz,  // Up
+                    px * pz    // Down
             };
         }
     }
 
-    private record FaceData(int x, int y, int z, String direction, int directionIndex) {
+    private record FaceData(int x, int y, int z, Direction direction, int directionIndex) {
     }
 
-    public static Map<String, byte[]> generatePerPixelModels(int px, int py, int pz,
-                                                             String partName,
-                                                             Map<String, ResourcePackModel.DisplayTransform> transformMap)
-            throws IOException {
+    public static Map<String, byte[]> generatePerPixelModels(int px, int py, int pz, String partName, Map<String, ResourcePackModel.DisplayTransform> transformMap) {
         GridConfig grid = new GridConfig(px, py, pz);
         Map<String, byte[]> resources = new Object2ObjectArrayMap<>();
         List<Map<String, Object>> pixelModels = new ArrayList<>();
@@ -135,7 +131,7 @@ public class PerPixelModelGenerator {
         int totalOriginal = Arrays.stream(grid.directionCounts).sum();
         calculateBases(grid.directionBases, grid.directionCounts, totalOriginal);
 
-        var map = Map.of("head", new ResourcePackModel.DisplayTransform(null, transformMap.get("head").translation().add(0, 0.025f, 0, new Vector3f()), transformMap.get("head").scale().add(0.05f,0.05f,0.05f, new Vector3f())));
+        var map = Map.of("head", new ResourcePackModel.DisplayTransform(null, transformMap.get("head").translation().add(0, 0.4f, 0, new Vector3f()), transformMap.get("head").scale().add(0.08f,0.08f,0.08f, new Vector3f())));
         generateAllModels(new GenerationContext(
                 resources, pixelModels, map, partName, gson, grid, true
         ));
@@ -144,7 +140,7 @@ public class PerPixelModelGenerator {
         return resources;
     }
 
-    private static void generateAllModels(GenerationContext ctx) throws IOException {
+    private static void generateAllModels(GenerationContext ctx) {
         for (int x = 0; x < ctx.grid.px; x++) {
             for (int y = 0; y < ctx.grid.py; y++) {
                 for (int z = 0; z < ctx.grid.pz; z++) {
@@ -154,28 +150,27 @@ public class PerPixelModelGenerator {
         }
     }
 
-    private static void processCubeFaces(int x, int y, int z, GenerationContext ctx) throws IOException {
+    private static void processCubeFaces(int x, int y, int z, GenerationContext ctx) {
         for (int i = 0; i < DIRECTIONS.size(); i++) {
-            String dir = DIRECTIONS.get(i);
+            Direction dir = DIRECTIONS.get(i);
             if (isFacePresent(x, y, z, dir, ctx.grid)) {
                 createFaceModel(new FaceData(x, y, z, dir, i), ctx);
             }
         }
     }
 
-    private static boolean isFacePresent(int x, int y, int z, String direction, GridConfig grid) {
+    private static boolean isFacePresent(int x, int y, int z, Direction direction, GridConfig grid) {
         return switch (direction) {
-            case "north" -> z == 0;
-            case "south" -> z == grid.pz - 1;
-            case "east" -> x == grid.px - 1;
-            case "west" -> x == 0;
-            case "up" -> y == grid.py - 1;
-            case "down" -> y == 0;
-            default -> false;
+            case Direction.NORTH -> z == 0;
+            case Direction.SOUTH -> z == grid.pz - 1;
+            case Direction.EAST -> x == grid.px - 1;
+            case Direction.WEST -> x == 0;
+            case Direction.UP -> y == grid.py - 1;
+            case Direction.DOWN -> y == 0;
         };
     }
 
-    private static void createFaceModel(FaceData face, GenerationContext ctx) throws IOException {
+    private static void createFaceModel(FaceData face, GenerationContext ctx) {
         int perFaceIndex = calculatePerFaceIndex(face, ctx.grid);
         int tintIndex = ctx.grid.directionBases[face.directionIndex] + perFaceIndex;
 
@@ -188,15 +183,15 @@ public class PerPixelModelGenerator {
 
     private static int calculatePerFaceIndex(FaceData face, GridConfig grid) {
         return switch (face.direction) {
-            case "north", "south" -> face.x + face.y * grid.px;
-            case "east", "west" -> face.y + face.z * grid.py;
+            case Direction.NORTH, Direction.SOUTH -> face.x + face.y * grid.px;
+            case Direction.EAST, Direction.WEST -> face.y + face.z * grid.py;
             default -> face.x + face.z * grid.px; // up/down
         };
     }
 
     private static Element createElement(FaceData face, GridConfig grid, boolean inflated) {
         BoundingBox bb = new BoundingBox(face.x, face.y, face.z, grid, inflated);
-        return new Element(bb.from(), bb.to(), Map.of(face.direction, Face.ZERO));
+        return new Element(bb.from(), bb.to(), Map.of(face.direction.getName(), Face.ZERO));
     }
 
     private static String createFilename(FaceData face, GenerationContext ctx) {

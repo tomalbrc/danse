@@ -5,8 +5,10 @@ import de.tomalbrc.bil.core.extra.DisplayElementUpdateListener;
 import de.tomalbrc.bil.core.holder.wrapper.DisplayWrapper;
 import de.tomalbrc.bil.core.holder.wrapper.Locator;
 import de.tomalbrc.bil.core.model.Model;
-import de.tomalbrc.danse.util.Util;
 import de.tomalbrc.danse.registries.PlayerModelRegistry;
+import de.tomalbrc.danse.util.CustomModelDataCache;
+import de.tomalbrc.danse.util.MinecraftSkinParser;
+import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
@@ -21,9 +23,12 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Map;
 
 public class PlayerModelEntity extends Entity implements AnimatedEntity {
     public static final ResourceLocation ID = Util.id("player_model");
@@ -73,7 +78,11 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
             this.playerName = tag.getString(PLAYER).orElseThrow();
             if (this.getServer() != null && this.getServer().getProfileCache() != null) {
                 var opt = this.getServer().getProfileCache().get(this.playerName);
-                opt.ifPresent(gameProfile -> this.holder.setSkin(gameProfile));
+                opt.ifPresent(gameProfile -> {
+                    CustomModelDataCache.fetch(gameProfile, dataMap -> {
+                        this.holder.setSkinData(dataMap);
+                    });
+                });
             }
         }
     }
@@ -89,7 +98,7 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
         }
     }
 
-    public void setPlayer(ServerPlayer player) {
+    public void setPlayer(ServerPlayer player, Map<MinecraftSkinParser.BodyPart, CustomModelData> data) {
         this.playerName = player.getScoreboardName();
 
         ItemStack mainHand = player.getMainHandItem();
@@ -107,7 +116,7 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
             this.addElement("hat", head, ItemDisplayContext.HEAD);
         }
 
-        this.holder.setSkin(player.getGameProfile());
+        this.holder.setSkinData(data);
     }
 
     private void addElement(String name, ItemStack stack, ItemDisplayContext context) {
