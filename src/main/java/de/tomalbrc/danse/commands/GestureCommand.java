@@ -53,8 +53,6 @@ public class GestureCommand {
         GesturePlayerModelEntity playerModel = new GesturePlayerModelEntity(player, PlayerModelRegistry.getModel(animationName), (model) -> {});
         playerModel.setCheckDistance(false);
 
-
-
         GestureCamera gestureCamera = EntityRegistry.GESTURE_CAMERA.create(player.level(), EntitySpawnReason.TRIGGERED);
         assert gestureCamera != null;
         gestureCamera.setPos(player.position());

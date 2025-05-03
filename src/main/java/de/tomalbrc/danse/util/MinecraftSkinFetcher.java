@@ -5,9 +5,14 @@ import com.google.gson.JsonObject;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -15,29 +20,27 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public class MinecraftSkinFetcher {
-    private static final String MOJANG_API_URL = "https://sessionserver.mojang.com/session/minecraft/profile/";
     private static final Gson gson = new Gson();
     private static final Map<String, BufferedImage> skinCache = new ConcurrentHashMap<>();
     private static final Map<String, CompletableFuture<BufferedImage>> futureCache = new ConcurrentHashMap<>();
 
-    public static void fetchSkin(String texVal, Consumer<BufferedImage> callback) {
-        if (skinCache.containsKey(texVal)) {
-            callback.accept(skinCache.get(texVal));
+    public static void fetchSkin(String base64val, Consumer<BufferedImage> callback) {
+        if (skinCache.containsKey(base64val)) {
+            callback.accept(skinCache.get(base64val));
             return;
         }
 
-        futureCache.computeIfAbsent(texVal, key ->
+        futureCache.computeIfAbsent(base64val, key ->
                 CompletableFuture.supplyAsync(() -> {
-                    String base64Data = texVal;
-                    String decodedJson = new String(Base64.getDecoder().decode(base64Data));
+                    String decodedJson = new String(Base64.getDecoder().decode(base64val));
                     JsonObject textureData = gson.fromJson(decodedJson, JsonObject.class);
                     return textureData.getAsJsonObject("textures").getAsJsonObject("SKIN").get("url").getAsString();
                 }).thenApplyAsync(url -> {
                     if (url != null) {
                         try {
                             return downloadSkin(url);
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        } catch (IOException | InterruptedException e) {
+                            throw new RuntimeException(e);
                         }
                     }
                     return null;
@@ -46,9 +49,9 @@ public class MinecraftSkinFetcher {
                         try {
                             var img = ImageIO.read(new ByteArrayInputStream(skinData));
                             if (img != null) {
-                                skinCache.put(texVal, img);
+                                skinCache.put(base64val, img);
                             }
-                            futureCache.remove(texVal);
+                            futureCache.remove(base64val);
                             return img;
 
                         } catch (IOException e) {
@@ -60,37 +63,15 @@ public class MinecraftSkinFetcher {
         ).thenAccept(callback);
     }
 
-    private static byte[] downloadSkin(String skinUrl) throws IOException {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-        URL url = new URL(skinUrl);
-        try (InputStream in = url.openStream()) {
+    public static byte[] downloadSkin(String skinUrl) throws IOException, InterruptedException {
+        try (InputStream in = HttpClient.newHttpClient()
+                .send(HttpRequest.newBuilder().uri(URI.create(skinUrl)).GET().build(),
+                        HttpResponse.BodyHandlers.ofInputStream()).body();
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             byte[] buffer = new byte[1024];
-            int bytesRead;
-            while ((bytesRead = in.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-        }
-        return outputStream.toByteArray();
-    }
-
-    private static String fetchJsonFromUrl(String urlString) throws IOException {
-        URL url = new URL(urlString);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-
-        if (conn.getResponseCode() != 200) {
-            throw new IOException("Failed to fetch data: HTTP " + conn.getResponseCode());
-        }
-
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
-            StringBuilder response = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
-            }
-            return response.toString();
+            int r;
+            while ((r = in.read(buffer)) > 0) out.write(buffer, 0, r);
+            return out.toByteArray();
         }
     }
 }

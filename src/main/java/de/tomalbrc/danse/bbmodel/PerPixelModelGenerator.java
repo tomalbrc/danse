@@ -6,21 +6,24 @@ import com.google.gson.annotations.SerializedName;
 import de.tomalbrc.bil.file.extra.ResourcePackModel;
 import de.tomalbrc.bil.json.JSON;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import org.joml.Vector3f;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class PerPixelModelGenerator {
+    private static final String MODEL_PREFIX = "danse:item/";
+    private static final List<String> DIRECTIONS = List.of(
+            "north", "south", "east", "west", "up", "down"
+    );
 
     static class Face {
         List<Integer> uv = Arrays.asList(0, 0, 16, 16);
         String texture = "#p";
-        int tintindex;
+        int tintindex = 0;
 
-        Face(int tintindex) {
-            this.tintindex = 0;
-        }
+        public static Face ZERO = new Face();
     }
 
     static class Element {
@@ -75,114 +78,187 @@ public class PerPixelModelGenerator {
         }
     }
 
-    private static void createModelForFace(int ix, int iy, int iz, double sizeX, double sizeY, double sizeZ, int tintIndex, String faceDirection, List<Map<String, Object>> pixelModels, Map<String, byte[]> res, Map<String, ResourcePackModel.DisplayTransform> transformMap, String partName, Gson gson) throws IOException {
-        double fromX = ix * sizeX + (8 - 4);
-        double toX = fromX + sizeX;
-        double fromY = iy * sizeY + (0);
-        double toY = fromY + sizeY;
-        double fromZ = iz * sizeZ + (8 - 4);
-        double toZ = fromZ + sizeZ;
-
-        Map<String, Face> faces = new HashMap<>();
-        switch (faceDirection) {
-            case "north":
-                faces.put("north", new Face(tintIndex));
-                break;
-            case "south":
-                faces.put("south", new Face(tintIndex));
-                break;
-            case "east":
-                faces.put("east", new Face(tintIndex));
-                break;
-            case "west":
-                faces.put("west", new Face(tintIndex));
-                break;
-            case "up":
-                faces.put("up", new Face(tintIndex));
-                break;
-            case "down":
-                faces.put("down", new Face(tintIndex));
-                break;
-        }
-
-        Element element = new Element(
-                Arrays.asList(fromX, fromY, fromZ),
-                Arrays.asList(toX, toY, toZ),
-                faces
-        );
-
-        Model model = new Model(Collections.singletonList(element), transformMap);
-
-        String filename = String.format("f%d_%d_%d%s.json", ix, iy, iz, faceDirection);
-        String filenameWithoutExt = String.format("f%d_%d_%d%s", ix, iy, iz, faceDirection);
-        byte[] bytes = gson.toJson(model).getBytes(StandardCharsets.UTF_8);
-        res.put("assets/danse/models/item/" + partName + "/" + filename, bytes);
-
-        pixelModels.add(ImmutableMap.of(
-                "index", tintIndex,
-                "model_path", String.format("danse:item/" + partName + "/" + filenameWithoutExt)
-        ));
+    private record GenerationContext(Map<String, byte[]> resources, List<Map<String, Object>> pixelModels,
+                                     Map<String, ResourcePackModel.DisplayTransform> transformMap, String partName,
+                                     Gson gson, GridConfig grid, boolean inflated) {
     }
 
-    public static Map<String, byte[]> generatePerPixelModels(int px, int py, int pz, String partName, Map<String, ResourcePackModel.DisplayTransform> transformMap) throws IOException {
-        Map<String, byte[]> res = new Object2ObjectArrayMap<>();
+    private static class GridConfig {
+        final int px, py, pz;
+        final double sizeX;
+        final double sizeY;
+        final double sizeZ;
+        final int[] directionCounts;
+        final int[] directionBases;
 
-        double sizeX = 8.0 / px;
-        double sizeY = 8.0 / py;
-        double sizeZ = 8.0 / pz;
+        GridConfig(int px, int py, int pz) {
+            this.px = px;
+            this.py = py;
+            this.pz = pz;
+            this.sizeX = 8.0 / px;
+            this.sizeY = 8.0 / py;
+            this.sizeZ = 8.0 / pz;
+            this.directionCounts = calculateDirectionCounts();
+            this.directionBases = new int[DIRECTIONS.size()];
+        }
 
-        Gson gson = JSON.GENERIC_BUILDER.create();
-        int tintIndex = 0;
+        private int[] calculateDirectionCounts() {
+            return new int[]{
+                    px * py,  // North/South
+                    px * py,   // North/South
+                    py * pz,  // East/West
+                    py * pz,   // East/West
+                    px * pz,  // Up/Down
+                    px * pz    // Up/Down
+            };
+        }
+    }
+
+    private record FaceData(int x, int y, int z, String direction, int directionIndex) {
+    }
+
+    public static Map<String, byte[]> generatePerPixelModels(int px, int py, int pz,
+                                                             String partName,
+                                                             Map<String, ResourcePackModel.DisplayTransform> transformMap)
+            throws IOException {
+        GridConfig grid = new GridConfig(px, py, pz);
+        Map<String, byte[]> resources = new Object2ObjectArrayMap<>();
         List<Map<String, Object>> pixelModels = new ArrayList<>();
+        Gson gson = JSON.GENERIC_BUILDER.create();
 
-        for (int ix = 0; ix < px; ix++) {
-            for (int iy = 0; iy < py; iy++) {
-                for (int iz = 0; iz < pz; iz++) {
-                    // north
-                    if (iz == 0) {
-                        createModelForFace(ix, iy, iz, sizeX, sizeY, sizeZ, tintIndex, "north", pixelModels, res, transformMap, partName, gson);
-                        tintIndex++;
-                    }
-                    // south
-                    if (iz == pz - 1) {
-                        createModelForFace(ix, iy, iz, sizeX, sizeY, sizeZ, tintIndex, "south", pixelModels, res, transformMap, partName, gson);
-                        tintIndex++;
-                    }
-                    // east
-                    if (ix == px - 1) {
-                        createModelForFace(ix, iy, iz, sizeX, sizeY, sizeZ, tintIndex, "east", pixelModels, res, transformMap, partName, gson);
-                        tintIndex++;
-                    }
-                    // west
-                    if (ix == 0) {
-                        createModelForFace(ix, iy, iz, sizeX, sizeY, sizeZ, tintIndex, "west", pixelModels, res, transformMap, partName, gson);
-                        tintIndex++;
-                    }
-                    // up
-                    if (iy == py - 1) {
-                        createModelForFace(ix, iy, iz, sizeX, sizeY, sizeZ, tintIndex, "up", pixelModels, res, transformMap, partName, gson);
-                        tintIndex++;
-                    }
-                    // down
-                    if (iy == 0) {
-                        createModelForFace(ix, iy, iz, sizeX, sizeY, sizeZ, tintIndex, "down", pixelModels, res, transformMap, partName, gson);
-                        tintIndex++;
-                    }
+        calculateBases(grid.directionBases, grid.directionCounts, 0);
+
+        generateAllModels(new GenerationContext(
+                resources, pixelModels, transformMap, partName, gson, grid, false
+        ));
+
+        int totalOriginal = Arrays.stream(grid.directionCounts).sum();
+        calculateBases(grid.directionBases, grid.directionCounts, totalOriginal);
+
+        var map = Map.of("head", new ResourcePackModel.DisplayTransform(null, transformMap.get("head").translation().add(0, 0.025f, 0, new Vector3f()), transformMap.get("head").scale().add(0.05f,0.05f,0.05f, new Vector3f())));
+        generateAllModels(new GenerationContext(
+                resources, pixelModels, map, partName, gson, grid, true
+        ));
+
+        createCompositeModel(resources, partName, gson, pixelModels);
+        return resources;
+    }
+
+    private static void generateAllModels(GenerationContext ctx) throws IOException {
+        for (int x = 0; x < ctx.grid.px; x++) {
+            for (int y = 0; y < ctx.grid.py; y++) {
+                for (int z = 0; z < ctx.grid.pz; z++) {
+                    processCubeFaces(x, y, z, ctx);
                 }
             }
         }
+    }
 
+    private static void processCubeFaces(int x, int y, int z, GenerationContext ctx) throws IOException {
+        for (int i = 0; i < DIRECTIONS.size(); i++) {
+            String dir = DIRECTIONS.get(i);
+            if (isFacePresent(x, y, z, dir, ctx.grid)) {
+                createFaceModel(new FaceData(x, y, z, dir, i), ctx);
+            }
+        }
+    }
+
+    private static boolean isFacePresent(int x, int y, int z, String direction, GridConfig grid) {
+        return switch (direction) {
+            case "north" -> z == 0;
+            case "south" -> z == grid.pz - 1;
+            case "east" -> x == grid.px - 1;
+            case "west" -> x == 0;
+            case "up" -> y == grid.py - 1;
+            case "down" -> y == 0;
+            default -> false;
+        };
+    }
+
+    private static void createFaceModel(FaceData face, GenerationContext ctx) throws IOException {
+        int perFaceIndex = calculatePerFaceIndex(face, ctx.grid);
+        int tintIndex = ctx.grid.directionBases[face.directionIndex] + perFaceIndex;
+
+        Element element = createElement(face, ctx.grid, ctx.inflated);
+        Model model = new Model(List.of(element), ctx.transformMap);
+
+        String filename = createFilename(face, ctx);
+        storeModel(ctx, model, filename, tintIndex);
+    }
+
+    private static int calculatePerFaceIndex(FaceData face, GridConfig grid) {
+        return switch (face.direction) {
+            case "north", "south" -> face.x + face.y * grid.px;
+            case "east", "west" -> face.y + face.z * grid.py;
+            default -> face.x + face.z * grid.px; // up/down
+        };
+    }
+
+    private static Element createElement(FaceData face, GridConfig grid, boolean inflated) {
+        BoundingBox bb = new BoundingBox(face.x, face.y, face.z, grid, inflated);
+        return new Element(bb.from(), bb.to(), Map.of(face.direction, Face.ZERO));
+    }
+
+    private static String createFilename(FaceData face, GenerationContext ctx) {
+        String suffix = ctx.inflated ? "_inflated" : "";
+        return String.format("f%d_%d_%d%s%s", face.x, face.y, face.z, face.direction, suffix);
+    }
+
+    private static void storeModel(GenerationContext ctx, Model model, String baseName, int tintIndex) {
+        String filename = baseName + ".json";
+        String path = "assets/danse/models/item/" + ctx.partName + "/" + filename;
+        ctx.resources.put(path, ctx.gson.toJson(model).getBytes(StandardCharsets.UTF_8));
+
+        ctx.pixelModels.add(Map.of(
+                "index", tintIndex,
+                "path", MODEL_PREFIX + ctx.partName + "/" + baseName
+        ));
+    }
+
+    private static void calculateBases(int[] bases, int[] counts, int start) {
+        int acc = start;
+        for (int i = 0; i < bases.length; i++) {
+            bases[i] = acc;
+            acc += counts[i];
+        }
+    }
+
+    private static void createCompositeModel(Map<String, byte[]> resources, String partName,
+                                             Gson gson, List<Map<String, Object>> pixelModels) {
         CompositeModel composite = new CompositeModel();
-        for (Map<String, Object> pixel : pixelModels) {
-            int index = (Integer) pixel.get("index");
-            String modelPath = (String) pixel.get("model_path");
-            ConditionModel condition = new ConditionModel(index, modelPath);
-            composite.models.add(condition);
+        pixelModels.forEach(p -> composite.models.add(
+                new ConditionModel((Integer) p.get("index"), (String) p.get("path"))
+        ));
+
+        byte[] bytes = gson.toJson(Map.of("model", composite)).getBytes(StandardCharsets.UTF_8);
+        resources.put("assets/danse/items/composite_" + partName + ".json", bytes);
+    }
+
+    private static class BoundingBox {
+        final double fromX, fromY, fromZ;
+        final double toX, toY, toZ;
+
+        BoundingBox(int x, int y, int z, GridConfig grid, boolean inflated) {
+            this.fromX = calculateFrom(x, grid.sizeX, 8 - 4, inflated);
+            this.toX = fromX + grid.sizeX;
+
+            this.fromY = calculateFrom(y, grid.sizeY, 0, inflated);
+            this.toY = fromY + grid.sizeY;
+
+            this.fromZ = calculateFrom(z, grid.sizeZ, 8 - 4, inflated);
+            this.toZ = fromZ + grid.sizeZ;
         }
 
-        var bytes = gson.toJson(ImmutableMap.of("model", composite)).getBytes(StandardCharsets.UTF_8);
-        res.put("assets/danse/items/composite_" + partName + ".json", bytes);
+        private double calculateFrom(int coord, double size, double offset, boolean inflated) {
+            return coord * size + offset;
+        }
 
-        return res;
+        List<Double> from() {
+            return List.of(fromX, fromY, fromZ);
+        }
+
+        List<Double> to() {
+            return List.of(toX, toY, toZ);
+        }
     }
 }

@@ -1,9 +1,7 @@
 package de.tomalbrc.danse.bbmodel;
 
-import de.tomalbrc.bil.file.bbmodel.BbElement;
 import de.tomalbrc.bil.file.bbmodel.BbModel;
 import de.tomalbrc.bil.file.bbmodel.BbOutliner;
-import de.tomalbrc.bil.file.extra.BbModelUtils;
 import de.tomalbrc.bil.file.extra.ResourcePackModel;
 import de.tomalbrc.bil.file.importer.AjModelImporter;
 import de.tomalbrc.danse.util.TextureUtil;
@@ -37,13 +35,10 @@ public class PlayerModelImporter extends AjModelImporter {
     }
 
     protected ResourceLocation generateHeadModel(BbOutliner outliner, Vector3f pos, Vector3f scale) {
-        var elements = BbModelUtils.elementsForOutliner(model, outliner, BbElement.ElementType.CUBE);
-        var element = elements.getFirst();
-
-        return addItemModel(model, outliner.name.toLowerCase(), Map.of("head", new ResourcePackModel.DisplayTransform(null, pos, scale)));
+        return addItemModel(outliner.name.toLowerCase(), Map.of("head", new ResourcePackModel.DisplayTransform(null, pos, scale)));
     }
 
-    public static ResourceLocation addItemModel(BbModel model, String partName, Map<String, ResourcePackModel.DisplayTransform> transformMap) {
+    public static ResourceLocation addItemModel(String partName, Map<String, ResourcePackModel.DisplayTransform> transformMap) {
         PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(resourcePackBuilder -> {
             try {
                 var size = TextureUtil.sizeFor(partName);
