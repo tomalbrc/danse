@@ -1,7 +1,7 @@
 # danse (dance)
 > player gestures/emotes for fabric servers using 1.21.4+ item models
 
-There are 7 gestures at the moment;
+There are 9 gestures at the moment;
 - bits
 - fall
 - grow
@@ -9,6 +9,8 @@ There are 7 gestures at the moment;
 - handstand
 - wave
 - zombie
+- dab
+- facepalm
 
 More are in the works...!
 
@@ -27,6 +29,8 @@ Clients don't have to install any mods, they can connect with a vanilla client!
 /gesture handstand
 /gesture wave
 /gesture zombie
+/gesture dab
+/gesture facepalm
 ```
 
 # Models
@@ -55,3 +59,9 @@ Changing the skin:
 # How?
 
 The mod uses the new 1.21.4 item models and custom_model_data to dynamically display the skins.
+
+---
+
+# License
+
+Versions before 2.0.0 are LPGL-3.0 licensed.
