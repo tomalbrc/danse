@@ -20,8 +20,13 @@ public class Danse implements ModInitializer {
         EntityRegistry.registerMobs();
 
         ServerPlayConnectionEvents.JOIN.register((serverGamePacketListener, packetSender, minecraftServer) -> {
-
+            GestureController.onConnect(serverGamePacketListener.player);
         });
+
+        ServerPlayConnectionEvents.DISCONNECT.register((serverGamePacketListener, minecraftServer) -> {
+            GestureController.onDisconnect(serverGamePacketListener.player);
+        });
+
         CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> GestureCommand.register(dispatcher));
     }
 }

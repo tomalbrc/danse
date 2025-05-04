@@ -17,6 +17,7 @@ import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 public class MinecraftSkinFetcher {
@@ -30,7 +31,7 @@ public class MinecraftSkinFetcher {
             return;
         }
 
-        FUTURE_CACHE.computeIfAbsent(base64val, key ->
+        var future = FUTURE_CACHE.computeIfAbsent(base64val, key ->
                 CompletableFuture.supplyAsync(() -> {
                     String decodedJson = new String(Base64.getDecoder().decode(base64val));
                     JsonObject textureData = gson.fromJson(decodedJson, JsonObject.class);
@@ -60,7 +61,17 @@ public class MinecraftSkinFetcher {
                     }
                     return null;
                 })
-        ).thenAccept(callback);
+        );
+
+        if (future.isDone()) {
+            try {
+                callback.accept(future.get());
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            future.thenAccept(callback);
+        }
     }
 
     public static byte[] downloadSkin(String skinUrl) throws IOException, InterruptedException {

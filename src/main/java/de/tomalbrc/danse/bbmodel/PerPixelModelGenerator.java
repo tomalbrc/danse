@@ -18,104 +18,6 @@ public class PerPixelModelGenerator {
             Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST, Direction.UP, Direction.DOWN
     );
 
-    static class Face {
-        List<Integer> uv = Arrays.asList(0, 0, 16, 16);
-        String texture = "#p";
-        int tintindex = 0;
-        public static Face ZERO = new Face();
-    }
-
-    static class Element {
-        List<Double> from;
-        List<Double> to;
-        Map<String, Face> faces;
-
-        Element(List<Double> from, List<Double> to, Map<String, Face> faces) {
-            this.from = from;
-            this.to = to;
-            this.faces = faces;
-        }
-    }
-
-    static class Model {
-        Map<String, String> textures = Collections.singletonMap("p", "danse:item/model");
-        List<Element> elements;
-        Map<String, ResourcePackModel.DisplayTransform> display;
-
-        Model(List<Element> elements, Map<String, ResourcePackModel.DisplayTransform> display) {
-            this.elements = elements;
-            this.display = display;
-        }
-    }
-
-    static class ConditionModel {
-        String type = "minecraft:condition";
-        String property = "minecraft:custom_model_data";
-        int index;
-        Map<String, Object> on_true;
-        Map<String, Object> on_false = ImmutableMap.of("type", "minecraft:empty");
-
-        ConditionModel(int tintIndex, String modelPath) {
-            this.index = tintIndex;
-            this.on_true = ImmutableMap.of("type", "minecraft:model", "model", modelPath, "tints", List.of(new Tint(tintIndex)));
-        }
-    }
-
-    static class CompositeModel {
-        String type = "minecraft:composite";
-        List<ConditionModel> models = new ArrayList<>();
-    }
-
-    static class Tint {
-        String type = "minecraft:custom_model_data";
-        int index;
-        @SerializedName("default")
-        int def = 0xFF_FF_FF;
-
-        public Tint(int index) {
-            this.index = index;
-        }
-    }
-
-    private record GenerationContext(Map<String, byte[]> resources, List<Map<String, Object>> pixelModels,
-                                     Map<String, ResourcePackModel.DisplayTransform> transformMap, String partName,
-                                     Gson gson, GridConfig grid, boolean inflated) {
-    }
-
-    private static class GridConfig {
-        final int px, py, pz;
-        final double sizeX;
-        final double sizeY;
-        final double sizeZ;
-        final int[] directionCounts;
-        final int[] directionBases;
-
-        GridConfig(int px, int py, int pz) {
-            this.px = px;
-            this.py = py;
-            this.pz = pz;
-            this.sizeX = 8.0 / px;
-            this.sizeY = 8.0 / py;
-            this.sizeZ = 8.0 / pz;
-            this.directionCounts = calculateDirectionCounts();
-            this.directionBases = new int[DIRECTIONS.size()];
-        }
-
-        private int[] calculateDirectionCounts() {
-            return new int[]{
-                    px * py,  // North
-                    px * py,   // South
-                    py * pz,  // East
-                    py * pz,   // West
-                    px * pz,  // Up
-                    px * pz    // Down
-            };
-        }
-    }
-
-    private record FaceData(int x, int y, int z, Direction direction, int directionIndex) {
-    }
-
     public static Map<String, byte[]> generatePerPixelModels(int px, int py, int pz, String partName, Map<String, ResourcePackModel.DisplayTransform> transformMap) {
         GridConfig grid = new GridConfig(px, py, pz);
         Map<String, byte[]> resources = new Object2ObjectArrayMap<>();
@@ -131,7 +33,7 @@ public class PerPixelModelGenerator {
         int totalOriginal = Arrays.stream(grid.directionCounts).sum();
         calculateBases(grid.directionBases, grid.directionCounts, totalOriginal);
 
-        var map = Map.of("head", new ResourcePackModel.DisplayTransform(null, transformMap.get("head").translation().add(0, 0.4f, 0, new Vector3f()), transformMap.get("head").scale().add(0.08f,0.08f,0.08f, new Vector3f())));
+        var map = Map.of("head", new ResourcePackModel.DisplayTransform(null, transformMap.get("head").translation().add(0, 0.4f, 0, new Vector3f()), transformMap.get("head").scale().add(0.08f, 0.08f, 0.08f, new Vector3f())));
         generateAllModels(new GenerationContext(
                 resources, pixelModels, map, partName, gson, grid, true
         ));
@@ -227,6 +129,104 @@ public class PerPixelModelGenerator {
 
         byte[] bytes = gson.toJson(Map.of("model", composite)).getBytes(StandardCharsets.UTF_8);
         resources.put("assets/danse/items/composite_" + partName + ".json", bytes);
+    }
+
+    static class Face {
+        public static Face ZERO = new Face();
+        List<Integer> uv = Arrays.asList(0, 0, 16, 16);
+        String texture = "#p";
+        int tintindex = 0;
+    }
+
+    static class Element {
+        List<Double> from;
+        List<Double> to;
+        Map<String, Face> faces;
+
+        Element(List<Double> from, List<Double> to, Map<String, Face> faces) {
+            this.from = from;
+            this.to = to;
+            this.faces = faces;
+        }
+    }
+
+    static class Model {
+        Map<String, String> textures = Collections.singletonMap("p", "danse:item/model");
+        List<Element> elements;
+        Map<String, ResourcePackModel.DisplayTransform> display;
+
+        Model(List<Element> elements, Map<String, ResourcePackModel.DisplayTransform> display) {
+            this.elements = elements;
+            this.display = display;
+        }
+    }
+
+    static class ConditionModel {
+        String type = "minecraft:condition";
+        String property = "minecraft:custom_model_data";
+        int index;
+        Map<String, Object> on_true;
+        Map<String, Object> on_false = ImmutableMap.of("type", "minecraft:empty");
+
+        ConditionModel(int tintIndex, String modelPath) {
+            this.index = tintIndex;
+            this.on_true = ImmutableMap.of("type", "minecraft:model", "model", modelPath, "tints", List.of(new Tint(tintIndex)));
+        }
+    }
+
+    static class CompositeModel {
+        String type = "minecraft:composite";
+        List<ConditionModel> models = new ArrayList<>();
+    }
+
+    static class Tint {
+        String type = "minecraft:custom_model_data";
+        int index;
+        @SerializedName("default")
+        int def = 0xFF_FF_FF;
+
+        public Tint(int index) {
+            this.index = index;
+        }
+    }
+
+    private record GenerationContext(Map<String, byte[]> resources, List<Map<String, Object>> pixelModels,
+                                     Map<String, ResourcePackModel.DisplayTransform> transformMap, String partName,
+                                     Gson gson, GridConfig grid, boolean inflated) {
+    }
+
+    private static class GridConfig {
+        final int px, py, pz;
+        final double sizeX;
+        final double sizeY;
+        final double sizeZ;
+        final int[] directionCounts;
+        final int[] directionBases;
+
+        GridConfig(int px, int py, int pz) {
+            this.px = px;
+            this.py = py;
+            this.pz = pz;
+            this.sizeX = 8.0 / px;
+            this.sizeY = 8.0 / py;
+            this.sizeZ = 8.0 / pz;
+            this.directionCounts = calculateDirectionCounts();
+            this.directionBases = new int[DIRECTIONS.size()];
+        }
+
+        private int[] calculateDirectionCounts() {
+            return new int[]{
+                    px * py,  // North
+                    px * py,   // South
+                    py * pz,  // East
+                    py * pz,   // West
+                    px * pz,  // Up
+                    px * pz    // Down
+            };
+        }
+    }
+
+    private record FaceData(int x, int y, int z, Direction direction, int directionIndex) {
     }
 
     private static class BoundingBox {

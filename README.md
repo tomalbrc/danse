@@ -1,5 +1,5 @@
 # danse (dance)
-> player gestures/emotes for fabric/quilt servers using core shaders
+> player gestures/emotes for fabric servers using 1.21.4+ item models
 
 There are 7 gestures at the moment;
 - bits
@@ -10,16 +10,15 @@ There are 7 gestures at the moment;
 - wave
 - zombie
 
-More are in the works..!
+More are in the works...!
 
-Using vanilla core shaders!\
-Compatible with Sodium (but will break with iris/embeddium and similar mods that allow for custom shaders)
+Using vanilla item models!\
+Compatible with Sodium, Iris, and everything else!
 
 Clients don't have to install any mods, they can connect with a vanilla client!
 
----
 
-### Commands:
+# Commands:
 ```
 /gesture bits
 /gesture fall
@@ -29,6 +28,8 @@ Clients don't have to install any mods, they can connect with a vanilla client!
 /gesture wave
 /gesture zombie
 ```
+
+# Models
 
 Persistent player models can be spawned like this:
 ```
@@ -51,6 +52,6 @@ Changing the skin:
 
 ---
 
-This project uses a heavily modified version of the shader and blockbench model from [bradleyq's stable_player_display](https://github.com/bradleyq/stable_player_display)
+# How?
 
-The benefits of doing it as a mod vs. an animated-java datapack is performance
+The mod uses the new 1.21.4 item models and custom_model_data to dynamically display the skins.

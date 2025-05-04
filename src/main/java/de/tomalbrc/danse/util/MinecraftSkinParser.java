@@ -10,31 +10,8 @@ import java.util.function.Consumer;
 public class MinecraftSkinParser {
     private static final int TEXTURE_WIDTH = 64;
     private static final int TEXTURE_HEIGHT = 64;
-
-    public enum BodyPart {
-        NONE, HEAD, BODY, LEFT_ARM, RIGHT_ARM, LEFT_LEG, RIGHT_LEG;
-
-        public static BodyPart partFrom(String partName) {
-            return switch (partName) {
-                case "head" -> HEAD;
-                case "body" -> BODY;
-                case "arm_r" -> RIGHT_ARM;
-                case "arm_l" -> LEFT_ARM;
-                case "leg_l" -> LEFT_LEG;
-                case "leg_r" -> RIGHT_LEG;
-                default -> NONE;
-            };
-        }
-    }
-
-    public enum Layer {
-        INNER,
-        OUTER
-    }
-
     private static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> CLASSIC_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
     private static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> SLIM_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
-
 
     static {
         defineSteveTextures(CLASSIC_TEXTURE_MAP);
@@ -168,7 +145,6 @@ public class MinecraftSkinParser {
         map.put(BodyPart.LEFT_LEG, leftLegMap);
     }
 
-
     public static boolean isSlimSkin(BufferedImage image) {
         return image.getWidth() == TEXTURE_WIDTH &&
                 image.getHeight() == TEXTURE_HEIGHT &&
@@ -221,7 +197,7 @@ public class MinecraftSkinParser {
 
     private static void westTex(BufferedImage image, Consumer<ColorData> consumer, int width, int height, int startX, int startY) {
         // flip the other way
-        for (int dx = width -1; dx >= 0; dx--) {
+        for (int dx = width - 1; dx >= 0; dx--) {
             for (int dy = height - 1; dy >= 0; dy--) {
                 try {
                     int argb = image.getRGB(startX + dx, startY + dy);
@@ -270,6 +246,27 @@ public class MinecraftSkinParser {
                 }
             }
         }
+    }
+
+    public enum BodyPart {
+        NONE, HEAD, BODY, LEFT_ARM, RIGHT_ARM, LEFT_LEG, RIGHT_LEG;
+
+        public static BodyPart partFrom(String partName) {
+            return switch (partName) {
+                case "head" -> HEAD;
+                case "body" -> BODY;
+                case "arm_r" -> RIGHT_ARM;
+                case "arm_l" -> LEFT_ARM;
+                case "leg_l" -> LEFT_LEG;
+                case "leg_r" -> RIGHT_LEG;
+                default -> NONE;
+            };
+        }
+    }
+
+    public enum Layer {
+        INNER,
+        OUTER
     }
 
     public record ColorData(

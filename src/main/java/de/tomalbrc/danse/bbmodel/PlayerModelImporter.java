@@ -12,17 +12,31 @@ import org.joml.Vector3f;
 import java.util.Map;
 
 public class PlayerModelImporter extends AjModelImporter {
-    static Vector3f LIMB_SCALE = new Vector3f(0.46875f,1.40625f,0.46875f);
+    static Vector3f LIMB_SCALE = new Vector3f(0.46875f, 1.40625f, 0.46875f);
 
     public PlayerModelImporter(BbModel model) {
         super(model);
     }
 
+    public static ResourceLocation addItemModel(String partName, Map<String, ResourcePackModel.DisplayTransform> transformMap) {
+        PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(resourcePackBuilder -> {
+            var size = TextureUtil.sizeFor(partName);
+            var dataMap = PerPixelModelGenerator.generatePerPixelModels(size.getX(), size.getY(), size.getZ(), partName, transformMap);
+            for (Map.Entry<String, byte[]> entry : dataMap.entrySet()) {
+                resourcePackBuilder.addData(entry.getKey(), entry.getValue());
+            }
+        });
+
+        return ResourceLocation.fromNamespaceAndPath("danse", "composite_" + partName);
+    }
+
     @Override
     protected ResourceLocation generateModel(BbOutliner outliner) {
         return switch (outliner.name) {
-            case "head" -> generateModelPart(outliner, new Vector3f(0, 5.90f, 0), new Vector3f(0.9375f, 0.9375f, 0.9375f));
-            case "body" -> generateModelPart(outliner, new Vector3f(0, 8.25f + 0.25f, 0), new Vector3f(0.9375f, 1.40625f, 0.46875f));
+            case "head" ->
+                    generateModelPart(outliner, new Vector3f(0, 5.90f, 0), new Vector3f(0.9375f, 0.9375f, 0.9375f));
+            case "body" ->
+                    generateModelPart(outliner, new Vector3f(0, 8.25f + 0.25f, 0), new Vector3f(0.9375f, 1.40625f, 0.46875f));
             case "arm_r" -> generateModelPart(outliner, new Vector3f(0.35f, 0.5f, 0), LIMB_SCALE);
             case "arm_l" -> generateModelPart(outliner, new Vector3f(-0.35f, 0.5f, 0), LIMB_SCALE);
             case "leg_r" -> generateModelPart(outliner, new Vector3f(0.2f, -1.9f + 0.25f, 0), LIMB_SCALE);
@@ -35,17 +49,5 @@ public class PlayerModelImporter extends AjModelImporter {
 
     protected ResourceLocation generateModelPart(BbOutliner outliner, Vector3f pos, Vector3f scale) {
         return addItemModel(outliner.name.toLowerCase(), Map.of("head", new ResourcePackModel.DisplayTransform(null, pos, scale)));
-    }
-
-    public static ResourceLocation addItemModel(String partName, Map<String, ResourcePackModel.DisplayTransform> transformMap) {
-        PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(resourcePackBuilder -> {
-            var size = TextureUtil.sizeFor(partName);
-            var dataMap = PerPixelModelGenerator.generatePerPixelModels(size.getX(), size.getY(), size.getZ(), partName, transformMap);
-            for (Map.Entry<String, byte[]> entry : dataMap.entrySet()) {
-                resourcePackBuilder.addData(entry.getKey(), entry.getValue());
-            }
-        });
-
-        return ResourceLocation.fromNamespaceAndPath("danse", "composite_"+partName);
     }
 }

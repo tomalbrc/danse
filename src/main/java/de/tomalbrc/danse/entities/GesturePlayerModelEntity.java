@@ -10,26 +10,23 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.component.CustomModelData;
 
 import java.util.Map;
-import java.util.function.Consumer;
 
 public class GesturePlayerModelEntity extends PlayerModelEntity {
     private final ServerPlayer player;
-    private final Consumer<GesturePlayerModelEntity> onRemoved;
     private boolean checkDistance = true;
 
-    public void setCheckDistance(boolean checkDistance) {
-        this.checkDistance = checkDistance;
-    }
-
-    public GesturePlayerModelEntity(ServerPlayer player, Model model, Map<MinecraftSkinParser.BodyPart, CustomModelData> data, Consumer<GesturePlayerModelEntity> onRemoved) {
+    public GesturePlayerModelEntity(ServerPlayer player, Model model, Map<MinecraftSkinParser.BodyPart, CustomModelData> data) {
         super(EntityRegistry.PLAYER_MODEL, player.level());
-        this.onRemoved = onRemoved;
         this.player = player;
         this.setPos(player.position());
         this.setYRot(player.getYRot());
 
         this.setModel(model);
         this.setPlayer(player, data); // important to set this *after* model was set
+    }
+
+    public void setCheckDistance(boolean checkDistance) {
+        this.checkDistance = checkDistance;
     }
 
     @Override
@@ -48,7 +45,6 @@ public class GesturePlayerModelEntity extends PlayerModelEntity {
         super.tick();
 
         if (this.player.isRemoved() || this.player.isSpectator() || (this.checkDistance && this.player.distanceToSqr(this) > 1)) {
-            this.onRemoved.accept(this);
             this.discard();
         } else {
             //this.setYRot(this.player.getYRot());

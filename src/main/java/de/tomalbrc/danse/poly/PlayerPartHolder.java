@@ -1,4 +1,4 @@
-package de.tomalbrc.danse.entities;
+package de.tomalbrc.danse.poly;
 
 import de.tomalbrc.bil.api.AnimatedEntity;
 import de.tomalbrc.bil.core.holder.entity.simple.SimpleEntityHolder;
@@ -28,8 +28,11 @@ public class PlayerPartHolder<T extends Entity & AnimatedEntity> extends SimpleE
             var item = bone.element().getItem();
             item.set(DataComponents.CUSTOM_MODEL_DATA, data.get(MinecraftSkinParser.BodyPart.partFrom(bone.name())));
             bone.element().setItem(item);
+            bone.element().setTeleportDuration(2);
+            bone.element().setInterpolationDuration(2);
         }
     }
+
 
     @Override
     public void updateElement(DisplayWrapper<?> display, @Nullable Pose pose) {

@@ -14,6 +14,7 @@ public class PlayerModelLoader extends AjModelLoader {
     protected void postProcess(BbModel model) {
 
     }
+
     @Override
     public Model load(InputStream input, String name) throws JsonParseException {
         try (Reader reader = new InputStreamReader(input)) {

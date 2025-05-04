@@ -5,13 +5,13 @@ import de.tomalbrc.bil.core.extra.DisplayElementUpdateListener;
 import de.tomalbrc.bil.core.holder.wrapper.DisplayWrapper;
 import de.tomalbrc.bil.core.holder.wrapper.Locator;
 import de.tomalbrc.bil.core.model.Model;
+import de.tomalbrc.danse.poly.PlayerPartHolder;
 import de.tomalbrc.danse.registries.PlayerModelRegistry;
 import de.tomalbrc.danse.util.CustomModelDataCache;
 import de.tomalbrc.danse.util.MinecraftSkinParser;
 import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
-import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
@@ -41,13 +41,13 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
     @Nullable
     private String playerName;
 
+    public PlayerModelEntity(EntityType<? extends Entity> entityType, Level level) {
+        super(entityType, level);
+    }
+
     @Override
     public PlayerPartHolder<?> getHolder() {
         return this.holder;
-    }
-
-    public PlayerModelEntity(EntityType<? extends Entity> entityType, Level level) {
-        super(entityType, level);
     }
 
     public void setModel(Model model) {
@@ -135,9 +135,14 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
         ItemDisplayElement element = new ItemDisplayElement();
         element.setItem(stack.copy());
         element.setItemDisplayContext(context);
-        element.setInterpolationDuration(3);
-        element.getDataTracker().set(DisplayTrackedData.TELEPORTATION_DURATION, 3);
+        element.setInterpolationDuration(2);
+        element.setTeleportDuration(2);
         return element;
+    }
+
+    @Override
+    public int getTeleportDuration() {
+        return 2;
     }
 
     public void playAnimation(String animation, Runnable onFinish) {
