@@ -8,7 +8,6 @@ import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
-import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,21 +19,14 @@ public abstract class ServerGamePacketListenerImplMixin {
     @Shadow
     public ServerPlayer player;
 
-    @Shadow
-    protected abstract void handlePlayerKnownMovement(Vec3 vec3);
-
-    @Shadow
-    public abstract void handlePlayerAction(ServerboundPlayerActionPacket serverboundPlayerActionPacket);
-
-    @Shadow
-    public abstract void handlePlayerInput(ServerboundPlayerInputPacket serverboundPlayerInputPacket);
+    @Shadow public abstract void handlePlayerAction(ServerboundPlayerActionPacket serverboundPlayerActionPacket);
 
     @Inject(method = "handlePlayerInput", at = @At(value = "HEAD"), cancellable = true)
-    private void danse$handleInteract(ServerboundPlayerInputPacket serverboundPlayerInputPacket, CallbackInfo ci) {
+    private void danse$handleInput(ServerboundPlayerInputPacket serverboundPlayerInputPacket, CallbackInfo ci) {
         GestureCamera camera = GestureController.GESTURE_CAMS.get(player.getUUID());
         if (camera != null) {
             if (serverboundPlayerInputPacket.input().shift()) {
-                GestureController.onStop(player, camera.getPlayerModel());
+                GestureController.onStop(camera);
             }
 
             ci.cancel();
@@ -56,6 +48,13 @@ public abstract class ServerGamePacketListenerImplMixin {
                 camera.setYaw(rot.getYRot(this.player.getYRot()));
                 camera.setPitch(rot.getXRot(this.player.getXRot()));
             }
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "handlePlayerAction", at = @At(value = "HEAD"), cancellable = true)
+    private void danse$handleAction(ServerboundPlayerActionPacket serverboundPlayerActionPacket, CallbackInfo ci) {
+        if (GestureController.GESTURE_CAMS.containsKey(player.getUUID())) {
             ci.cancel();
         }
     }

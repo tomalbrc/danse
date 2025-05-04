@@ -10,13 +10,15 @@ import eu.pb4.polymer.virtualentity.api.tracker.EntityTrackedData;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.*;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerAbilitiesPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.PositionMoveRotation;
-import net.minecraft.world.entity.Relative;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
@@ -25,7 +27,6 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
 
 public class GestureCamera extends ElementHolder {
@@ -36,6 +37,7 @@ public class GestureCamera extends ElementHolder {
             this.getHolder().sendPacket(packet);
         }
     };
+
     private final ServerPlayer player;
     private final Vec3 origin;
     private final GesturePlayerModelEntity playerModel;
@@ -75,11 +77,10 @@ public class GestureCamera extends ElementHolder {
         super.startWatchingExtraPackets(player, packetConsumer);
         packetConsumer.accept(VirtualEntityUtils.createRidePacket(displayElement.getEntityId(), IntList.of(player.player.getId())));
         packetConsumer.accept(VirtualEntityUtils.createSetCameraEntityPacket(displayElement.getEntityId()));
-        packetConsumer.accept(VirtualEntityUtils.createRidePacket(displayElement.getEntityId(), IntList.of(player.player.getId())));
 
         GameType.SPECTATOR.updatePlayerAbilities(player.getPlayer().getAbilities());
         packetConsumer.accept(new ClientboundPlayerAbilitiesPacket(player.getPlayer().getAbilities()));
-        player.player.setGameMode(player.player.gameMode());
+        player.player.gameMode().updatePlayerAbilities(player.getPlayer().getAbilities());
 
         List<SynchedEntityData.DataValue<?>> data = new ObjectArrayList<>();
         data.add(SynchedEntityData.DataValue.create(EntityTrackedData.FLAGS, (byte) ((1 << EntityTrackedData.INVISIBLE_FLAG_INDEX))));
@@ -102,13 +103,6 @@ public class GestureCamera extends ElementHolder {
         super.destroy();
 
         this.playerModel.discard();
-        if (!this.player.hasDisconnected()) {
-            this.player.teleportTo(this.origin.x, this.origin.y, this.origin.z);
-
-            List<SynchedEntityData.DataValue<?>> data = new ObjectArrayList<>();
-            data.add(SynchedEntityData.DataValue.create(EntityTrackedData.FLAGS, player.getEntityData().get(EntityTrackedData.FLAGS)));
-            this.player.connection.send(new ClientboundSetEntityDataPacket(this.player.getId(), data));
-        }
     }
 
     private void updatePos() {
@@ -117,7 +111,7 @@ public class GestureCamera extends ElementHolder {
         if (this.getAttachment() != null) {
             var level = this.getAttachment().getWorld();
 
-            var eyePos = this.origin.add(0, this.player.getEyeHeight(), 0);
+            var eyePos = this.origin.add(0, this.player.getEyeHeight()/2.f, 0);
             var blockHitResult = level.clip(new ClipContext(eyePos, new Vec3(rotatedPoint), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, CollisionContext.empty()));
             var adjustedPos = currentPoint(-(Math.max(Mth.abs((float) blockHitResult.getLocation().distanceTo(eyePos)) - 0.5f, 0.1f)));
             this.displayElement.setOverridePos(new Vec3(adjustedPos));
@@ -131,12 +125,20 @@ public class GestureCamera extends ElementHolder {
         Quaternionf xr = Axis.XP.rotationDegrees(this.pitch).normalize();
         Quaternionf yr = Axis.YN.rotationDegrees(this.yaw + 180).normalize();
 
-        Vector3f off = this.origin.toVector3f().add(0, this.player.getEyeHeight(), 0);
+        Vector3f off = this.origin.toVector3f().add(0, this.player.getEyeHeight()/2.f, 0);
         Vector3f rotatedPoint = new Vector3f(0, 0, dist).rotate(yr.mul(xr)).add(off);
         return rotatedPoint;
     }
 
     public GesturePlayerModelEntity getPlayerModel() {
         return playerModel;
+    }
+
+    public ServerPlayer getPlayer() {
+        return player;
+    }
+
+    public Vec3 getOrigin() {
+        return origin;
     }
 }

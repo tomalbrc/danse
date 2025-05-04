@@ -12,6 +12,7 @@ import org.joml.Vector3f;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+@SuppressWarnings("unused")
 public class PerPixelModelGenerator {
     private static final String MODEL_PREFIX = "danse:item/";
     private static final List<Direction> DIRECTIONS = List.of(
@@ -97,8 +98,8 @@ public class PerPixelModelGenerator {
     }
 
     private static String createFilename(FaceData face, GenerationContext ctx) {
-        String suffix = ctx.inflated ? "_inflated" : "";
-        return String.format("f%d_%d_%d%s%s", face.x, face.y, face.z, face.direction, suffix);
+        String suffix = ctx.inflated ? "i" : "";
+        return String.format("%d%d%d%s%s", face.x, face.y, face.z, face.direction.getName().charAt(0), suffix);
     }
 
     private static void storeModel(GenerationContext ctx, Model model, String baseName, int tintIndex) {
@@ -151,7 +152,7 @@ public class PerPixelModelGenerator {
     }
 
     static class Model {
-        Map<String, String> textures = Collections.singletonMap("p", "danse:item/model");
+        ImmutableMap<String, String> textures = ImmutableMap.of("p", "danse:item/model", "particle", "#p");
         List<Element> elements;
         Map<String, ResourcePackModel.DisplayTransform> display;
 

@@ -46,8 +46,10 @@ public class GesturePlayerModelEntity extends PlayerModelEntity {
 
         if (this.player.isRemoved() || this.player.isSpectator() || (this.checkDistance && this.player.distanceToSqr(this) > 1)) {
             this.discard();
-        } else {
-            //this.setYRot(this.player.getYRot());
         }
+    }
+
+    public ServerPlayer getPlayer() {
+        return player;
     }
 }
