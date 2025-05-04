@@ -6,15 +6,11 @@ import de.tomalbrc.danse.entities.GesturePlayerModelEntity;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.VirtualEntityUtils;
 import eu.pb4.polymer.virtualentity.api.elements.BlockDisplayElement;
-import eu.pb4.polymer.virtualentity.api.tracker.EntityTrackedData;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerAbilitiesPacket;
-import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.util.Mth;
@@ -26,7 +22,6 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.List;
 import java.util.function.Consumer;
 
 public class GestureCamera extends ElementHolder {
@@ -81,10 +76,6 @@ public class GestureCamera extends ElementHolder {
         GameType.SPECTATOR.updatePlayerAbilities(player.getPlayer().getAbilities());
         packetConsumer.accept(new ClientboundPlayerAbilitiesPacket(player.getPlayer().getAbilities()));
         player.player.gameMode().updatePlayerAbilities(player.getPlayer().getAbilities());
-
-        List<SynchedEntityData.DataValue<?>> data = new ObjectArrayList<>();
-        data.add(SynchedEntityData.DataValue.create(EntityTrackedData.FLAGS, (byte) ((1 << EntityTrackedData.INVISIBLE_FLAG_INDEX))));
-        packetConsumer.accept(new ClientboundSetEntityDataPacket(player.player.getId(), data));
     }
 
     @Override
@@ -140,5 +131,13 @@ public class GestureCamera extends ElementHolder {
 
     public Vec3 getOrigin() {
         return origin;
+    }
+
+    public Vec3 getCurrentCameraPosition() {
+        return this.displayElement.getCurrentPos();
+    }
+
+    public int getCameraId() {
+        return this.displayElement.getEntityId();
     }
 }
