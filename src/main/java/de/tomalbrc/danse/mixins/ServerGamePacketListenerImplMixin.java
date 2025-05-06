@@ -19,7 +19,7 @@ public abstract class ServerGamePacketListenerImplMixin {
     @Shadow
     public ServerPlayer player;
 
-    @Inject(method = "handlePlayerInput", at = @At(value = "HEAD"), cancellable = true)
+    @Inject(method = "handlePlayerInput", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;setLastClientInput(Lnet/minecraft/world/entity/player/Input;)V"), cancellable = true)
     private void danse$handleInput(ServerboundPlayerInputPacket serverboundPlayerInputPacket, CallbackInfo ci) {
         GestureCameraHolder camera = GestureController.GESTURE_CAMS.get(player.getUUID());
         if (camera != null) {
@@ -31,14 +31,14 @@ public abstract class ServerGamePacketListenerImplMixin {
         }
     }
 
-    @Inject(method = "handleInteract", at = @At(value = "HEAD"), cancellable = true)
+    @Inject(method = "handleInteract", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;hasClientLoaded()Z", ordinal = 0), cancellable = true)
     private void danse$handleInteract(ServerboundInteractPacket serverboundInteractPacket, CallbackInfo ci) {
         if (GestureController.GESTURE_CAMS.containsKey(player.getUUID())) {
             ci.cancel();
         }
     }
 
-    @Inject(method = "handleMovePlayer", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "handleMovePlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;containsInvalidValues(DDDFF)Z", ordinal = 0), cancellable = true)
     private void danse$handleMove(ServerboundMovePlayerPacket serverboundMovePlayerPacket, CallbackInfo ci) {
         GestureCameraHolder camera = GestureController.GESTURE_CAMS.get(player.getUUID());
         if (camera != null) {
@@ -50,7 +50,7 @@ public abstract class ServerGamePacketListenerImplMixin {
         }
     }
 
-    @Inject(method = "handlePlayerAction", at = @At(value = "HEAD"), cancellable = true)
+    @Inject(method = "handlePlayerAction", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;hasClientLoaded()Z", ordinal = 0), cancellable = true)
     private void danse$handleAction(ServerboundPlayerActionPacket serverboundPlayerActionPacket, CallbackInfo ci) {
         if (GestureController.GESTURE_CAMS.containsKey(player.getUUID())) {
             ci.cancel();
