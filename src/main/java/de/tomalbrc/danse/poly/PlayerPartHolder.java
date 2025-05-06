@@ -56,7 +56,6 @@ public class PlayerPartHolder<T extends Entity & AnimatedEntity> extends SimpleE
                 bone.element().setInvisible(true);
                 bone.element().setDisplaySize(5, 5);
                 bone.element().getDataTracker().set(DisplayTrackedData.Item.ITEM, item, true);
-                bone.element().setItem(item);
                 bone.element().setTeleportDuration(2);
                 bone.element().setInterpolationDuration(2);
             }
