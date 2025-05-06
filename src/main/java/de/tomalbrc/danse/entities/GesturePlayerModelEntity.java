@@ -15,7 +15,7 @@ public class GesturePlayerModelEntity extends PlayerModelEntity {
     private final ServerPlayer player;
     private boolean checkDistance = true;
 
-    public GesturePlayerModelEntity(ServerPlayer player, Model model, Map<MinecraftSkinParser.BodyPart, CustomModelData> data) {
+    public GesturePlayerModelEntity(ServerPlayer player, Model model, Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> data) {
         super(EntityRegistry.PLAYER_MODEL, player.level());
         this.player = player;
         this.setPos(player.position());

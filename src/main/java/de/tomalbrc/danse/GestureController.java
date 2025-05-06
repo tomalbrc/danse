@@ -18,6 +18,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.entity.Relative;
 import net.minecraft.world.item.component.ResolvableProfile;
+import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
@@ -28,8 +29,12 @@ public class GestureController {
     public static final Reference2ObjectOpenHashMap<UUID, GestureCamera> GESTURE_CAMS = new Reference2ObjectOpenHashMap<>();
 
     public static void onConnect(ServerPlayer serverPlayer) {
-        // to have a cached "model" of connected players
-        new ResolvableProfile(serverPlayer.getGameProfile()).resolve().thenAccept(x -> CustomModelDataCache.fetch(x.gameProfile(), (dataMap) -> {}));
+        // to have a cached model/texture of players
+        SkullBlockEntity.fetchGameProfile(serverPlayer.getUUID()).thenAccept(gameProfile -> {
+            gameProfile.ifPresent(profile -> {
+                CustomModelDataCache.fetch(profile, (dataMap) -> {});
+            });
+        });
     }
 
     public static void onDisconnect(ServerPlayer serverPlayer) {

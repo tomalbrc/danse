@@ -9,6 +9,7 @@ import de.tomalbrc.bil.core.model.Pose;
 import de.tomalbrc.danse.entities.GesturePlayerModelEntity;
 import de.tomalbrc.danse.util.MinecraftSkinParser;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
+import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
 import eu.pb4.polymer.virtualentity.api.tracker.EntityTrackedData;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.component.DataComponents;
@@ -33,13 +34,21 @@ public class PlayerPartHolder<T extends Entity & AnimatedEntity> extends SimpleE
         super(parent, model);
     }
 
-    public void setSkinData(Map<MinecraftSkinParser.BodyPart, CustomModelData> data) {
+    public void setSkinData(Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> data) {
         for (Bone bone : this.bones) {
-            var item = bone.element().getItem();
-            item.set(DataComponents.CUSTOM_MODEL_DATA, data.get(MinecraftSkinParser.BodyPart.partFrom(bone.name())));
-            bone.element().setItem(item);
-            bone.element().setTeleportDuration(2);
-            bone.element().setInterpolationDuration(2);
+            var part = MinecraftSkinParser.BodyPart.partFrom(bone.name());
+            if (part != MinecraftSkinParser.BodyPart.NONE) {
+                var item = bone.element().getItem();
+                var partData = data.get(part);
+                if (partData.slim() && part.isArm()) {
+                    item.set(DataComponents.ITEM_MODEL, part.id().withSuffix("s"));
+                }
+                item.set(DataComponents.CUSTOM_MODEL_DATA, partData.customModelData());
+                bone.element().getDataTracker().set(DisplayTrackedData.Item.ITEM, item, true);
+                bone.element().setItem(item);
+                bone.element().setTeleportDuration(2);
+                bone.element().setInterpolationDuration(2);
+            }
         }
     }
 

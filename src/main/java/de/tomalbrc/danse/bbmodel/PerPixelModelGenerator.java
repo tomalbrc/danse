@@ -34,7 +34,7 @@ public class PerPixelModelGenerator {
         int totalOriginal = Arrays.stream(grid.directionCounts).sum();
         calculateBases(grid.directionBases, grid.directionCounts, totalOriginal);
 
-        var map = Map.of("head", new ResourcePackModel.DisplayTransform(null, transformMap.get("head").translation().add(0, 0.4f, 0, new Vector3f()), transformMap.get("head").scale().add(0.08f, 0.08f, 0.08f, new Vector3f())));
+        var map = Map.of("head", new ResourcePackModel.DisplayTransform(null, transformMap.get("head").translation().add(0, 0.35f, 0, new Vector3f()), transformMap.get("head").scale().add(0.07f, 0.07f, 0.07f, new Vector3f())));
         generateAllModels(new GenerationContext(
                 resources, pixelModels, map, partName, gson, grid, true
         ));
@@ -129,7 +129,7 @@ public class PerPixelModelGenerator {
         ));
 
         byte[] bytes = gson.toJson(Map.of("model", composite)).getBytes(StandardCharsets.UTF_8);
-        resources.put("assets/danse/items/composite_" + partName + ".json", bytes);
+        resources.put("assets/danse/items/" + partName + ".json", bytes);
     }
 
     static class Face {

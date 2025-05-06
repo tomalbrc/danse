@@ -23,8 +23,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,7 +58,7 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
         if (tag.contains(ANIMATION)) {
-            if (!this.animation.equals(tag.getString(ANIMATION)) && this.holder != null) {
+            if (this.holder != null) {
                 this.holder.destroy();
             }
 
@@ -76,12 +76,11 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
 
         if (tag.contains(PLAYER)) {
             this.playerName = tag.getString(PLAYER).orElseThrow();
-            if (this.getServer() != null && this.getServer().getProfileCache() != null) {
-                var opt = this.getServer().getProfileCache().get(this.playerName);
-                opt.ifPresent(gameProfile -> {
-                    CustomModelDataCache.fetch(gameProfile, dataMap -> {
+            if (this.getServer() != null) {
+                SkullBlockEntity.fetchGameProfile(this.playerName).thenAccept(gameProfile -> {
+                    gameProfile.ifPresent(profile -> CustomModelDataCache.fetch(profile, dataMap -> {
                         this.holder.setSkinData(dataMap);
-                    });
+                    }));
                 });
             }
         }
@@ -98,7 +97,7 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
         }
     }
 
-    public void setPlayer(ServerPlayer player, Map<MinecraftSkinParser.BodyPart, CustomModelData> data) {
+    public void setPlayer(ServerPlayer player, Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> data) {
         this.playerName = player.getScoreboardName();
 
         ItemStack mainHand = player.getMainHandItem();

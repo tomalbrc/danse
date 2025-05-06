@@ -1,6 +1,8 @@
 package de.tomalbrc.danse.util;
 
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.component.CustomModelData;
 
 import java.awt.image.BufferedImage;
 import java.util.EnumMap;
@@ -15,7 +17,53 @@ public class MinecraftSkinParser {
 
     static {
         defineSteveTextures(CLASSIC_TEXTURE_MAP);
-        defineSteveTextures(SLIM_TEXTURE_MAP);
+        defineAlexTextures(CLASSIC_TEXTURE_MAP, SLIM_TEXTURE_MAP);
+    }
+
+    private static void defineAlexTextures(Map<BodyPart, Map<Layer, Map<Direction, int[]>>> classic, Map<BodyPart, Map<Layer, Map<Direction, int[]>>> slim) {
+        slim.putAll(classic);
+
+        // RIGHT_ARM
+        Map<Layer, Map<Direction, int[]>> rightArmMap = new EnumMap<>(Layer.class);
+        Map<Direction, int[]> rightArmInner = new EnumMap<>(Direction.class);
+        rightArmInner.put(Direction.EAST, new int[]{40, 20, 4, 12});
+        rightArmInner.put(Direction.NORTH, new int[]{44, 20, 3, 12});
+        rightArmInner.put(Direction.WEST, new int[]{47, 20, 4, 12});
+        rightArmInner.put(Direction.SOUTH, new int[]{51, 20, 3, 12});
+        rightArmInner.put(Direction.UP, new int[]{44, 16, 3, 4});
+        rightArmInner.put(Direction.DOWN, new int[]{47, 16, 3, 4});
+
+        Map<Direction, int[]> rightArmOuter = new EnumMap<>(Direction.class);
+        rightArmOuter.put(Direction.EAST, new int[]{40, 36, 4, 12});
+        rightArmOuter.put(Direction.NORTH, new int[]{44, 36, 3, 12});
+        rightArmOuter.put(Direction.WEST, new int[]{47, 36, 4, 12});
+        rightArmOuter.put(Direction.SOUTH, new int[]{51, 36, 3, 12});
+        rightArmOuter.put(Direction.UP, new int[]{44, 32, 3, 4});
+        rightArmOuter.put(Direction.DOWN, new int[]{47, 32, 3, 4});
+        rightArmMap.put(Layer.INNER, rightArmInner);
+        rightArmMap.put(Layer.OUTER, rightArmOuter);
+        slim.put(BodyPart.RIGHT_ARM, rightArmMap);
+
+        // LEFT_ARM
+        Map<Layer, Map<Direction, int[]>> leftArmMap = new EnumMap<>(Layer.class);
+        Map<Direction, int[]> leftArmInner = new EnumMap<>(Direction.class);
+        leftArmInner.put(Direction.EAST, new int[]{32, 52, 4, 12});
+        leftArmInner.put(Direction.NORTH, new int[]{36, 52, 3, 12});
+        leftArmInner.put(Direction.WEST, new int[]{39, 52, 4, 12});
+        leftArmInner.put(Direction.SOUTH, new int[]{43, 52, 3, 12});
+        leftArmInner.put(Direction.UP, new int[]{36, 48, 3, 4});
+        leftArmInner.put(Direction.DOWN, new int[]{39, 48, 3, 4});
+
+        Map<Direction, int[]> leftArmOuter = new EnumMap<>(Direction.class);
+        leftArmOuter.put(Direction.EAST, new int[]{48, 52, 4, 12});
+        leftArmOuter.put(Direction.NORTH, new int[]{52, 52, 3, 12});
+        leftArmOuter.put(Direction.WEST, new int[]{55, 52, 4, 12});
+        leftArmOuter.put(Direction.SOUTH, new int[]{59, 52, 3, 12});
+        leftArmOuter.put(Direction.UP, new int[]{52, 48, 3, 4});
+        leftArmOuter.put(Direction.DOWN, new int[]{55, 48, 3, 4});
+        leftArmMap.put(Layer.INNER, leftArmInner);
+        leftArmMap.put(Layer.OUTER, leftArmOuter);
+        slim.put(BodyPart.LEFT_ARM, leftArmMap);
     }
 
     private static void defineSteveTextures(Map<BodyPart, Map<Layer, Map<Direction, int[]>>> map) {
@@ -249,7 +297,33 @@ public class MinecraftSkinParser {
     }
 
     public enum BodyPart {
-        NONE, HEAD, BODY, LEFT_ARM, RIGHT_ARM, LEFT_LEG, RIGHT_LEG;
+        NONE("none"),
+        HEAD("head"),
+        BODY("body"),
+        LEFT_ARM("arm_l"),
+        RIGHT_ARM("arm_r"),
+        LEFT_ARM_SLIM("arm_ls"),
+        RIGHT_ARM_SLIM("arm_rs"),
+        LEFT_LEG("leg_l"),
+        RIGHT_LEG("leg_r");
+
+        private final String name;
+
+        BodyPart(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return this.name;
+        }
+
+        public ResourceLocation id() {
+            return ResourceLocation.fromNamespaceAndPath("danse", getName());
+        }
+
+        public boolean isArm() {
+            return this == RIGHT_ARM || this == LEFT_ARM || this == RIGHT_ARM_SLIM || this == LEFT_ARM_SLIM;
+        }
 
         public static BodyPart partFrom(String partName) {
             return switch (partName) {
@@ -257,6 +331,8 @@ public class MinecraftSkinParser {
                 case "body" -> BODY;
                 case "arm_r" -> RIGHT_ARM;
                 case "arm_l" -> LEFT_ARM;
+                case "arm_rs" -> RIGHT_ARM_SLIM;
+                case "arm_ls" -> LEFT_ARM_SLIM;
                 case "leg_l" -> LEFT_LEG;
                 case "leg_r" -> RIGHT_LEG;
                 default -> NONE;
@@ -275,7 +351,11 @@ public class MinecraftSkinParser {
             int width, int height
     ) {
         public boolean alpha() {
-            return ((color >> 24) & 0xff) == 0xff;
+            return ((color >> 24) & 0xff) >= 25;
         }
+    }
+
+    public record PartData(CustomModelData customModelData, boolean slim) {
+
     }
 }
