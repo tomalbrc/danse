@@ -5,15 +5,17 @@ import com.mojang.authlib.GameProfile;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.component.CustomModelData;
-import net.minecraft.world.item.component.ResolvableProfile;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-public class CustomModelDataCache {
+public class TextureCache {
     private static final Map<UUID, Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData>> CACHE = new ConcurrentHashMap<>();
-    private static final List<Direction> DIRECTIONS = ImmutableList.of(Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST, Direction.UP, Direction.DOWN);
+    private static final ImmutableList<Direction> DIRECTIONS = ImmutableList.of(Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST, Direction.UP, Direction.DOWN);
 
     public static void fetch(GameProfile profile, Consumer<Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData>> onFinish) {
         var val = CACHE.get(profile.getId());
@@ -36,16 +38,19 @@ public class CustomModelDataCache {
                     });
                 }
 
-                for (Direction direction : DIRECTIONS) {
-                    MinecraftSkinParser.extractTextureRGB(image, part, MinecraftSkinParser.Layer.OUTER, direction, colorData -> {
-                        colors.add(colorData.color());
-                        alphas.add(colorData.alpha());
-                    });
+                if (image.getHeight() > 32) {
+                    for (final Direction direction : DIRECTIONS) {
+                        MinecraftSkinParser.extractTextureRGB(image, part, MinecraftSkinParser.Layer.OUTER, direction, colorData -> {
+                            colors.add(colorData.color());
+                            alphas.add(colorData.alpha());
+                        });
+                    }
                 }
 
-                data.put(part, new MinecraftSkinParser.PartData(new CustomModelData(List.of(), alphas, List.of(), colors), MinecraftSkinParser.isSlimSkin(image)));
+                data.put(part, new MinecraftSkinParser.PartData(new CustomModelData(ImmutableList.of(), alphas, ImmutableList.of(), colors), MinecraftSkinParser.isSlimSkin(image)));
             }
 
+            CACHE.put(profile.getId(), data);
             onFinish.accept(data);
         });
     }

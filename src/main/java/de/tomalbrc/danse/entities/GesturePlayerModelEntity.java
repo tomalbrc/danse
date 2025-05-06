@@ -1,13 +1,14 @@
 package de.tomalbrc.danse.entities;
 
 import de.tomalbrc.bil.core.model.Model;
+import de.tomalbrc.danse.poly.PlayerPartHolder;
 import de.tomalbrc.danse.registries.EntityRegistry;
 import de.tomalbrc.danse.util.MinecraftSkinParser;
 import de.tomalbrc.danse.util.Util;
+import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.component.CustomModelData;
 
 import java.util.Map;
 
@@ -25,7 +26,18 @@ public class GesturePlayerModelEntity extends PlayerModelEntity {
         this.setPlayer(player, data); // important to set this *after* model was set
     }
 
-    public void setCheckDistance(boolean checkDistance) {
+    @Override
+    public void setModel(Model model) {
+        this.holder = new PlayerPartHolder<>(this, model);
+        EntityAttachment.ofTicking(this.holder, this);
+    }
+
+    @Override
+    public boolean shouldBeSaved() {
+        return false;
+    }
+
+    public void shouldCheckDistance(boolean checkDistance) {
         this.checkDistance = checkDistance;
     }
 

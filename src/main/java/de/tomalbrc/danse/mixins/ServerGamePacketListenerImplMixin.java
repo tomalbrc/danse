@@ -1,7 +1,7 @@
 package de.tomalbrc.danse.mixins;
 
 import de.tomalbrc.danse.GestureController;
-import de.tomalbrc.danse.poly.GestureCamera;
+import de.tomalbrc.danse.poly.GestureCameraHolder;
 import net.minecraft.network.protocol.game.ServerboundInteractPacket;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
@@ -19,11 +19,9 @@ public abstract class ServerGamePacketListenerImplMixin {
     @Shadow
     public ServerPlayer player;
 
-    @Shadow public abstract void handlePlayerAction(ServerboundPlayerActionPacket serverboundPlayerActionPacket);
-
     @Inject(method = "handlePlayerInput", at = @At(value = "HEAD"), cancellable = true)
     private void danse$handleInput(ServerboundPlayerInputPacket serverboundPlayerInputPacket, CallbackInfo ci) {
-        GestureCamera camera = GestureController.GESTURE_CAMS.get(player.getUUID());
+        GestureCameraHolder camera = GestureController.GESTURE_CAMS.get(player.getUUID());
         if (camera != null) {
             if (serverboundPlayerInputPacket.input().shift()) {
                 GestureController.onStop(camera);
@@ -42,7 +40,7 @@ public abstract class ServerGamePacketListenerImplMixin {
 
     @Inject(method = "handleMovePlayer", at = @At("HEAD"), cancellable = true)
     private void danse$handleMove(ServerboundMovePlayerPacket serverboundMovePlayerPacket, CallbackInfo ci) {
-        GestureCamera camera = GestureController.GESTURE_CAMS.get(player.getUUID());
+        GestureCameraHolder camera = GestureController.GESTURE_CAMS.get(player.getUUID());
         if (camera != null) {
             if (serverboundMovePlayerPacket instanceof ServerboundMovePlayerPacket.Rot rot) {
                 camera.setYaw(rot.getYRot(this.player.getYRot()));

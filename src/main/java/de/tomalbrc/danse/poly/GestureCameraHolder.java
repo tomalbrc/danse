@@ -10,6 +10,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket;
+import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerAbilitiesPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -24,7 +25,7 @@ import org.joml.Vector3f;
 
 import java.util.function.Consumer;
 
-public class GestureCamera extends ElementHolder {
+public class GestureCameraHolder extends ElementHolder {
     private final BlockDisplayElement displayElement = new BlockDisplayElement() {
         @Override
         public void notifyMove(Vec3 oldPos, Vec3 newPos, Vec3 delta) {
@@ -40,7 +41,7 @@ public class GestureCamera extends ElementHolder {
     private float pitch;
     private float yaw;
 
-    public GestureCamera(ServerPlayer player, GesturePlayerModelEntity playerModel) {
+    public GestureCameraHolder(ServerPlayer player, GesturePlayerModelEntity playerModel) {
         super();
 
         this.playerModel = playerModel;
@@ -72,6 +73,7 @@ public class GestureCamera extends ElementHolder {
         super.startWatchingExtraPackets(player, packetConsumer);
         packetConsumer.accept(VirtualEntityUtils.createRidePacket(displayElement.getEntityId(), IntList.of(player.player.getId())));
         packetConsumer.accept(VirtualEntityUtils.createSetCameraEntityPacket(displayElement.getEntityId()));
+        packetConsumer.accept(new ClientboundGameEventPacket(ClientboundGameEventPacket.CHANGE_GAME_MODE, GameType.SPECTATOR.getId()));
 
         GameType.SPECTATOR.updatePlayerAbilities(player.getPlayer().getAbilities());
         packetConsumer.accept(new ClientboundPlayerAbilitiesPacket(player.getPlayer().getAbilities()));
@@ -117,8 +119,7 @@ public class GestureCamera extends ElementHolder {
         Quaternionf yr = Axis.YN.rotationDegrees(this.yaw + 180).normalize();
 
         Vector3f off = this.origin.toVector3f().add(0, this.player.getEyeHeight()/2.f, 0);
-        Vector3f rotatedPoint = new Vector3f(0, 0, dist).rotate(yr.mul(xr)).add(off);
-        return rotatedPoint;
+        return new Vector3f(0, 0, dist).rotate(yr.mul(xr)).add(off);
     }
 
     public GesturePlayerModelEntity getPlayerModel() {

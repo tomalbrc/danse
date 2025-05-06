@@ -12,12 +12,20 @@ import java.util.function.Consumer;
 public class MinecraftSkinParser {
     private static final int TEXTURE_WIDTH = 64;
     private static final int TEXTURE_HEIGHT = 64;
+    private static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> NOTCH_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
     private static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> CLASSIC_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
     private static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> SLIM_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
 
     static {
         defineSteveTextures(CLASSIC_TEXTURE_MAP);
+        defineNotchTextures(CLASSIC_TEXTURE_MAP, NOTCH_TEXTURE_MAP);
         defineAlexTextures(CLASSIC_TEXTURE_MAP, SLIM_TEXTURE_MAP);
+    }
+    private static void defineNotchTextures(Map<BodyPart, Map<Layer, Map<Direction, int[]>>> classic, Map<BodyPart, Map<Layer, Map<Direction, int[]>>> notch) {
+        notch.putAll(classic);
+
+        notch.put(BodyPart.LEFT_ARM, notch.get(BodyPart.RIGHT_ARM));
+        notch.put(BodyPart.LEFT_LEG, notch.get(BodyPart.RIGHT_LEG));
     }
 
     private static void defineAlexTextures(Map<BodyPart, Map<Layer, Map<Direction, int[]>>> classic, Map<BodyPart, Map<Layer, Map<Direction, int[]>>> slim) {
@@ -202,7 +210,7 @@ public class MinecraftSkinParser {
     public static void extractTextureRGB(BufferedImage image, BodyPart part, Layer layer, Direction direction, Consumer<ColorData> consumer) {
         boolean isSlim = isSlimSkin(image);
 
-        Map<BodyPart, Map<Layer, Map<Direction, int[]>>> textureMap = isSlim ? SLIM_TEXTURE_MAP : CLASSIC_TEXTURE_MAP;
+        Map<BodyPart, Map<Layer, Map<Direction, int[]>>> textureMap = isSlim ? SLIM_TEXTURE_MAP : image.getHeight() > 32 ? CLASSIC_TEXTURE_MAP : NOTCH_TEXTURE_MAP;
         Map<Layer, Map<Direction, int[]>> partMap = textureMap.get(part);
         if (partMap == null) return;
 
@@ -233,12 +241,7 @@ public class MinecraftSkinParser {
         // flip
         for (int dx = 0; dx < width; dx++) {
             for (int dy = height - 1; dy >= 0; dy--) {
-                try {
-                    int argb = image.getRGB(startX + dx, startY + dy);
-                    consumer.accept(new ColorData(argb, dx, dy, width, height));
-                } catch (Exception e) {
-                    consumer.accept(new ColorData(0xFF_FF_FF, dx, dy, width, height));
-                }
+                consumer.accept(sample(image, height, width, startX, startY, dx, dy));
             }
         }
     }
@@ -247,12 +250,7 @@ public class MinecraftSkinParser {
         // flip the other way
         for (int dx = width - 1; dx >= 0; dx--) {
             for (int dy = height - 1; dy >= 0; dy--) {
-                try {
-                    int argb = image.getRGB(startX + dx, startY + dy);
-                    consumer.accept(new ColorData(argb, dx, dy, width, height));
-                } catch (Exception e) {
-                    consumer.accept(new ColorData(0xFF_FF_FF, dx, dy, width, height));
-                }
+                consumer.accept(sample(image, height, width, startX, startY, dx, dy));
             }
         }
     }
@@ -260,12 +258,7 @@ public class MinecraftSkinParser {
     private static void northTex(BufferedImage image, Consumer<ColorData> consumer, int height, int width, int startX, int startY) {
         for (int dy = height - 1; dy >= 0; dy--) {
             for (int dx = 0; dx < width; dx++) {
-                try {
-                    int argb = image.getRGB(startX + dx, startY + dy);
-                    consumer.accept(new ColorData(argb, dx, dy, width, height));
-                } catch (Exception e) {
-                    consumer.accept(new ColorData(0xFF_FF_FF, dx, dy, width, height));
-                }
+                consumer.accept(sample(image, height, width, startX, startY, dx, dy));
             }
         }
     }
@@ -273,12 +266,7 @@ public class MinecraftSkinParser {
     private static void upTex(BufferedImage image, Consumer<ColorData> consumer, int height, int width, int startX, int startY) {
         for (int dy = 0; dy < height; dy++) {
             for (int dx = 0; dx < width; dx++) {
-                try {
-                    int argb = image.getRGB(startX + dx, startY + dy);
-                    consumer.accept(new ColorData(argb, dx, dy, width, height));
-                } catch (Exception e) {
-                    consumer.accept(new ColorData(0xFF_FF_FF, dx, dy, width, height));
-                }
+                consumer.accept(sample(image, height, width, startX, startY, dx, dy));
             }
         }
     }
@@ -286,14 +274,16 @@ public class MinecraftSkinParser {
     private static void southTex(BufferedImage image, Consumer<ColorData> consumer, int height, int width, int startX, int startY) {
         for (int dy = height - 1; dy >= 0; dy--) {
             for (int dx = width - 1; dx >= 0; dx--) {
-                try {
-                    int argb = image.getRGB(startX + dx, startY + dy);
-                    consumer.accept(new ColorData(argb, dx, dy, width, height));
-                } catch (Exception e) {
-                    consumer.accept(new ColorData(0xFF_FF_FF, dx, dy, width, height));
-                }
+                consumer.accept(sample(image, height, width, startX, startY, dx, dy));
             }
         }
+    }
+
+    private static ColorData sample(BufferedImage image, int height, int width, int startX, int startY, int dx, int dy) {
+        int y = startY + dy;
+        int x = startX + dx;
+        int argb = image.getRGB(x, y);
+        return new ColorData(argb, dx, dy, width, height);
     }
 
     public enum BodyPart {
@@ -317,8 +307,12 @@ public class MinecraftSkinParser {
             return this.name;
         }
 
-        public ResourceLocation id() {
-            return ResourceLocation.fromNamespaceAndPath("danse", getName());
+        public ResourceLocation id(boolean slim) {
+            if (slim) {
+                return ResourceLocation.fromNamespaceAndPath("danse", getName() + "s");
+            } else {
+                return ResourceLocation.fromNamespaceAndPath("danse", getName());
+            }
         }
 
         public boolean isArm() {
@@ -351,7 +345,7 @@ public class MinecraftSkinParser {
             int width, int height
     ) {
         public boolean alpha() {
-            return ((color >> 24) & 0xff) >= 25;
+            return ((color >> 24) & 0xff) >= 0xf0;
         }
     }
 

@@ -1,5 +1,6 @@
 package de.tomalbrc.danse.bbmodel;
 
+import com.google.common.collect.ImmutableMap;
 import de.tomalbrc.bil.file.bbmodel.BbModel;
 import de.tomalbrc.bil.file.bbmodel.BbOutliner;
 import de.tomalbrc.bil.file.extra.ResourcePackModel;
@@ -24,7 +25,7 @@ public class PlayerModelImporter extends AjModelImporter {
         PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(resourcePackBuilder -> {
             addPart(partName, transformMap, resourcePackBuilder);
             if (Util.isArm(partName)) {
-                var displayMap = Map.of("head", new ResourcePackModel.DisplayTransform(null, new Vector3f(0.9575f * (partName.equals("arm_r") ? 1.f : -1.f), 0.5f,0.f), LIMB_SCALE_SLIM));
+                var displayMap = ImmutableMap.of("head", new ResourcePackModel.DisplayTransform(null, new Vector3f(0.9575f * (partName.equals("arm_r") ? 1.f : -1.f), 0.5f,0.f), LIMB_SCALE_SLIM));
                 addPart(partName + "s", displayMap, resourcePackBuilder);
             }
         });
@@ -41,14 +42,14 @@ public class PlayerModelImporter extends AjModelImporter {
                     generateModelPart(outliner, new Vector3f(0, 8.25f + 0.25f, 0), new Vector3f(0.9375f, 1.40625f, 0.46875f));
             case "arm_r" -> generateModelPart(outliner, new Vector3f(0.35f, 0.5f, 0), LIMB_SCALE);
             case "arm_l" -> generateModelPart(outliner, new Vector3f(-0.35f, 0.5f, 0), LIMB_SCALE);
-            case "leg_r" -> generateModelPart(outliner, new Vector3f(0.2f, -1.9f + 0.25f, 0), LIMB_SCALE);
-            case "leg_l" -> generateModelPart(outliner, new Vector3f(-0.2f, -1.9f + 0.25f, 0), LIMB_SCALE);
+            case "leg_r" -> generateModelPart(outliner, new Vector3f(0.125f, -1.9f + 0.16f, 0), LIMB_SCALE);
+            case "leg_l" -> generateModelPart(outliner, new Vector3f(-0.125f, -1.9f + 0.16f, 0), LIMB_SCALE);
             default -> super.generateModel(outliner);
         };
     }
 
     protected ResourceLocation generateModelPart(BbOutliner outliner, Vector3f pos, Vector3f scale) {
-        return addItemModel(outliner.name.toLowerCase(), Map.of("head", new ResourcePackModel.DisplayTransform(null, pos, scale)));
+        return addItemModel(outliner.name.toLowerCase(), ImmutableMap.of("head", new ResourcePackModel.DisplayTransform(null, pos, scale)));
     }
 
     private static void addPart(String partName, Map<String, ResourcePackModel.DisplayTransform> transformMap, ResourcePackBuilder resourcePackBuilder) {

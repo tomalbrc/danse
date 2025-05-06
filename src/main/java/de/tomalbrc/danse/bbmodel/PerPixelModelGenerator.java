@@ -1,5 +1,6 @@
 package de.tomalbrc.danse.bbmodel;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
@@ -10,12 +11,15 @@ import net.minecraft.core.Direction;
 import org.joml.Vector3f;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("unused")
 public class PerPixelModelGenerator {
     private static final String MODEL_PREFIX = "danse:item/";
-    private static final List<Direction> DIRECTIONS = List.of(
+    private static final List<Direction> DIRECTIONS = ImmutableList.of(
             Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST, Direction.UP, Direction.DOWN
     );
 
@@ -34,7 +38,7 @@ public class PerPixelModelGenerator {
         int totalOriginal = Arrays.stream(grid.directionCounts).sum();
         calculateBases(grid.directionBases, grid.directionCounts, totalOriginal);
 
-        var map = Map.of("head", new ResourcePackModel.DisplayTransform(null, transformMap.get("head").translation().add(0, 0.35f, 0, new Vector3f()), transformMap.get("head").scale().add(0.07f, 0.07f, 0.07f, new Vector3f())));
+        var map = ImmutableMap.of("head", new ResourcePackModel.DisplayTransform(null, transformMap.get("head").translation().add(0, 0.325f, 0, new Vector3f()), transformMap.get("head").scale().add(0.07f, 0.07f, 0.07f, new Vector3f())));
         generateAllModels(new GenerationContext(
                 resources, pixelModels, map, partName, gson, grid, true
         ));
@@ -94,7 +98,7 @@ public class PerPixelModelGenerator {
 
     private static Element createElement(FaceData face, GridConfig grid, boolean inflated) {
         BoundingBox bb = new BoundingBox(face.x, face.y, face.z, grid, inflated);
-        return new Element(bb.from(), bb.to(), Map.of(face.direction.getName(), Face.ZERO));
+        return new Element(bb.from(), bb.to(), ImmutableMap.of(face.direction.getName(), Face.ZERO));
     }
 
     private static String createFilename(FaceData face, GenerationContext ctx) {
@@ -107,7 +111,7 @@ public class PerPixelModelGenerator {
         String path = "assets/danse/models/item/" + ctx.partName + "/" + filename;
         ctx.resources.put(path, ctx.gson.toJson(model).getBytes(StandardCharsets.UTF_8));
 
-        ctx.pixelModels.add(Map.of(
+        ctx.pixelModels.add(ImmutableMap.of(
                 "index", tintIndex,
                 "path", MODEL_PREFIX + ctx.partName + "/" + baseName
         ));
@@ -128,7 +132,7 @@ public class PerPixelModelGenerator {
                 new ConditionModel((Integer) p.get("index"), (String) p.get("path"))
         ));
 
-        byte[] bytes = gson.toJson(Map.of("model", composite)).getBytes(StandardCharsets.UTF_8);
+        byte[] bytes = gson.toJson(ImmutableMap.of("model", composite)).getBytes(StandardCharsets.UTF_8);
         resources.put("assets/danse/items/" + partName + ".json", bytes);
     }
 
@@ -250,11 +254,11 @@ public class PerPixelModelGenerator {
         }
 
         List<Double> from() {
-            return List.of(fromX, fromY, fromZ);
+            return ImmutableList.of(fromX, fromY, fromZ);
         }
 
         List<Double> to() {
-            return List.of(toX, toY, toZ);
+            return ImmutableList.of(toX, toY, toZ);
         }
     }
 }

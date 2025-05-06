@@ -60,6 +60,9 @@ public class MinecraftSkinFetcher {
                         }
                     }
                     return null;
+                }).exceptionally(throwable -> {
+                    throwable.printStackTrace();
+                    return null;
                 })
         );
 

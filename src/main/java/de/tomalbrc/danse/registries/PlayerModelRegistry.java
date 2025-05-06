@@ -1,5 +1,6 @@
 package de.tomalbrc.danse.registries;
 
+import com.google.common.collect.ImmutableList;
 import de.tomalbrc.bil.core.model.Model;
 import de.tomalbrc.danse.bbmodel.PlayerModelLoader;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -12,7 +13,7 @@ public class PlayerModelRegistry {
     static Map<String, Model> animationModelMap = new Object2ObjectOpenHashMap<>();
 
     public static void load() {
-        var sourceModels = List.of(
+        var sourceModels = ImmutableList.of(
                 "loosely-coupled",
                 "tightly-coupled",
                 "default"
