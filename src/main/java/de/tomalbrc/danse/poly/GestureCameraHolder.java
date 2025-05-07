@@ -11,7 +11,6 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket;
 import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
-import net.minecraft.network.protocol.game.ClientboundPlayerAbilitiesPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.util.Mth;
@@ -74,10 +73,6 @@ public class GestureCameraHolder extends ElementHolder {
         packetConsumer.accept(VirtualEntityUtils.createRidePacket(displayElement.getEntityId(), IntList.of(player.player.getId())));
         packetConsumer.accept(VirtualEntityUtils.createSetCameraEntityPacket(displayElement.getEntityId()));
         packetConsumer.accept(new ClientboundGameEventPacket(ClientboundGameEventPacket.CHANGE_GAME_MODE, GameType.SPECTATOR.getId()));
-
-        GameType.SPECTATOR.updatePlayerAbilities(player.getPlayer().getAbilities());
-        packetConsumer.accept(new ClientboundPlayerAbilitiesPacket(player.getPlayer().getAbilities()));
-        player.player.gameMode().updatePlayerAbilities(player.getPlayer().getAbilities());
     }
 
     @Override

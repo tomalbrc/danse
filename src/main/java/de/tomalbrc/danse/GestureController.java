@@ -55,7 +55,6 @@ public class GestureController {
             var packet = new ClientboundPlayerPositionPacket(player.getId(), new PositionMoveRotation(camera.getOrigin().add(0, 0, 0), Vec3.ZERO, player.getYRot() + player.getEyeHeight(), player.getXRot()), Set.of(Relative.X, Relative.Y, Relative.Z));
             player.connection.send(
                     new ClientboundBundlePacket(ImmutableList.of(
-                            new ClientboundPlayerAbilitiesPacket(player.getAbilities()),
                             new ClientboundSetCameraPacket(player),
                             VirtualEntityUtils.createRidePacket(camera.getCameraId(), IntList.of()),
                             new ClientboundGameEventPacket(ClientboundGameEventPacket.CHANGE_GAME_MODE, player.gameMode().getId()),
