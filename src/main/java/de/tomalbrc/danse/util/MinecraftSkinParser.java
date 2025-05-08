@@ -231,9 +231,9 @@ public class MinecraftSkinParser {
         switch (direction) {
             case EAST -> eastTex(image, consumer, width, height, startX, startY);
             case WEST -> westTex(image, consumer, width, height, startX, startY);
-            case UP -> upTex(image, consumer, height, width, startX, startY);
+            case UP, DOWN -> upTex(image, consumer, height, width, startX, startY);
             case SOUTH -> southTex(image, consumer, height, width, startX, startY);
-            case NORTH, DOWN -> northTex(image, consumer, height, width, startX, startY);
+            case NORTH  -> northTex(image, consumer, height, width, startX, startY);
         }
     }
 
@@ -349,7 +349,7 @@ public class MinecraftSkinParser {
         }
     }
 
-    public record PartData(CustomModelData customModelData, boolean slim) {
+    public record PartData(CustomModelData customModelDataInner, CustomModelData customModelDataOuter, boolean slim) {
 
     }
 }

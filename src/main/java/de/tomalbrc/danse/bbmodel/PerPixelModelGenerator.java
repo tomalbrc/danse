@@ -8,7 +8,6 @@ import de.tomalbrc.bil.file.extra.ResourcePackModel;
 import de.tomalbrc.bil.json.JSON;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import net.minecraft.core.Direction;
-import org.joml.Vector3f;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -26,21 +25,13 @@ public class PerPixelModelGenerator {
     public static Map<String, byte[]> generatePerPixelModels(int px, int py, int pz, String partName, Map<String, ResourcePackModel.DisplayTransform> transformMap) {
         GridConfig grid = new GridConfig(px, py, pz);
         Map<String, byte[]> resources = new Object2ObjectArrayMap<>();
-        List<Map<String, Object>> pixelModels = new ArrayList<>();
+        List<ConditionModel> pixelModels = new ArrayList<>();
         Gson gson = JSON.GENERIC_BUILDER.create();
 
         calculateBases(grid.directionBases, grid.directionCounts, 0);
 
         generateAllModels(new GenerationContext(
-                resources, pixelModels, transformMap, partName, gson, grid, false
-        ));
-
-        int totalOriginal = Arrays.stream(grid.directionCounts).sum();
-        calculateBases(grid.directionBases, grid.directionCounts, totalOriginal);
-
-        var map = ImmutableMap.of("head", new ResourcePackModel.DisplayTransform(null, transformMap.get("head").translation().add(0, 0.325f, 0, new Vector3f()), transformMap.get("head").scale().add(0.07f, 0.07f, 0.07f, new Vector3f())));
-        generateAllModels(new GenerationContext(
-                resources, pixelModels, map, partName, gson, grid, true
+                resources, pixelModels, transformMap, partName, gson, grid
         ));
 
         createCompositeModel(resources, partName, gson, pixelModels);
@@ -81,7 +72,7 @@ public class PerPixelModelGenerator {
         int perFaceIndex = calculatePerFaceIndex(face, ctx.grid);
         int tintIndex = ctx.grid.directionBases[face.directionIndex] + perFaceIndex;
 
-        Element element = createElement(face, ctx.grid, ctx.inflated);
+        Element element = createElement(face, ctx.grid);
         Model model = new Model(List.of(element), ctx.transformMap);
 
         String filename = createFilename(face, ctx);
@@ -96,14 +87,13 @@ public class PerPixelModelGenerator {
         };
     }
 
-    private static Element createElement(FaceData face, GridConfig grid, boolean inflated) {
-        BoundingBox bb = new BoundingBox(face.x, face.y, face.z, grid, inflated);
+    private static Element createElement(FaceData face, GridConfig grid) {
+        BoundingBox bb = new BoundingBox(face.x, face.y, face.z, grid);
         return new Element(bb.from(), bb.to(), ImmutableMap.of(face.direction.getName(), Face.ZERO));
     }
 
     private static String createFilename(FaceData face, GenerationContext ctx) {
-        String suffix = ctx.inflated ? "i" : "";
-        return String.format("%d%d%d%s%s", face.x, face.y, face.z, face.direction.getName().charAt(0), suffix);
+        return String.format("%d%d%d%s", face.x, face.y, face.z, face.direction.getName().charAt(0));
     }
 
     private static void storeModel(GenerationContext ctx, Model model, String baseName, int tintIndex) {
@@ -111,10 +101,7 @@ public class PerPixelModelGenerator {
         String path = "assets/danse/models/item/" + ctx.partName + "/" + filename;
         ctx.resources.put(path, ctx.gson.toJson(model).getBytes(StandardCharsets.UTF_8));
 
-        ctx.pixelModels.add(ImmutableMap.of(
-                "index", tintIndex,
-                "path", MODEL_PREFIX + ctx.partName + "/" + baseName
-        ));
+        ctx.pixelModels.add(new ConditionModel(tintIndex, MODEL_PREFIX + ctx.partName + "/" + baseName));
     }
 
     private static void calculateBases(int[] bases, int[] counts, int start) {
@@ -126,11 +113,9 @@ public class PerPixelModelGenerator {
     }
 
     private static void createCompositeModel(Map<String, byte[]> resources, String partName,
-                                             Gson gson, List<Map<String, Object>> pixelModels) {
+                                             Gson gson, List<ConditionModel> pixelModels) {
         CompositeModel composite = new CompositeModel();
-        pixelModels.forEach(p -> composite.models.add(
-                new ConditionModel((Integer) p.get("index"), (String) p.get("path"))
-        ));
+        composite.models.addAll(pixelModels);
 
         byte[] bytes = gson.toJson(ImmutableMap.of("model", composite)).getBytes(StandardCharsets.UTF_8);
         resources.put("assets/danse/items/" + partName + ".json", bytes);
@@ -195,9 +180,9 @@ public class PerPixelModelGenerator {
         }
     }
 
-    private record GenerationContext(Map<String, byte[]> resources, List<Map<String, Object>> pixelModels,
+    private record GenerationContext(Map<String, byte[]> resources, List<ConditionModel> pixelModels,
                                      Map<String, ResourcePackModel.DisplayTransform> transformMap, String partName,
-                                     Gson gson, GridConfig grid, boolean inflated) {
+                                     Gson gson, GridConfig grid) {
     }
 
     private static class GridConfig {
@@ -238,18 +223,18 @@ public class PerPixelModelGenerator {
         final double fromX, fromY, fromZ;
         final double toX, toY, toZ;
 
-        BoundingBox(int x, int y, int z, GridConfig grid, boolean inflated) {
-            this.fromX = calculateFrom(x, grid.sizeX, 8 - 4, inflated);
+        BoundingBox(int x, int y, int z, GridConfig grid) {
+            this.fromX = calculateFrom(x, grid.sizeX, 8 - 4);
             this.toX = fromX + grid.sizeX;
 
-            this.fromY = calculateFrom(y, grid.sizeY, 0, inflated);
+            this.fromY = calculateFrom(y, grid.sizeY, 0);
             this.toY = fromY + grid.sizeY;
 
-            this.fromZ = calculateFrom(z, grid.sizeZ, 8 - 4, inflated);
+            this.fromZ = calculateFrom(z, grid.sizeZ, 8 - 4);
             this.toZ = fromZ + grid.sizeZ;
         }
 
-        private double calculateFrom(int coord, double size, double offset, boolean inflated) {
+        private double calculateFrom(int coord, double size, double offset) {
             return coord * size + offset;
         }
 

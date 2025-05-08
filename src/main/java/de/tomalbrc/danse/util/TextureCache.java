@@ -38,16 +38,20 @@ public class TextureCache {
                     });
                 }
 
+                List<Integer> colorsOuter = new ArrayList<>();
+                List<Boolean> alphasOuter = new ArrayList<>();
                 if (image.getHeight() > 32) {
                     for (final Direction direction : DIRECTIONS) {
                         MinecraftSkinParser.extractTextureRGB(image, part, MinecraftSkinParser.Layer.OUTER, direction, colorData -> {
-                            colors.add(colorData.color());
-                            alphas.add(colorData.alpha());
+                            colorsOuter.add(colorData.color());
+                            alphasOuter.add(colorData.alpha());
                         });
                     }
                 }
 
-                data.put(part, new MinecraftSkinParser.PartData(new CustomModelData(ImmutableList.of(), alphas, ImmutableList.of(), colors), MinecraftSkinParser.isSlimSkin(image)));
+                CustomModelData innerCmd = new CustomModelData(ImmutableList.of(), alphas, ImmutableList.of(), colors);
+                CustomModelData outerCmd = new CustomModelData(ImmutableList.of(), alphasOuter, ImmutableList.of(), colorsOuter);
+                data.put(part, new MinecraftSkinParser.PartData(innerCmd, outerCmd, MinecraftSkinParser.isSlimSkin(image)));
             }
 
             CACHE.put(profile.getId(), data);

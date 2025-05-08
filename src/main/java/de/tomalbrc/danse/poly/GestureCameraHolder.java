@@ -129,10 +129,6 @@ public class GestureCameraHolder extends ElementHolder {
         return origin;
     }
 
-    public Vec3 getCurrentCameraPosition() {
-        return this.displayElement.getCurrentPos();
-    }
-
     public int getCameraId() {
         return this.displayElement.getEntityId();
     }

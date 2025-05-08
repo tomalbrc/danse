@@ -25,6 +25,7 @@ public class PlayerModelImporter extends AjModelImporter {
         PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(resourcePackBuilder -> {
             addPart(partName, transformMap, resourcePackBuilder);
             if (Util.isArm(partName)) {
+                // slim arms
                 var displayMap = ImmutableMap.of("head", new ResourcePackModel.DisplayTransform(null, new Vector3f(0.9575f * (partName.equals("arm_r") ? 1.f : -1.f), 0.5f,0.f), LIMB_SCALE_SLIM));
                 addPart(partName + "s", displayMap, resourcePackBuilder);
             }
