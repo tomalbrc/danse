@@ -2,6 +2,7 @@ package de.tomalbrc.danse.util;
 
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.component.CustomModelData;
 
 import java.awt.image.BufferedImage;
@@ -12,20 +13,60 @@ import java.util.function.Consumer;
 public class MinecraftSkinParser {
     private static final int TEXTURE_WIDTH = 64;
     private static final int TEXTURE_HEIGHT = 64;
-    private static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> NOTCH_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
-    private static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> CLASSIC_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
-    private static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> SLIM_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
+    public static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> NOTCH_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
+    public static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> CLASSIC_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
+    public static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> SLIM_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
 
     static {
         defineSteveTextures(CLASSIC_TEXTURE_MAP);
         defineNotchTextures(CLASSIC_TEXTURE_MAP, NOTCH_TEXTURE_MAP);
         defineAlexTextures(CLASSIC_TEXTURE_MAP, SLIM_TEXTURE_MAP);
     }
+
     private static void defineNotchTextures(Map<BodyPart, Map<Layer, Map<Direction, int[]>>> classic, Map<BodyPart, Map<Layer, Map<Direction, int[]>>> notch) {
         notch.putAll(classic);
 
-        notch.put(BodyPart.LEFT_ARM, notch.get(BodyPart.RIGHT_ARM));
-        notch.put(BodyPart.LEFT_LEG, notch.get(BodyPart.RIGHT_LEG));
+        // LEFT_ARM
+        Map<Layer, Map<Direction, int[]>> leftArmMap = new EnumMap<>(Layer.class);
+        Map<Direction, int[]> leftArmInner = new EnumMap<>(Direction.class);
+        leftArmInner.put(Direction.SOUTH, new int[]{44, 20, 4, 12});
+        leftArmInner.put(Direction.WEST, new int[]{40, 20, 4, 12});
+        leftArmInner.put(Direction.NORTH, new int[]{52, 20, 4, 12});
+        leftArmInner.put(Direction.EAST, new int[]{48, 20, 4, 12});
+        leftArmInner.put(Direction.UP, new int[]{44, 16, 4, 4});
+        leftArmInner.put(Direction.DOWN, new int[]{48, 16, 4, 4});
+
+        Map<Direction, int[]> leftArmOuter = new EnumMap<>(Direction.class);
+        leftArmOuter.put(Direction.SOUTH, new int[]{44, 36, 4, 12});
+        leftArmOuter.put(Direction.WEST, new int[]{40, 36, 4, 12});
+        leftArmOuter.put(Direction.NORTH, new int[]{52, 36, 4, 12});
+        leftArmOuter.put(Direction.EAST, new int[]{48, 36, 4, 12});
+        leftArmOuter.put(Direction.UP, new int[]{44, 32, 4, 4});
+        leftArmOuter.put(Direction.DOWN, new int[]{48, 32, 4, 4});
+        leftArmMap.put(Layer.INNER, leftArmInner);
+        leftArmMap.put(Layer.OUTER, leftArmOuter);
+        notch.put(BodyPart.LEFT_ARM, leftArmMap);
+
+        // LEFT_LEG
+        Map<Layer, Map<Direction, int[]>> leftLegMap = new EnumMap<>(Layer.class);
+        Map<Direction, int[]> leftLegInner = new EnumMap<>(Direction.class);
+        leftLegInner.put(Direction.SOUTH, new int[]{4, 20, 4, 12});
+        leftLegInner.put(Direction.WEST, new int[]{0, 20, 4, 12});
+        leftLegInner.put(Direction.NORTH, new int[]{12, 20, 4, 12});
+        leftLegInner.put(Direction.EAST, new int[]{8, 20, 4, 12});
+        leftLegInner.put(Direction.UP, new int[]{4, 16, 4, 4});
+        leftLegInner.put(Direction.DOWN, new int[]{8, 16, 4, 4});
+
+        Map<Direction, int[]> leftLegOuter = new EnumMap<>(Direction.class);
+        leftLegOuter.put(Direction.SOUTH, new int[]{4, 36, 4, 12});
+        leftLegOuter.put(Direction.WEST, new int[]{0, 36, 4, 12});
+        leftLegOuter.put(Direction.NORTH, new int[]{12, 36, 4, 12});
+        leftLegOuter.put(Direction.EAST, new int[]{8, 36, 4, 12});
+        leftLegOuter.put(Direction.UP, new int[]{4, 32, 4, 4});
+        leftLegOuter.put(Direction.DOWN, new int[]{8, 32, 4, 4});
+        leftLegMap.put(Layer.INNER, leftLegInner);
+        leftLegMap.put(Layer.OUTER, leftLegOuter);
+        notch.put(BodyPart.LEFT_LEG, leftLegMap);
     }
 
     private static void defineAlexTextures(Map<BodyPart, Map<Layer, Map<Direction, int[]>>> classic, Map<BodyPart, Map<Layer, Map<Direction, int[]>>> slim) {
@@ -207,10 +248,7 @@ public class MinecraftSkinParser {
                 image.getRGB(50, 16) == 0;
     }
 
-    public static void extractTextureRGB(BufferedImage image, BodyPart part, Layer layer, Direction direction, Consumer<ColorData> consumer) {
-        boolean isSlim = isSlimSkin(image);
-
-        Map<BodyPart, Map<Layer, Map<Direction, int[]>>> textureMap = isSlim ? SLIM_TEXTURE_MAP : image.getHeight() > 32 ? CLASSIC_TEXTURE_MAP : NOTCH_TEXTURE_MAP;
+    public static void extractTextureRGB(BufferedImage image, Map<BodyPart, Map<Layer, Map<Direction, int[]>>> textureMap, BodyPart part, Layer layer, Direction direction, Consumer<ColorData> consumer) {
         Map<Layer, Map<Direction, int[]>> partMap = textureMap.get(part);
         if (partMap == null) return;
 
@@ -235,6 +273,12 @@ public class MinecraftSkinParser {
             case SOUTH -> southTex(image, consumer, height, width, startX, startY);
             case NORTH  -> northTex(image, consumer, height, width, startX, startY);
         }
+    }
+
+    public static void extractTextureRGB(BufferedImage image, BodyPart part, Layer layer, Direction direction, Consumer<ColorData> consumer) {
+        boolean isSlim = isSlimSkin(image);
+        Map<BodyPart, Map<Layer, Map<Direction, int[]>>> textureMap = isSlim ? SLIM_TEXTURE_MAP : image.getHeight() > 32 ? CLASSIC_TEXTURE_MAP : NOTCH_TEXTURE_MAP;
+        extractTextureRGB(image, textureMap, part, layer, direction, consumer);
     }
 
     private static void eastTex(BufferedImage image, Consumer<ColorData> consumer, int width, int height, int startX, int startY) {
@@ -287,24 +331,30 @@ public class MinecraftSkinParser {
     }
 
     public enum BodyPart {
-        NONE("none"),
-        HEAD("head"),
-        BODY("body"),
-        LEFT_ARM("arm_l"),
-        RIGHT_ARM("arm_r"),
-        LEFT_ARM_SLIM("arm_ls"),
-        RIGHT_ARM_SLIM("arm_rs"),
-        LEFT_LEG("leg_l"),
-        RIGHT_LEG("leg_r");
+        NONE("none", null),
+        HEAD("head", EquipmentSlot.HEAD),
+        BODY("body", EquipmentSlot.CHEST),
+        LEFT_ARM("arm_l", EquipmentSlot.CHEST),
+        RIGHT_ARM("arm_r", EquipmentSlot.CHEST),
+        LEFT_ARM_SLIM("arm_ls", EquipmentSlot.CHEST),
+        RIGHT_ARM_SLIM("arm_rs", EquipmentSlot.CHEST),
+        LEFT_LEG("leg_l", EquipmentSlot.LEGS),
+        RIGHT_LEG("leg_r", EquipmentSlot.LEGS);
 
         private final String name;
+        private final EquipmentSlot slot;
 
-        BodyPart(String name) {
+        BodyPart(String name, EquipmentSlot slot) {
             this.name = name;
+            this.slot = slot;
         }
 
         public String getName() {
             return this.name;
+        }
+
+        public EquipmentSlot getSlot() {
+            return this.slot;
         }
 
         public ResourceLocation id(boolean slim) {
@@ -317,6 +367,10 @@ public class MinecraftSkinParser {
 
         public boolean isArm() {
             return this == RIGHT_ARM || this == LEFT_ARM || this == RIGHT_ARM_SLIM || this == LEFT_ARM_SLIM;
+        }
+
+        public boolean isLeg() {
+            return this == RIGHT_LEG || this == LEFT_LEG;
         }
 
         public static BodyPart partFrom(String partName) {

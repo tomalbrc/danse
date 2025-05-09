@@ -5,6 +5,7 @@ import de.tomalbrc.bil.core.extra.DisplayElementUpdateListener;
 import de.tomalbrc.bil.core.holder.wrapper.DisplayWrapper;
 import de.tomalbrc.bil.core.holder.wrapper.Locator;
 import de.tomalbrc.bil.core.model.Model;
+import de.tomalbrc.danse.mixins.LivingEntityAccessor;
 import de.tomalbrc.danse.poly.PlayerPartHolder;
 import de.tomalbrc.danse.registries.PlayerModelRegistry;
 import de.tomalbrc.danse.util.MinecraftSkinParser;
@@ -21,7 +22,6 @@ import net.minecraft.util.StringUtil;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -87,12 +87,7 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
             this.playerName = tag.getString(PLAYER).orElseThrow();
 
             if (this.getServer() != null && StringUtil.isValidPlayerName(this.playerName)) {
-                SkullBlockEntity.fetchGameProfile(this.playerName).thenAccept(gameProfile -> {
-                    gameProfile.ifPresent(profile -> TextureCache.fetch(profile, dataMap -> {
-                        this.holder.setSkinData(dataMap);
-                        this.holder.setViewRange(0.5f);
-                    }));
-                });
+                SkullBlockEntity.fetchGameProfile(this.playerName).thenAccept(gameProfile -> gameProfile.ifPresent(profile -> TextureCache.fetch(profile, dataMap -> this.holder.setSkinData(dataMap))));
             } else {
                 this.discard();
             }
@@ -127,16 +122,16 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
             this.addElement("offhand", offHand, ItemDisplayContext.THIRD_PERSON_LEFT_HAND);
         }
 
-        ItemStack head = player.getItemBySlot(EquipmentSlot.HEAD);
-        if (!head.isEmpty()) {
-            this.addElement("hat", head, ItemDisplayContext.HEAD);
-        }
+//        ItemStack head = player.getItemBySlot(EquipmentSlot.HEAD);
+//        if (!head.isEmpty() && !(head.has(DataComponents.EQUIPPABLE) && head.get(DataComponents.EQUIPPABLE).assetId().isPresent() && !(head.getItem() instanceof BlockItem))) {
+//
+//        }
 
-        this.holder.setSkinData(data);
+        this.holder.setSkinData(data, ((LivingEntityAccessor)player).getEquipment());
         this.holder.setViewRange(0.5f);
     }
 
-    private void addElement(String name, ItemStack stack, ItemDisplayContext context) {
+    private ItemDisplayElement addElement(String name, ItemStack stack, ItemDisplayContext context) {
         Locator locator = this.holder.getLocator(name);
         if (locator != null) {
             ItemDisplayElement element = this.makeItemDisplay(stack, context);
@@ -145,7 +140,11 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
 
             this.holder.initializeDisplay(display);
             this.holder.addAdditionalDisplay(element);
+
+            return element;
         }
+
+        return null;
     }
 
     private ItemDisplayElement makeItemDisplay(ItemStack stack, ItemDisplayContext context) {
