@@ -88,19 +88,20 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
             this.setModel(PlayerModelRegistry.getModel(PlayerModelRegistry.getAnimations().getFirst()));
         }
 
-        if (tag.contains(PLAYER) && !tag.getString(PLAYER).orElseThrow().isBlank()) {
-            this.playerName = tag.getString(PLAYER).orElseThrow();
-
-            if (this.getServer() != null && StringUtil.isValidPlayerName(this.playerName)) {
-                SkullBlockEntity.fetchGameProfile(this.playerName).thenAccept(gameProfile -> gameProfile.ifPresent(profile -> TextureCache.fetch(profile, dataMap -> this.holder.setSkinData(dataMap))));
-            } else {
-                this.discard();
-            }
-        } else if (tag.contains(PLAYER_UUID)) {
+        if (tag.contains(PLAYER_UUID)) {
             this.playerUuid = tag.read(PLAYER_UUID, UUIDUtil.LENIENT_CODEC).orElseThrow();
 
             if (this.getServer() != null) {
                 SkullBlockEntity.fetchGameProfile(this.playerUuid).thenAccept(gameProfile -> gameProfile.ifPresent(profile -> TextureCache.fetch(profile, dataMap -> this.holder.setSkinData(dataMap))));
+            } else {
+                this.discard();
+            }
+        }
+        else if (tag.contains(PLAYER) && !tag.getString(PLAYER).orElseThrow().isBlank()) {
+            this.playerName = tag.getString(PLAYER).orElseThrow();
+
+            if (this.getServer() != null && StringUtil.isValidPlayerName(this.playerName)) {
+                SkullBlockEntity.fetchGameProfile(this.playerName).thenAccept(gameProfile -> gameProfile.ifPresent(profile -> TextureCache.fetch(profile, dataMap -> this.holder.setSkinData(dataMap))));
             } else {
                 this.discard();
             }
