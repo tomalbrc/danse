@@ -5,6 +5,7 @@ import de.tomalbrc.danse.entities.GesturePlayerModelEntity;
 import de.tomalbrc.danse.poly.GestureCameraHolder;
 import de.tomalbrc.danse.registries.PlayerModelRegistry;
 import de.tomalbrc.danse.util.TextureCache;
+import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.core.api.utils.PolymerUtils;
 import eu.pb4.polymer.virtualentity.api.VirtualEntityUtils;
 import eu.pb4.polymer.virtualentity.api.attachment.ChunkAttachment;
@@ -47,6 +48,7 @@ public class GestureController {
         var player = camera.getPlayer();
         if (!player.hasDisconnected()) {
             PolymerUtils.reloadInventory(player);
+            camera.sendPacket(new ClientboundSetEquipmentPacket(player.getId(), Util.getEquipment(player, false)));
 
             List<SynchedEntityData.DataValue<?>> data = new ObjectArrayList<>();
             data.add(SynchedEntityData.DataValue.create(EntityTrackedData.FLAGS, player.getEntityData().get(EntityTrackedData.FLAGS)));
