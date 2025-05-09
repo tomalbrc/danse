@@ -177,7 +177,8 @@ public class PlayerPartHolder<T extends Entity & AnimatedEntity> extends SimpleE
     private float offset(MultipartBone bone) {
         var leg = bone.part().isLeg();
         var arm = bone.part().isArm();
-        return leg ? 0.04f : arm ? 0.015f : -0.015f;
+        var body = bone.part() == MinecraftSkinParser.BodyPart.BODY;
+        return leg ? 0.04f : arm ? 0.015f : body ? -0.015f : 0.0f;
     }
 
     private float offsetArmor(MultipartBone bone) {
