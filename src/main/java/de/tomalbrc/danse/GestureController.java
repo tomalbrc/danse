@@ -48,7 +48,7 @@ public class GestureController {
         var player = camera.getPlayer();
         if (!player.hasDisconnected()) {
             PolymerUtils.reloadInventory(player);
-            camera.sendPacket(new ClientboundSetEquipmentPacket(player.getId(), Util.getEquipment(player, false)));
+            camera.getPlayerModel().getHolder().sendPacket(new ClientboundSetEquipmentPacket(player.getId(), Util.getEquipment(player, false)));
 
             List<SynchedEntityData.DataValue<?>> data = new ObjectArrayList<>();
             data.add(SynchedEntityData.DataValue.create(EntityTrackedData.FLAGS, player.getEntityData().get(EntityTrackedData.FLAGS)));
