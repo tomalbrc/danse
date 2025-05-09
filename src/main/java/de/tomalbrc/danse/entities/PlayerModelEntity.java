@@ -115,7 +115,8 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
         if (this.playerName != null && !this.playerName.isBlank()) {
             tag.putString(PLAYER, this.playerName);
         }
-        else if (this.playerUuid != null) {
+
+        if (this.playerUuid != null) {
             tag.store(PLAYER_UUID, UUIDUtil.LENIENT_CODEC, this.playerUuid);
         }
 
