@@ -13,6 +13,7 @@ import de.tomalbrc.danse.util.TextureCache;
 import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
@@ -29,17 +30,21 @@ import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.UUID;
 
 public class PlayerModelEntity extends Entity implements AnimatedEntity {
     public static final ResourceLocation ID = Util.id("player_model");
     private static final String ANIMATION = "Animation";
     private static final String PLAYER = "Player";
+    private static final String PLAYER_UUID = "PlayerUUID";
     protected PlayerPartHolder<?> holder;
 
     @Nullable
     private String animation = null;
     @Nullable
     private String playerName;
+    @Nullable
+    private UUID playerUuid;
 
     public PlayerModelEntity(EntityType<? extends Entity> entityType, Level level) {
         super(entityType, level);
@@ -83,11 +88,19 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
             this.setModel(PlayerModelRegistry.getModel(PlayerModelRegistry.getAnimations().getFirst()));
         }
 
-        if (tag.contains(PLAYER)) {
+        if (tag.contains(PLAYER) && !tag.getString(PLAYER).orElseThrow().isBlank()) {
             this.playerName = tag.getString(PLAYER).orElseThrow();
 
             if (this.getServer() != null && StringUtil.isValidPlayerName(this.playerName)) {
                 SkullBlockEntity.fetchGameProfile(this.playerName).thenAccept(gameProfile -> gameProfile.ifPresent(profile -> TextureCache.fetch(profile, dataMap -> this.holder.setSkinData(dataMap))));
+            } else {
+                this.discard();
+            }
+        } else if (tag.contains(PLAYER_UUID)) {
+            this.playerUuid = tag.read(PLAYER_UUID, UUIDUtil.LENIENT_CODEC).orElseThrow();
+
+            if (this.getServer() != null) {
+                SkullBlockEntity.fetchGameProfile(this.playerUuid).thenAccept(gameProfile -> gameProfile.ifPresent(profile -> TextureCache.fetch(profile, dataMap -> this.holder.setSkinData(dataMap))));
             } else {
                 this.discard();
             }
@@ -100,6 +113,9 @@ public class PlayerModelEntity extends Entity implements AnimatedEntity {
     protected void addAdditionalSaveData(CompoundTag tag) {
         if (this.playerName != null && !this.playerName.isBlank()) {
             tag.putString(PLAYER, this.playerName);
+        }
+        else if (this.playerUuid != null) {
+            tag.store(PLAYER_UUID, UUIDUtil.LENIENT_CODEC, this.playerUuid);
         }
 
         if (this.animation != null && !this.animation.isBlank()) {

@@ -73,7 +73,7 @@ public class TextureCache {
         });
     }
 
-    public static CustomModelData armor(MinecraftSkinParser.BodyPart part, ItemStack itemStack, boolean inner) {
+    public static CustomModelData armorCustomModelData(MinecraftSkinParser.BodyPart part, ItemStack itemStack, boolean inner) {
         if (!itemStack.has(DataComponents.EQUIPPABLE))
             return CustomModelData.EMPTY;
 

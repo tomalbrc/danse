@@ -29,6 +29,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityEquipment;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
@@ -67,66 +68,27 @@ public class PlayerPartHolder<T extends Entity & AnimatedEntity> extends SimpleE
             if (x instanceof MultipartBone bone) {
                 MinecraftSkinParser.BodyPart part = MinecraftSkinParser.BodyPart.partFrom(bone.name());
                 if (part != MinecraftSkinParser.BodyPart.NONE) {
-                    var item = bone.element().getItem();
-                    var partData = data.get(part);
-                    if (partData.slim() && part.isArm()) {
-                        item.set(DataComponents.ITEM_MODEL, part.id(true));
-                    }
-                    item.set(DataComponents.CUSTOM_MODEL_DATA, partData.customModelDataInner());
+                    ItemStack item = bone.element().getItem();
+                    MinecraftSkinParser.PartData partData = data.get(part);
+                    item.set(DataComponents.ITEM_MODEL, part.id(partData.slim() && part.isArm()));
 
-                    var outerItem = item.copy();
+                    item.set(DataComponents.CUSTOM_MODEL_DATA, partData.customModelDataInner());
+                    bone.element().getDataTracker().set(DisplayTrackedData.Item.ITEM, item, true);
+
+                    ItemStack outerItem = item.copy();
                     outerItem.set(DataComponents.CUSTOM_MODEL_DATA, partData.customModelDataOuter());
                     bone.outer.getDataTracker().set(DisplayTrackedData.Item.ITEM, outerItem, true);
 
-//                    if (part == MinecraftSkinParser.BodyPart.HEAD) {
-//                        var headItem = equipment.get(EquipmentSlot.HEAD);
-//                        if (headItem.isEmpty() || (headItem.has(DataComponents.EQUIPPABLE) && !headItem.get(DataComponents.EQUIPPABLE).assetId().isPresent()))
-//                            hide(bone.armorElements());
-//                        else
-//                            show(bone.armorElements());
-//                    }
-//
-//                    if (pawrt == MinecraftSkinParser.BodyPart.LEFT_ARM || part == MinecraftSkinParser.BodyPart.RIGHT_ARM) {
-////                        if (equipment.get(EquipmentSlot.CHEST).isEmpty())
-////                            hide(bone.armorElements());
-////                        else
-////                            show(bone.armorElements());
-//                    }
-//
-//                    if (part == MinecraftSkinParser.BodyPart.LEFT_LEG || part == MinecraftSkinParser.BodyPart.RIGHT_LEG) {
-//                        if (equipment.get(EquipmentSlot.FEET).isEmpty() && equipment.get(EquipmentSlot.LEGS).isEmpty())
-//                            hide(bone.armorElements());
-//                        else if (equipment.get(EquipmentSlot.FEET).isEmpty()) {
-//                            hide(ImmutableList.of(bone.armorOuter));
-//                            show(ImmutableList.of(bone.armor));
-//                        }
-//                        else
-//                            show(bone.armorElements());
-//                    }
-//
-//                    if (part == MinecraftSkinParser.BodyPart.BODY) {
-//                        if (equipment.get(EquipmentSlot.CHEST).isEmpty() && equipment.get(EquipmentSlot.LEGS).isEmpty())
-//                            hide(bone.armorElements());
-//                        else if (equipment.get(EquipmentSlot.CHEST).isEmpty()) {
-//                            hide(ImmutableList.of(bone.armorOuter));
-//                            show(ImmutableList.of(bone.armor));
-//                        }
-//                        else if (equipment.get(EquipmentSlot.LEGS).isEmpty()) {
-//                            hide(ImmutableList.of(bone.armor));
-//                            show(ImmutableList.of(bone.armorOuter));
-//                        }
-//                        else
-//                            show(bone.armorElements());
-//                    }
+                    boolean isBody = part == MinecraftSkinParser.BodyPart.BODY;
+                    boolean isLeg = part.isLeg();
 
-                    var armorItem = item.copy();
-                    armorItem.set(DataComponents.CUSTOM_MODEL_DATA, TextureCache.armor(part, equipment.get(part.getSlot()), true));
+                    ItemStack armorItem = item.copy();
+                    armorItem.set(DataComponents.CUSTOM_MODEL_DATA, TextureCache.armorCustomModelData(part, equipment.get(isBody ? EquipmentSlot.LEGS : part.getSlot()), true));
                     bone.armor.getDataTracker().set(DisplayTrackedData.Item.ITEM, armorItem, true);
 
-                    var armorItemOuter = item.copy();
-                    armorItemOuter.set(DataComponents.CUSTOM_MODEL_DATA, TextureCache.armor(part, equipment.get(part.getSlot()), false));
+                    ItemStack armorItemOuter = item.copy();
+                    armorItemOuter.set(DataComponents.CUSTOM_MODEL_DATA, TextureCache.armorCustomModelData(part, equipment.get(isLeg ? EquipmentSlot.FEET : part.getSlot()), false));
                     bone.armorOuter.getDataTracker().set(DisplayTrackedData.Item.ITEM, armorItemOuter, true);
-
                 }
             }
         }
