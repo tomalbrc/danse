@@ -86,6 +86,12 @@ public class TextureCache {
         CacheKey key = new CacheKey(loc, part, inner);
         CustomModelData cachedData = ARMOR_CACHE.get(key);
         if (cachedData != null) {
+            CustomModelData trimCmd = trim(part, itemStack, inner);
+
+            if (cachedData != CustomModelData.EMPTY && trimCmd != CustomModelData.EMPTY) {
+                return merged(new CustomModelData(cachedData.floats(), new BooleanArrayList(cachedData.flags()), cachedData.strings(), new IntArrayList(cachedData.colors())), trimCmd);
+            }
+
             return cachedData;
         }
 
@@ -114,7 +120,7 @@ public class TextureCache {
         ARMOR_CACHE.put(key, result);
 
         if (result != CustomModelData.EMPTY && trimCmd != CustomModelData.EMPTY) {
-            return merged(result, trimCmd);
+            return merged(new CustomModelData(result.floats(), new BooleanArrayList(result.flags()), result.strings(), new IntArrayList(result.colors())), trimCmd);
         }
 
         return result;

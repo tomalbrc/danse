@@ -2,6 +2,7 @@ package de.tomalbrc.danse.util;
 
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.component.CustomModelData;
 
@@ -29,20 +30,20 @@ public class MinecraftSkinParser {
         // LEFT_ARM
         Map<Layer, Map<Direction, int[]>> leftArmMap = new EnumMap<>(Layer.class);
         Map<Direction, int[]> leftArmInner = new EnumMap<>(Direction.class);
-        leftArmInner.put(Direction.SOUTH, new int[]{44, 20, 4, 12});
-        leftArmInner.put(Direction.WEST, new int[]{40, 20, 4, 12});
-        leftArmInner.put(Direction.NORTH, new int[]{52, 20, 4, 12});
-        leftArmInner.put(Direction.EAST, new int[]{48, 20, 4, 12});
-        leftArmInner.put(Direction.UP, new int[]{44, 16, 4, 4});
-        leftArmInner.put(Direction.DOWN, new int[]{48, 16, 4, 4});
+        leftArmInner.put(Direction.NORTH, new int[]{44+3, 20, -4, 12});
+        leftArmInner.put(Direction.WEST, new int[]{40+3, 20, -4, 12});
+        leftArmInner.put(Direction.SOUTH, new int[]{52+3, 20, -4, 12});
+        leftArmInner.put(Direction.EAST, new int[]{48+3, 20, -4, 12});
+        leftArmInner.put(Direction.UP, new int[]{44+3, 16, -4, 4});
+        leftArmInner.put(Direction.DOWN, new int[]{48+3, 16, -4, 4});
 
         Map<Direction, int[]> leftArmOuter = new EnumMap<>(Direction.class);
-        leftArmOuter.put(Direction.SOUTH, new int[]{44, 36, 4, 12});
-        leftArmOuter.put(Direction.WEST, new int[]{40, 36, 4, 12});
-        leftArmOuter.put(Direction.NORTH, new int[]{52, 36, 4, 12});
-        leftArmOuter.put(Direction.EAST, new int[]{48, 36, 4, 12});
-        leftArmOuter.put(Direction.UP, new int[]{44, 32, 4, 4});
-        leftArmOuter.put(Direction.DOWN, new int[]{48, 32, 4, 4});
+        leftArmOuter.put(Direction.NORTH, new int[]{44+3, 36, -4, 12});
+        leftArmOuter.put(Direction.WEST, new int[]{40+3, 36, -4, 12});
+        leftArmOuter.put(Direction.SOUTH, new int[]{52+3, 36, -4, 12});
+        leftArmOuter.put(Direction.EAST, new int[]{48+3, 36, -4, 12});
+        leftArmOuter.put(Direction.UP, new int[]{44+3, 32, -4, 4});
+        leftArmOuter.put(Direction.DOWN, new int[]{48+3, 32, -4, 4});
         leftArmMap.put(Layer.INNER, leftArmInner);
         leftArmMap.put(Layer.OUTER, leftArmOuter);
         notch.put(BodyPart.LEFT_ARM, leftArmMap);
@@ -50,20 +51,20 @@ public class MinecraftSkinParser {
         // LEFT_LEG
         Map<Layer, Map<Direction, int[]>> leftLegMap = new EnumMap<>(Layer.class);
         Map<Direction, int[]> leftLegInner = new EnumMap<>(Direction.class);
-        leftLegInner.put(Direction.SOUTH, new int[]{4, 20, 4, 12});
-        leftLegInner.put(Direction.WEST, new int[]{0, 20, 4, 12});
-        leftLegInner.put(Direction.NORTH, new int[]{12, 20, 4, 12});
-        leftLegInner.put(Direction.EAST, new int[]{8, 20, 4, 12});
-        leftLegInner.put(Direction.UP, new int[]{4, 16, 4, 4});
-        leftLegInner.put(Direction.DOWN, new int[]{8, 16, 4, 4});
+        leftLegInner.put(Direction.NORTH, new int[]{4+3, 20, -4, 12});
+        leftLegInner.put(Direction.WEST, new int[]{0+3, 20, -4, 12});
+        leftLegInner.put(Direction.SOUTH, new int[]{12+3, 20, -4, 12});
+        leftLegInner.put(Direction.EAST, new int[]{8+3, 20, -4, 12});
+        leftLegInner.put(Direction.UP, new int[]{4+3, 16, -4, 4});
+        leftLegInner.put(Direction.DOWN, new int[]{8+3, 16, -4, 4});
 
         Map<Direction, int[]> leftLegOuter = new EnumMap<>(Direction.class);
-        leftLegOuter.put(Direction.SOUTH, new int[]{4, 36, 4, 12});
-        leftLegOuter.put(Direction.WEST, new int[]{0, 36, 4, 12});
-        leftLegOuter.put(Direction.NORTH, new int[]{12, 36, 4, 12});
-        leftLegOuter.put(Direction.EAST, new int[]{8, 36, 4, 12});
-        leftLegOuter.put(Direction.UP, new int[]{4, 32, 4, 4});
-        leftLegOuter.put(Direction.DOWN, new int[]{8, 32, 4, 4});
+        leftLegOuter.put(Direction.NORTH, new int[]{4+3, 36, -4, 12});
+        leftLegOuter.put(Direction.WEST, new int[]{0+3, 36, -4, 12});
+        leftLegOuter.put(Direction.SOUTH, new int[]{12+3, 36, -4, 12});
+        leftLegOuter.put(Direction.EAST, new int[]{8+3, 36, -4, 12});
+        leftLegOuter.put(Direction.UP, new int[]{4+3, 32, -4, 4});
+        leftLegOuter.put(Direction.DOWN, new int[]{8+3, 32, -4, 4});
         leftLegMap.put(Layer.INNER, leftLegInner);
         leftLegMap.put(Layer.OUTER, leftLegOuter);
         notch.put(BodyPart.LEFT_LEG, leftLegMap);
@@ -269,9 +270,9 @@ public class MinecraftSkinParser {
         switch (direction) {
             case EAST -> eastTex(image, consumer, width, height, startX, startY);
             case WEST -> westTex(image, consumer, width, height, startX, startY);
-            case UP, DOWN -> upTex(image, consumer, height, width, startX, startY);
+            case UP -> upTex(image, consumer, height, width, startX, startY);
             case SOUTH -> southTex(image, consumer, height, width, startX, startY);
-            case NORTH  -> northTex(image, consumer, height, width, startX, startY);
+            case NORTH, DOWN  -> northTex(image, consumer, height, width, startX, startY);
         }
     }
 
@@ -283,51 +284,51 @@ public class MinecraftSkinParser {
 
     private static void eastTex(BufferedImage image, Consumer<ColorData> consumer, int width, int height, int startX, int startY) {
         // flip
-        for (int dx = 0; dx < width; dx++) {
+        for (int dx = 0; dx < Mth.abs(width); dx++) {
             for (int dy = height - 1; dy >= 0; dy--) {
-                consumer.accept(sample(image, height, width, startX, startY, dx, dy));
+                consumer.accept(sample(image, startX, startY, dx * Mth.sign(width), dy));
             }
         }
     }
 
     private static void westTex(BufferedImage image, Consumer<ColorData> consumer, int width, int height, int startX, int startY) {
         // flip the other way
-        for (int dx = width - 1; dx >= 0; dx--) {
+        for (int dx = Mth.abs(width) - 1; dx >= 0; dx--) {
             for (int dy = height - 1; dy >= 0; dy--) {
-                consumer.accept(sample(image, height, width, startX, startY, dx, dy));
+                consumer.accept(sample(image, startX, startY, dx * Mth.sign(width), dy));
             }
         }
     }
 
     private static void northTex(BufferedImage image, Consumer<ColorData> consumer, int height, int width, int startX, int startY) {
         for (int dy = height - 1; dy >= 0; dy--) {
-            for (int dx = 0; dx < width; dx++) {
-                consumer.accept(sample(image, height, width, startX, startY, dx, dy));
+            for (int dx = 0; dx < Mth.abs(width); dx++) {
+                consumer.accept(sample(image, startX, startY, dx * Mth.sign(width), dy));
             }
         }
     }
 
     private static void upTex(BufferedImage image, Consumer<ColorData> consumer, int height, int width, int startX, int startY) {
         for (int dy = 0; dy < height; dy++) {
-            for (int dx = 0; dx < width; dx++) {
-                consumer.accept(sample(image, height, width, startX, startY, dx, dy));
+            for (int dx = 0; dx < Mth.abs(width); dx++) {
+                consumer.accept(sample(image, startX, startY, dx * Mth.sign(width), dy));
             }
         }
     }
 
     private static void southTex(BufferedImage image, Consumer<ColorData> consumer, int height, int width, int startX, int startY) {
         for (int dy = height - 1; dy >= 0; dy--) {
-            for (int dx = width - 1; dx >= 0; dx--) {
-                consumer.accept(sample(image, height, width, startX, startY, dx, dy));
+            for (int dx = Mth.abs(width) - 1; dx >= 0; dx--) {
+                consumer.accept(sample(image, startX, startY, dx * Mth.sign(width), dy));
             }
         }
     }
 
-    private static ColorData sample(BufferedImage image, int height, int width, int startX, int startY, int dx, int dy) {
+    private static ColorData sample(BufferedImage image, int startX, int startY, int dx, int dy) {
         int y = startY + dy;
         int x = startX + dx;
-        int argb = image.getRGB(x, y);
-        return new ColorData(argb, dx, dy, width, height);
+        int rgb = image.getRGB(x, y);
+        return new ColorData(rgb);
     }
 
     public enum BodyPart {
@@ -394,9 +395,7 @@ public class MinecraftSkinParser {
     }
 
     public record ColorData(
-            int color,
-            int x, int y,
-            int width, int height
+            int color
     ) {
         public boolean alpha() {
             return ((color >> 24) & 0xff) >= 0xf0;
