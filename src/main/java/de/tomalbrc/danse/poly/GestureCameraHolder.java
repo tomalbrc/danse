@@ -28,8 +28,10 @@ public class GestureCameraHolder extends ElementHolder {
     private final BlockDisplayElement displayElement = new BlockDisplayElement() {
         @Override
         public void notifyMove(Vec3 oldPos, Vec3 newPos, Vec3 delta) {
-            var packet = new ClientboundEntityPositionSyncPacket(this.getEntityId(), new PositionMoveRotation(getCurrentPos(), Vec3.ZERO, this.getYaw(), this.getPitch()), true);
-            this.getHolder().sendPacket(packet);
+            if (this.getHolder() != null) {
+                var packet = new ClientboundEntityPositionSyncPacket(this.getEntityId(), new PositionMoveRotation(getCurrentPos(), Vec3.ZERO, this.getYaw(), this.getPitch()), true);
+                this.getHolder().sendPacket(packet);
+            }
         }
     };
 
@@ -39,6 +41,7 @@ public class GestureCameraHolder extends ElementHolder {
 
     private float pitch;
     private float yaw;
+    private boolean dirtyRot = true;
 
     public GestureCameraHolder(ServerPlayer player, GesturePlayerModelEntity playerModel) {
         super();
@@ -52,11 +55,17 @@ public class GestureCameraHolder extends ElementHolder {
     }
 
     public void setPitch(float pitch) {
-        this.pitch = pitch;
+        if (pitch != this.pitch) {
+            this.pitch = pitch;
+            this.dirtyRot = true;
+        }
     }
 
     public void setYaw(float yaw) {
-        this.yaw = yaw;
+        if (yaw != this.yaw) {
+            this.yaw = yaw;
+            this.dirtyRot = true;
+        }
     }
 
     @Override
@@ -96,7 +105,7 @@ public class GestureCameraHolder extends ElementHolder {
     private void updatePos() {
         Vector3f rotatedPoint = currentPoint(-4);
 
-        if (this.getAttachment() != null) {
+        if (this.getAttachment() != null && dirtyRot) {
             var level = this.getAttachment().getWorld();
 
             var eyePos = this.origin.add(0, this.player.getEyeHeight()/2.f, 0);
@@ -106,6 +115,8 @@ public class GestureCameraHolder extends ElementHolder {
 
             this.displayElement.setPitch(this.pitch);
             this.displayElement.setYaw(this.yaw + 180);
+
+            this.dirtyRot = false;
         }
     }
 
