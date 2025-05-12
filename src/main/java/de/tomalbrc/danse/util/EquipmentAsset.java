@@ -13,5 +13,11 @@ public class EquipmentAsset {
 
     public static class TextureEntry {
         public String texture;
+        public Dyeable dyeable;
+
+        public static class Dyeable {
+            @SerializedName("color_when_undyed")
+            public int colorWhenUndyed;
+        }
     }
 }

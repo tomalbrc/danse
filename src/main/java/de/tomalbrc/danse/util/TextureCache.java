@@ -10,8 +10,10 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomModelData;
+import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.item.equipment.Equippable;
 import net.minecraft.world.item.equipment.trim.ArmorTrim;
 
@@ -19,7 +21,10 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -113,11 +118,19 @@ public class TextureCache {
             return CustomModelData.EMPTY;
         }
 
-        var id = ResourceLocation.parse(entries[0].texture);
         CustomModelData trimCmd = trim(part, itemStack, inner);
 
-        CustomModelData result = loadArmorTextureData(part, id, folder);
-        ARMOR_CACHE.put(key, result);
+        CustomModelData result = null;
+        DyedItemColor dyedColor = itemStack.get(DataComponents.DYED_COLOR);
+        for (EquipmentAsset.TextureEntry entry : entries) {
+            if (result == null) {
+                result = loadArmorTextureData(part, entry, dyedColor, folder);
+            } else {
+                merged(result, loadArmorTextureData(part, entry, dyedColor, folder));
+            }
+        }
+
+        if (!itemStack.is(ItemTags.DYEABLE)) ARMOR_CACHE.put(key, result);
 
         if (result != CustomModelData.EMPTY && trimCmd != CustomModelData.EMPTY) {
             return merged(new CustomModelData(result.floats(), new BooleanArrayList(result.flags()), result.strings(), new IntArrayList(result.colors())), trimCmd);
@@ -160,7 +173,8 @@ public class TextureCache {
         }
     }
 
-    private static CustomModelData loadArmorTextureData(MinecraftSkinParser.BodyPart part, ResourceLocation id, String folder) {
+    private static CustomModelData loadArmorTextureData(MinecraftSkinParser.BodyPart part, EquipmentAsset.TextureEntry textureEntry, DyedItemColor itemColor, String folder) {
+        var id = ResourceLocation.parse(textureEntry.texture);
         String pngPath = String.format("assets/%s/textures/entity/equipment/%s/%s.png", id.getNamespace(), folder, id.getPath());
         byte[] pngBytes = Danse.RPBUILDER.getDataOrSource(pngPath);
         if (pngBytes == null) {
@@ -174,8 +188,18 @@ public class TextureCache {
 
             for (Direction dir : TextureCache.DIRECTIONS) {
                 MinecraftSkinParser.extractTextureRGB(img, MinecraftSkinParser.NOTCH_TEXTURE_MAP, part, MinecraftSkinParser.Layer.INNER, dir, data -> {
-                    colors.add(data.color());
-                    alphas.add(data.alpha());
+                    if (textureEntry.dyeable != null) {
+                        int tint = textureEntry.dyeable.colorWhenUndyed;
+                        if (itemColor != null) {
+                            tint = itemColor.rgb();
+                        }
+
+                        colors.add(multiplyRGB(data.color(), tint));
+                        alphas.add(data.alpha());
+                    } else {
+                        colors.add(data.color());
+                        alphas.add(data.alpha());
+                    }
                 });
             }
 
@@ -256,27 +280,43 @@ public class TextureCache {
         return data;
     }
 
-    private static CustomModelData merged(CustomModelData result, CustomModelData trimCmd) {
-        if (trimCmd != CustomModelData.EMPTY) {
-            for (int i = 0; i < result.colors().size(); i++) {
-                var armorColor = result.getColor(i);
-                var trimColor = trimCmd.getColor(i);
+    private static CustomModelData merged(CustomModelData texture, CustomModelData overlay) {
+        if (overlay != CustomModelData.EMPTY) {
+            for (int i = 0; i < texture.colors().size(); i++) {
+                var armorColor = texture.getColor(i);
+                var trimColor = overlay.getColor(i);
 
-                var armorVisible = result.getBoolean(i);
-                var trimVisible = trimCmd.getBoolean(i);
+                var armorVisible = texture.getBoolean(i);
+                var trimVisible = overlay.getBoolean(i);
 
                 if (trimColor != null && trimVisible == Boolean.TRUE)
-                    result.colors().set(i, trimColor);
+                    texture.colors().set(i, trimColor);
                 else {
-                    result.colors().set(i, armorColor);
+                    texture.colors().set(i, armorColor);
                 }
 
                 var visible = armorVisible == Boolean.TRUE || trimVisible == Boolean.TRUE;
                 if (visible)
-                    result.flags().set(i, true);
+                    texture.flags().set(i, true);
             }
         }
 
-        return result;
+        return texture;
+    }
+
+    public static int multiplyRGB(int color1, int color2) {
+        int r1 = (color1 >> 16) & 0xFF;
+        int g1 = (color1 >> 8) & 0xFF;
+        int b1 = color1 & 0xFF;
+
+        int r2 = (color2 >> 16) & 0xFF;
+        int g2 = (color2 >> 8) & 0xFF;
+        int b2 = color2 & 0xFF;
+
+        int r = (r1 * r2) / 255;
+        int g = (g1 * g2) / 255;
+        int b = (b1 * b2) / 255;
+
+        return (r << 16) | (g << 8) | b;
     }
 }
