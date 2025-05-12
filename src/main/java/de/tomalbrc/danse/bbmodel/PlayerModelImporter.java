@@ -1,19 +1,26 @@
 package de.tomalbrc.danse.bbmodel;
 
 import com.google.common.collect.ImmutableMap;
+import de.tomalbrc.bil.core.model.Node;
 import de.tomalbrc.bil.file.bbmodel.BbModel;
 import de.tomalbrc.bil.file.bbmodel.BbOutliner;
+import de.tomalbrc.bil.file.bbmodel.BbTexture;
+import de.tomalbrc.bil.file.extra.BbResourcePackGenerator;
 import de.tomalbrc.bil.file.extra.ResourcePackModel;
-import de.tomalbrc.bil.file.importer.AjModelImporter;
+import de.tomalbrc.bil.file.importer.AjBlueprintImporter;
 import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArraySet;
+import it.unimi.dsi.fastutil.objects.ObjectListIterator;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Vector3f;
 
 import java.util.Map;
+import java.util.UUID;
 
-public class PlayerModelImporter extends AjModelImporter {
+public class PlayerModelImporter extends AjBlueprintImporter {
     static Vector3f LIMB_SCALE = new Vector3f(0.46875f, 1.40625f, 0.46875f);
     static Vector3f LIMB_SCALE_SLIM = new Vector3f(0.3225f,1.40625f,0.46875f);
 
@@ -59,5 +66,24 @@ public class PlayerModelImporter extends AjModelImporter {
         for (Map.Entry<String, byte[]> entry : dataMap.entrySet()) {
             resourcePackBuilder.addData(entry.getKey(), entry.getValue());
         }
+    }
+
+    @Override
+    protected Object2ObjectOpenHashMap<UUID, Node> makeNodeMap() {
+        Object2ObjectOpenHashMap<UUID, Node> nodeMap = new Object2ObjectOpenHashMap<>();
+        ObjectArraySet<BbTexture> textures = new ObjectArraySet<>();
+        textures.addAll(this.model.textures);
+        ObjectListIterator<BbOutliner.ChildEntry> iterator = this.model.outliner.iterator();
+
+        while (iterator.hasNext()) {
+            BbOutliner.ChildEntry entry = iterator.next();
+            if (entry.isNode()) {
+                this.createBones(null, null, this.model.outliner, nodeMap);
+            }
+        }
+
+        // filter out unused skin texture
+        BbResourcePackGenerator.makeTextures(this.model, textures.stream().filter(x -> x.name.equals("texture")).toList());
+        return nodeMap;
     }
 }

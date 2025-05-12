@@ -3,18 +3,14 @@ package de.tomalbrc.danse.bbmodel;
 import com.google.gson.JsonParseException;
 import de.tomalbrc.bil.core.model.Model;
 import de.tomalbrc.bil.file.bbmodel.BbModel;
-import de.tomalbrc.bil.file.loader.AjModelLoader;
+import de.tomalbrc.bil.file.loader.AjBlueprintLoader;
 import de.tomalbrc.bil.file.loader.ModelLoader;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
-public class PlayerModelLoader extends AjModelLoader {
-    protected void postProcess(BbModel model) {
-
-    }
-
+public class PlayerModelLoader extends AjBlueprintLoader {
     @Override
     public Model load(InputStream input, String name) throws JsonParseException {
         try (Reader reader = new InputStreamReader(input)) {
