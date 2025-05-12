@@ -32,9 +32,9 @@ public class Danse implements ModInitializer {
         PolymerResourcePackUtils.markAsRequired();
 
         ModConfig.load();
-
+        PlayerModelRegistry.loadBuiltin();
         try {
-            copyResource("danse", "default.ajblueprint", "loosely-coupled.ajblueprint", "tightly-coupled.ajblueprint");
+            //copyResource("danse", "default.ajblueprint", "loosely-coupled.ajblueprint", "tightly-coupled.ajblueprint");
             for (Path path : loadFiles("danse", ".ajblueprint")) {
                 Danse.LOGGER.info("Loading player gesture model: {}", path.getFileName());
                 PlayerModelRegistry.load(PlayerModelLoader.load(path.toAbsolutePath().toString()));
