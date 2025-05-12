@@ -4,7 +4,9 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import de.tomalbrc.danse.GestureController;
+import de.tomalbrc.danse.ModConfig;
 import de.tomalbrc.danse.registries.PlayerModelRegistry;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,7 +23,10 @@ public class GestureCommand {
         dispatcher.getRoot().addChild(gestureNode);
 
         for (String animation : PlayerModelRegistry.getAnimations()) {
-            gestureNode.addChild(literal(animation).executes(ctx -> execute(ctx.getSource().getPlayerOrException(), animation)).build());
+            if (ModConfig.getInstance().permissionCheck)
+                gestureNode.addChild(literal(animation).requires(Permissions.require("danse.animation." + animation)).executes(ctx -> execute(ctx.getSource().getPlayerOrException(), animation)).build());
+            else
+                gestureNode.addChild(literal(animation).executes(ctx -> execute(ctx.getSource().getPlayerOrException(), animation)).build());
         }
     }
 

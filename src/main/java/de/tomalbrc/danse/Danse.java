@@ -19,6 +19,7 @@ public class Danse implements ModInitializer {
         PolymerResourcePackUtils.addModAssets(MODID);
         PolymerResourcePackUtils.markAsRequired();
 
+        ModConfig.load();
         PlayerModelRegistry.load();
         EntityRegistry.registerMobs();
 
