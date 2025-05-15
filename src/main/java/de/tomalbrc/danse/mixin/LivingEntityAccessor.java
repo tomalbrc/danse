@@ -1,4 +1,4 @@
-package de.tomalbrc.danse.mixins;
+package de.tomalbrc.danse.mixin;
 
 import net.minecraft.world.entity.EntityEquipment;
 import net.minecraft.world.entity.LivingEntity;

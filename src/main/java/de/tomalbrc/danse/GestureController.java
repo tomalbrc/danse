@@ -1,9 +1,9 @@
 package de.tomalbrc.danse;
 
 import com.google.common.collect.ImmutableList;
-import de.tomalbrc.danse.entities.GesturePlayerModelEntity;
+import de.tomalbrc.danse.entity.GesturePlayerModelEntity;
 import de.tomalbrc.danse.poly.GestureCameraHolder;
-import de.tomalbrc.danse.registries.PlayerModelRegistry;
+import de.tomalbrc.danse.registry.PlayerModelRegistry;
 import de.tomalbrc.danse.util.TextureCache;
 import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.core.api.utils.PolymerUtils;

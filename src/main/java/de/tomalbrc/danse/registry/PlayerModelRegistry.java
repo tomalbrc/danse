@@ -1,4 +1,4 @@
-package de.tomalbrc.danse.registries;
+package de.tomalbrc.danse.registry;
 
 import com.google.common.collect.ImmutableList;
 import de.tomalbrc.bil.core.model.Model;

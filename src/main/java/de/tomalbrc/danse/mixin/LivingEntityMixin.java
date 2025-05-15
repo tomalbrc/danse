@@ -1,4 +1,4 @@
-package de.tomalbrc.danse.mixins;
+package de.tomalbrc.danse.mixin;
 
 import de.tomalbrc.danse.GestureController;
 import net.minecraft.server.level.ServerLevel;

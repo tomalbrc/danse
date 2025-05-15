@@ -8,6 +8,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4f;
+import org.joml.Quaternionfc;
+import org.joml.Vector3fc;
 
 import java.util.List;
 
@@ -46,5 +50,26 @@ public class Util {
 
     public static boolean isArm(String name) {
         return name.equals("arm_r") || name.equals("arm_l");
+    }
+
+    public static Matrix4f compose(@Nullable Vector3fc translation, @Nullable Quaternionfc leftRotation, @Nullable Vector3fc scale, @Nullable Quaternionfc rightRotation) {
+        Matrix4f matrix4f = new Matrix4f();
+        if (translation != null) {
+            matrix4f.translation(translation);
+        }
+
+        if (leftRotation != null) {
+            matrix4f.rotate(leftRotation);
+        }
+
+        if (scale != null) {
+            matrix4f.scale(scale);
+        }
+
+        if (rightRotation != null) {
+            matrix4f.rotate(rightRotation);
+        }
+
+        return matrix4f;
     }
 }

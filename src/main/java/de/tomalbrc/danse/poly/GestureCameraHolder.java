@@ -2,7 +2,7 @@ package de.tomalbrc.danse.poly;
 
 import com.mojang.math.Axis;
 import de.tomalbrc.danse.GestureController;
-import de.tomalbrc.danse.entities.GesturePlayerModelEntity;
+import de.tomalbrc.danse.entity.GesturePlayerModelEntity;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.VirtualEntityUtils;
 import eu.pb4.polymer.virtualentity.api.elements.BlockDisplayElement;

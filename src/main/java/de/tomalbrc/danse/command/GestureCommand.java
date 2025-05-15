@@ -1,11 +1,11 @@
-package de.tomalbrc.danse.commands;
+package de.tomalbrc.danse.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import de.tomalbrc.danse.GestureController;
 import de.tomalbrc.danse.ModConfig;
-import de.tomalbrc.danse.registries.PlayerModelRegistry;
+import de.tomalbrc.danse.registry.PlayerModelRegistry;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;

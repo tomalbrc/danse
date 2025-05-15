@@ -2,15 +2,18 @@ package de.tomalbrc.danse;
 
 import com.mojang.logging.LogUtils;
 import de.tomalbrc.danse.bbmodel.PlayerModelLoader;
-import de.tomalbrc.danse.commands.GestureCommand;
-import de.tomalbrc.danse.registries.EntityRegistry;
-import de.tomalbrc.danse.registries.PlayerModelRegistry;
+import de.tomalbrc.danse.command.GestureCommand;
+import de.tomalbrc.danse.registry.EntityRegistry;
+import de.tomalbrc.danse.registry.ItemRegistry;
+import de.tomalbrc.danse.registry.PlayerModelRegistry;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 
 import java.io.FileNotFoundException;
@@ -25,6 +28,8 @@ public class Danse implements ModInitializer {
     public static final String MODID = "danse";
     public static Logger LOGGER = LogUtils.getLogger();
     public static ResourcePackBuilder RPBUILDER;
+
+    public static Int2ObjectOpenHashMap<ItemStack> VIRTUAL_ENTITY_PICK_MAP = new Int2ObjectOpenHashMap<>();
 
     @Override
     public void onInitialize() {
@@ -43,7 +48,8 @@ public class Danse implements ModInitializer {
             throw new RuntimeException(e);
         }
 
-        EntityRegistry.registerMobs();
+        EntityRegistry.register();
+        ItemRegistry.register();
 
         PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(resourcePackBuilder -> RPBUILDER = resourcePackBuilder);
         ServerPlayConnectionEvents.JOIN.register((serverGamePacketListener, packetSender, minecraftServer) -> GestureController.onConnect(serverGamePacketListener.player));
