@@ -25,7 +25,7 @@ import org.joml.Vector3f;
 import java.util.function.Consumer;
 
 public class GestureCameraHolder extends ElementHolder {
-    private final BlockDisplayElement displayElement = new BlockDisplayElement() {
+    private final BlockDisplayElement cameraElement = new BlockDisplayElement() {
         @Override
         public void notifyMove(Vec3 oldPos, Vec3 newPos, Vec3 delta) {
             if (this.getHolder() != null) {
@@ -50,8 +50,9 @@ public class GestureCameraHolder extends ElementHolder {
         this.origin = player.position();
         this.player = player;
         this.updatePos();
-        this.displayElement.setTeleportDuration(2);
-        this.addElement(displayElement);
+        this.cameraElement.setTeleportDuration(2);
+        this.cameraElement.ignorePositionUpdates();
+        this.addElement(cameraElement);
     }
 
     public void setPitch(float pitch) {
@@ -79,8 +80,8 @@ public class GestureCameraHolder extends ElementHolder {
     @Override
     protected void startWatchingExtraPackets(ServerGamePacketListenerImpl player, Consumer<Packet<ClientGamePacketListener>> packetConsumer) {
         super.startWatchingExtraPackets(player, packetConsumer);
-        packetConsumer.accept(VirtualEntityUtils.createRidePacket(displayElement.getEntityId(), IntList.of(player.player.getId())));
-        packetConsumer.accept(VirtualEntityUtils.createSetCameraEntityPacket(displayElement.getEntityId()));
+        packetConsumer.accept(VirtualEntityUtils.createRidePacket(cameraElement.getEntityId(), IntList.of(player.player.getId())));
+        packetConsumer.accept(VirtualEntityUtils.createSetCameraEntityPacket(cameraElement.getEntityId()));
         packetConsumer.accept(new ClientboundGameEventPacket(ClientboundGameEventPacket.CHANGE_GAME_MODE, GameType.SPECTATOR.getId()));
     }
 
@@ -111,10 +112,7 @@ public class GestureCameraHolder extends ElementHolder {
             var eyePos = this.origin.add(0, this.player.getEyeHeight()/2.f, 0);
             var blockHitResult = level.clip(new ClipContext(eyePos, new Vec3(rotatedPoint), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, CollisionContext.empty()));
             var adjustedPos = currentPoint(-(Math.max(Mth.abs((float) blockHitResult.getLocation().distanceTo(eyePos)) - 0.5f, 0.1f)));
-            this.displayElement.setOverridePos(new Vec3(adjustedPos));
-
-            this.displayElement.setPitch(this.pitch);
-            this.displayElement.setYaw(this.yaw + 180);
+            this.sendPacket(new ClientboundEntityPositionSyncPacket(this.cameraElement.getEntityId(), new PositionMoveRotation(new Vec3(adjustedPos), Vec3.ZERO, this.yaw + 180, this.pitch), false));
 
             this.dirtyRot = false;
         }
@@ -141,6 +139,6 @@ public class GestureCameraHolder extends ElementHolder {
     }
 
     public int getCameraId() {
-        return this.displayElement.getEntityId();
+        return this.cameraElement.getEntityId();
     }
 }
