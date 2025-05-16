@@ -1,8 +1,12 @@
 package de.tomalbrc.danse;
 
+import com.google.gson.Gson;
 import com.mojang.logging.LogUtils;
+import de.tomalbrc.bil.core.model.Model;
 import de.tomalbrc.danse.bbmodel.PlayerModelLoader;
 import de.tomalbrc.danse.command.GestureCommand;
+import de.tomalbrc.danse.emotecraft.EmotecraftAnimationFile;
+import de.tomalbrc.danse.emotecraft.EmotecraftLoader;
 import de.tomalbrc.danse.registry.EntityRegistry;
 import de.tomalbrc.danse.registry.ItemRegistry;
 import de.tomalbrc.danse.registry.PlayerModelRegistry;
@@ -13,12 +17,11 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -42,7 +45,21 @@ public class Danse implements ModInitializer {
             //copyResource("danse", "default.ajblueprint", "loosely-coupled.ajblueprint", "tightly-coupled.ajblueprint");
             for (Path path : loadFiles("danse", ".ajblueprint")) {
                 Danse.LOGGER.info("Loading player gesture model: {}", path.getFileName());
-                PlayerModelRegistry.load(PlayerModelLoader.load(path.toAbsolutePath().toString()));
+                PlayerModelRegistry.addFrom(PlayerModelLoader.load(path.toAbsolutePath().toString()));
+            }
+
+            var added = false;
+            EmotecraftLoader loader = new EmotecraftLoader();
+            for (Path path : loadFiles("danse", ".json")) {
+                Danse.LOGGER.info("Loading emotecraft emote: {}", path.getFileName());
+                var res = new Gson().fromJson(new InputStreamReader(new FileInputStream(path.toAbsolutePath().toString())), EmotecraftAnimationFile.class);
+                loader.add(res);
+                added = true;
+            }
+
+            if (added) {
+                Model model = loader.loadResource(ResourceLocation.fromNamespaceAndPath("danse", "default"));
+                PlayerModelRegistry.addFrom(model);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

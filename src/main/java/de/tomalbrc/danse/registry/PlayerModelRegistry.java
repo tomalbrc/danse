@@ -13,7 +13,7 @@ import java.util.Map;
 public class PlayerModelRegistry {
     static Map<String, Model> animationModelMap = new Object2ObjectOpenHashMap<>();
 
-    public static void load(Model model) {
+    public static void addFrom(Model model) {
         for (String animationName : model.animations().keySet()) {
             Danse.LOGGER.info("Loaded animation {}", animationName);
             animationModelMap.put(animationName, model);

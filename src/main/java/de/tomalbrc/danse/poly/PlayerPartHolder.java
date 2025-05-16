@@ -144,7 +144,7 @@ public class PlayerPartHolder<T extends PlayerModelArmorStand & AnimatedEntity> 
     @Override
     public void updateElement(DisplayWrapper<?> display, @Nullable Pose pose) {
         display.element().setYaw(this.parent.getYRot());
-        this.hitboxInteraction.setYaw(this.parent.getYRot());
+        if (this.hitboxInteraction != null) this.hitboxInteraction.setYaw(this.parent.getYRot());
 
         super.updateElement(display, pose);
 
