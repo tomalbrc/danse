@@ -17,16 +17,20 @@ public class GestureCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         LiteralCommandNode<CommandSourceStack> gestureNode = Commands
-                .literal("gesture")
+                .literal("gesture").requires(Permissions.require("danse.animation", 2))
                 .build();
 
         dispatcher.getRoot().addChild(gestureNode);
 
         for (String animation : PlayerModelRegistry.getAnimations()) {
+            var name = animation
+                    .replace(" ", "-")
+                    .replace("(", "")
+                    .replace(")", "");
             if (ModConfig.getInstance().permissionCheck)
-                gestureNode.addChild(literal(animation).requires(Permissions.require("danse.animation." + animation)).executes(ctx -> execute(ctx.getSource().getPlayerOrException(), animation)).build());
+                gestureNode.addChild(literal(name).requires(Permissions.require("danse.animation." + name, 2)).executes(ctx -> execute(ctx.getSource().getPlayerOrException(), animation)).build());
             else
-                gestureNode.addChild(literal(animation).executes(ctx -> execute(ctx.getSource().getPlayerOrException(), animation)).build());
+                gestureNode.addChild(literal(name).executes(ctx -> execute(ctx.getSource().getPlayerOrException(), animation)).build());
         }
     }
 

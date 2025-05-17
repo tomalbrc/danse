@@ -1,6 +1,7 @@
 package de.tomalbrc.danse.registry;
 
 import de.tomalbrc.danse.entity.AnimatedPlayerModelEntity;
+import de.tomalbrc.danse.entity.GesturePlayerModelEntity;
 import de.tomalbrc.danse.entity.PlayerModelArmorStand;
 import eu.pb4.polymer.core.api.entity.PolymerEntityUtils;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
@@ -21,6 +22,12 @@ public class EntityRegistry {
                     .sized(1.f, 2.f)
     );
 
+    public static final EntityType<GesturePlayerModelEntity> GESTURE_PLAYER_MODEL = register(
+            GesturePlayerModelEntity.ID,
+            EntityType.Builder.of(GesturePlayerModelEntity::new, MobCategory.MISC)
+                    .sized(1.f, 2.f).noSave().noSummon()
+    );
+
     public static final EntityType<PlayerModelArmorStand> PLAYER_STATUE = register(
             PlayerModelArmorStand.ID,
             EntityType.Builder.of(PlayerModelArmorStand::new, MobCategory.MISC).sized(0.5F, 1.975f).eyeHeight(1.7775f).clientTrackingRange(10)
@@ -28,6 +35,7 @@ public class EntityRegistry {
 
     public static void register() {
         FabricDefaultAttributeRegistry.register(PLAYER_MODEL, ArmorStand.createLivingAttributes());
+        FabricDefaultAttributeRegistry.register(GESTURE_PLAYER_MODEL, ArmorStand.createLivingAttributes());
         FabricDefaultAttributeRegistry.register(PLAYER_STATUE, ArmorStand.createLivingAttributes());
     }
 

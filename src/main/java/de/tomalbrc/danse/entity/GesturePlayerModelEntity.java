@@ -3,31 +3,38 @@ package de.tomalbrc.danse.entity;
 import de.tomalbrc.bil.core.model.Model;
 import de.tomalbrc.danse.mixin.LivingEntityAccessor;
 import de.tomalbrc.danse.poly.PlayerPartHolder;
-import de.tomalbrc.danse.registry.EntityRegistry;
 import de.tomalbrc.danse.util.MinecraftSkinParser;
 import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 import java.util.Map;
 
 // non-persistent gesture entity
 public class GesturePlayerModelEntity extends AnimatedPlayerModelEntity {
-    private final ServerPlayer player;
+    public static final ResourceLocation ID = Util.id("gesture_player_model");
+
+    private ServerPlayer player;
     private boolean checkDistance = true;
 
-    public GesturePlayerModelEntity(ServerPlayer player, Model model, Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> data) {
-        super(EntityRegistry.PLAYER_MODEL, player.level());
+    public void setup(ServerPlayer player, Model model, Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> data) {
         this.player = player;
         this.setPos(player.position());
         this.setYRot(player.getYRot());
 
         this.setModel(model);
         this.setPlayer(player, data);
+    }
+
+    public GesturePlayerModelEntity(EntityType<? extends AnimatedPlayerModelEntity> entityType, Level level) {
+        super(entityType, level);
     }
 
     @Override

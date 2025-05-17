@@ -3,6 +3,7 @@ package de.tomalbrc.danse;
 import com.google.common.collect.ImmutableList;
 import de.tomalbrc.danse.entity.GesturePlayerModelEntity;
 import de.tomalbrc.danse.poly.GestureCameraHolder;
+import de.tomalbrc.danse.registry.EntityRegistry;
 import de.tomalbrc.danse.registry.PlayerModelRegistry;
 import de.tomalbrc.danse.util.TextureCache;
 import de.tomalbrc.danse.util.Util;
@@ -16,6 +17,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.entity.Relative;
 import net.minecraft.world.level.block.entity.SkullBlockEntity;
@@ -78,7 +80,9 @@ public class GestureController {
                 camera.destroy();
             }
 
-            GesturePlayerModelEntity playerModel = new GesturePlayerModelEntity(player, PlayerModelRegistry.getModel(animationName), dataMap);
+            GesturePlayerModelEntity playerModel = EntityRegistry.GESTURE_PLAYER_MODEL.create(player.serverLevel(), EntitySpawnReason.EVENT);
+            assert playerModel != null;
+            playerModel.setup(player, PlayerModelRegistry.getModel(animationName), dataMap);
             playerModel.shouldCheckDistance(false);
 
             GestureCameraHolder gestureCameraHolder = new GestureCameraHolder(player, playerModel);
