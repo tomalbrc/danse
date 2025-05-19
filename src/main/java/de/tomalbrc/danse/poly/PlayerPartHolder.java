@@ -167,7 +167,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
             if (x instanceof PlayerPartHolder.MultipartModelBone bone) {
                 MinecraftSkinParser.BodyPart part = MinecraftSkinParser.BodyPart.partFrom(bone.name());
                 if (part != MinecraftSkinParser.BodyPart.NONE) {
-                    ItemStack item = bone.element().getItem();
+                    ItemStack item = bone.element().getItem().copy();
                     item.set(DataComponents.ITEM_MODEL, part.modelId(false));
 
                     boolean isBody = part == MinecraftSkinParser.BodyPart.BODY;
