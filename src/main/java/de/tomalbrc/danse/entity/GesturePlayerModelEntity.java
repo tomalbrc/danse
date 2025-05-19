@@ -11,8 +11,6 @@ import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 import java.util.Map;
@@ -26,11 +24,13 @@ public class GesturePlayerModelEntity extends AnimatedPlayerModelEntity {
 
     public void setup(ServerPlayer player, Model model, Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> data) {
         this.player = player;
+        this.playerName = player.getScoreboardName();
         this.setPos(player.position());
         this.setYRot(player.getYRot());
 
         this.setModel(model);
-        this.setPlayer(player, data);
+        this.holder.setSkinData(data);
+        this.holder.setEquipment(((LivingEntityAccessor)player).getEquipment());
     }
 
     public GesturePlayerModelEntity(EntityType<? extends AnimatedPlayerModelEntity> entityType, Level level) {
@@ -39,7 +39,9 @@ public class GesturePlayerModelEntity extends AnimatedPlayerModelEntity {
 
     @Override
     public void setModel(Model model) {
-        assert this.holder == null;
+        if (this.holder != null)
+            holder.destroy();
+
         this.holder = new PlayerPartHolder<>(this, model);
         EntityAttachment.ofTicking(this.holder, this);
     }
@@ -75,27 +77,5 @@ public class GesturePlayerModelEntity extends AnimatedPlayerModelEntity {
 
     public ServerPlayer getPlayer() {
         return player;
-    }
-
-    public void setPlayer(ServerPlayer player, Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> data) {
-        this.playerName = player.getScoreboardName();
-
-        ItemStack mainHand = player.getMainHandItem();
-        if (!mainHand.isEmpty()) {
-            this.addElement("mainhand", mainHand, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND);
-        }
-
-        ItemStack offHand = player.getOffhandItem();
-        if (!offHand.isEmpty()) {
-            this.addElement("offhand", offHand, ItemDisplayContext.THIRD_PERSON_LEFT_HAND);
-        }
-
-//        ItemStack head = player.getItemBySlot(EquipmentSlot.HEAD);
-//        if (!head.isEmpty() && !(head.has(DataComponents.EQUIPPABLE) && head.get(DataComponents.EQUIPPABLE).assetId().isPresent() && !(head.getItem() instanceof BlockItem))) {
-//
-//        }
-
-        this.holder.setSkinData(data, ((LivingEntityAccessor)player).getEquipment());
-        this.holder.setViewRange(0.5f);
     }
 }

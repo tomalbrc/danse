@@ -1,49 +1,53 @@
 package de.tomalbrc.danse.entity;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.PropertyMap;
 import de.tomalbrc.bil.api.AnimatedEntity;
-import de.tomalbrc.bil.core.extra.DisplayElementUpdateListener;
-import de.tomalbrc.bil.core.holder.wrapper.DisplayWrapper;
-import de.tomalbrc.bil.core.holder.wrapper.Locator;
 import de.tomalbrc.bil.core.model.Model;
 import de.tomalbrc.danse.poly.PlayerPartHolder;
 import de.tomalbrc.danse.poly.StatuePlayerPartHolder;
+import de.tomalbrc.danse.registry.ItemRegistry;
 import de.tomalbrc.danse.registry.PlayerModelRegistry;
 import de.tomalbrc.danse.util.TextureCache;
 import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
-import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
+import net.minecraft.core.Rotations;
 import net.minecraft.core.UUIDUtil;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.decoration.ArmorStand;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.SkullBlockEntity;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 // ArmorStand-like base
-public class PlayerModelArmorStand extends ArmorStand implements AnimatedEntity {
+public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntity {
     public static final ResourceLocation ID = Util.id("player_statue");
     private static final String PLAYER = "Player";
     private static final String PLAYER_UUID = "PlayerUUID";
     protected PlayerPartHolder<?> holder;
 
+    private boolean poseDirty = true;
+
     @Nullable
-    protected String playerName = "Steve";
+    protected String playerName;
     @Nullable
     protected UUID playerUuid;
 
-    public PlayerModelArmorStand(EntityType<? extends ArmorStand> entityType, Level level) {
+    public StatuePlayerModelEntity(EntityType<? extends ArmorStand> entityType, Level level) {
         super(entityType, level);
     }
 
@@ -53,36 +57,12 @@ public class PlayerModelArmorStand extends ArmorStand implements AnimatedEntity 
     }
 
     public void setModel(Model model) {
-        var old = holder;
+        if (holder != null)
+            holder.destroy();
 
         this.holder = new StatuePlayerPartHolder<>(this, model);
         this.holder.setupHitbox();
         EntityAttachment.ofTicking(this.holder, this);
-
-        if (old != null) {
-            CompletableFuture.runAsync(old::destroy, CompletableFuture.delayedExecutor(100, TimeUnit.MILLISECONDS, getServer()));
-        }
-    }
-
-    protected void addElement(String name, ItemStack stack, ItemDisplayContext context) {
-        Locator locator = this.holder.getLocator(name);
-        if (locator != null) {
-            ItemDisplayElement element = this.makeItemDisplay(stack, context);
-            DisplayWrapper<?> display = new DisplayWrapper<>(element, locator, false);
-            locator.addListener(new DisplayElementUpdateListener(display));
-
-            this.holder.initializeDisplay(display);
-            this.holder.addAdditionalDisplay(element);
-        }
-    }
-
-    private ItemDisplayElement makeItemDisplay(ItemStack stack, ItemDisplayContext context) {
-        ItemDisplayElement element = new ItemDisplayElement();
-        element.setItem(stack.copy());
-        element.setItemDisplayContext(context);
-        element.setInterpolationDuration(2);
-        element.setTeleportDuration(2);
-        return element;
     }
 
     @Override
@@ -101,7 +81,7 @@ public class PlayerModelArmorStand extends ArmorStand implements AnimatedEntity 
 
         if (this.holder == null) {
             // get any/first animation
-            this.setModel(PlayerModelRegistry.getModel(PlayerModelRegistry.getAnimations().getFirst()));
+            setAnyModel();
         }
 
         if (tag.contains(PLAYER_UUID)) {
@@ -111,7 +91,12 @@ public class PlayerModelArmorStand extends ArmorStand implements AnimatedEntity 
             this.playerName = tag.getString(PLAYER).orElseThrow();
         }
 
-        getGameProfile(this::setProfile);
+        fetchGameProfile(this::setProfile);
+        this.holder.setEquipment(this.equipment);
+    }
+
+    public void setAnyModel() {
+        this.setModel(PlayerModelRegistry.getModel(PlayerModelRegistry.getAnimations().getFirst()));
     }
 
     @Override
@@ -130,7 +115,7 @@ public class PlayerModelArmorStand extends ArmorStand implements AnimatedEntity 
     public void onEquipItem(EquipmentSlot equipmentSlot, ItemStack itemStack, ItemStack itemStack2) {
         super.onEquipItem(equipmentSlot, itemStack, itemStack2);
         if (!this.level().isClientSide() && !this.isSpectator()) {
-            this.refresh();
+            this.holder.setEquipment(this.equipment);
         }
     }
 
@@ -140,11 +125,12 @@ public class PlayerModelArmorStand extends ArmorStand implements AnimatedEntity 
             this.playerUuid = gameProfile.getId();
         });
 
-        this.setModel(PlayerModelRegistry.getModel(PlayerModelRegistry.getAnimations().getFirst()));
-        profile.ifPresent(gameProfile -> TextureCache.fetch(gameProfile, dataMap -> this.holder.setSkinData(dataMap, this.equipment)));
+        profile.ifPresent(gameProfile -> TextureCache.fetch(gameProfile, dataMap -> {
+            this.holder.setSkinData(dataMap);
+        }));
     }
 
-    public void getGameProfile(Consumer<Optional<GameProfile>> cb) {
+    public void fetchGameProfile(Consumer<Optional<GameProfile>> cb) {
         if (this.playerUuid != null) {
             SkullBlockEntity.fetchGameProfile(this.playerUuid).thenAccept(cb);
         }
@@ -154,7 +140,65 @@ public class PlayerModelArmorStand extends ArmorStand implements AnimatedEntity 
         }
     }
 
-    protected void refresh() {
-        getGameProfile(this::setProfile);
+    @Override
+    @NotNull
+    public ItemStack getPickResult() {
+        var stack = ItemRegistry.PLAYER_STATUE.getDefaultInstance();
+        stack.set(DataComponents.PROFILE, new ResolvableProfile(
+                Optional.ofNullable(this.playerName),
+                Optional.ofNullable(this.playerUuid),
+                new PropertyMap())
+        );
+        return stack;
+    }
+
+    public void customBrokenByPlayer(ServerLevel serverLevel, DamageSource damageSource) {
+        ItemStack itemStack = new ItemStack(ItemRegistry.PLAYER_STATUE);
+        itemStack.set(DataComponents.PROFILE, new ResolvableProfile(
+                Optional.ofNullable(this.playerName),
+                Optional.ofNullable(this.playerUuid),
+                new PropertyMap())
+        );
+        itemStack.set(DataComponents.CUSTOM_NAME, this.getCustomName());
+        Block.popResource(this.level(), this.blockPosition(), itemStack);
+        this.brokenByAnything(serverLevel, damageSource);
+    }
+
+    public boolean isPoseDirty() {
+        return this.poseDirty || level().getGameTime() - this.lastHit < 5;
+    }
+
+    public void setPoseDirty(boolean dirty) {
+        this.poseDirty = dirty;
+    }
+
+    public void setHeadPose(Rotations rotations) {
+        super.setHeadPose(rotations);
+        this.poseDirty = true;
+    }
+
+    public void setBodyPose(Rotations rotations) {
+        super.setBodyPose(rotations);
+        this.poseDirty = true;
+    }
+
+    public void setLeftArmPose(Rotations rotations) {
+        super.setLeftArmPose(rotations);
+        this.poseDirty = true;
+    }
+
+    public void setRightArmPose(Rotations rotations) {
+        super.setRightArmPose(rotations);
+        this.poseDirty = true;
+    }
+
+    public void setLeftLegPose(Rotations rotations) {
+        super.setLeftLegPose(rotations);
+        this.poseDirty = true;
+    }
+
+    public void setRightLegPose(Rotations rotations) {
+        super.setRightLegPose(rotations);
+        this.poseDirty = true;
     }
 }

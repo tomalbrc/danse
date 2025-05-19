@@ -1,10 +1,12 @@
 package de.tomalbrc.danse.item;
 
-import de.tomalbrc.danse.entity.PlayerModelArmorStand;
+import de.tomalbrc.danse.entity.StatuePlayerModelEntity;
 import de.tomalbrc.danse.registry.EntityRegistry;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -16,6 +18,7 @@ import net.minecraft.world.item.ArmorStandItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -28,9 +31,9 @@ import xyz.nucleoid.packettweaker.PacketContext;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public class PlayerModelArmorStandItem extends ArmorStandItem implements PolymerItem {
+public class StatuePlayerModelItem extends ArmorStandItem implements PolymerItem {
 
-    public PlayerModelArmorStandItem(Properties properties) {
+    public StatuePlayerModelItem(Properties properties) {
         super(properties);
     }
 
@@ -49,14 +52,21 @@ public class PlayerModelArmorStandItem extends ArmorStandItem implements Polymer
             AABB aABB = EntityRegistry.PLAYER_STATUE.getDimensions().makeBoundingBox(vec3.x(), vec3.y(), vec3.z());
             if (level.noCollision(null, aABB) && level.getEntities(null, aABB).isEmpty()) {
                 if (level instanceof ServerLevel serverLevel) {
-                    Consumer<PlayerModelArmorStand> consumer = EntityType.createDefaultStackConfig(serverLevel, itemStack, useOnContext.getPlayer());
-                    PlayerModelArmorStand statue = EntityRegistry.PLAYER_STATUE.create(serverLevel, consumer, blockPos, EntitySpawnReason.SPAWN_ITEM_USE, true, true);
+                    Consumer<StatuePlayerModelEntity> consumer = EntityType.createDefaultStackConfig(serverLevel, itemStack, useOnContext.getPlayer());
+                    StatuePlayerModelEntity statue = EntityRegistry.PLAYER_STATUE.create(serverLevel, consumer, blockPos, EntitySpawnReason.SPAWN_ITEM_USE, true, true);
                     if (statue == null) {
                         return InteractionResult.FAIL;
                     }
 
+                    statue.setAnyModel();
 
-                    if (useOnContext.getPlayer() != null) statue.setProfile(Optional.of(useOnContext.getPlayer().getGameProfile()));
+                    var profile = itemStack.get(DataComponents.PROFILE);
+                    if (profile != null) {
+                        profile.resolve().thenAccept(resolvableProfile -> statue.setProfile(Optional.of(resolvableProfile.gameProfile())));
+                    }
+                    else if (useOnContext.getPlayer() != null) {
+                        statue.setProfile(Optional.of(useOnContext.getPlayer().getGameProfile()));
+                    }
 
                     float yRot = (float) Mth.floor((Mth.wrapDegrees(useOnContext.getRotation() - 180.0F) + 22.5F) / 45.0F) * 45.0F;
                     statue.snapTo(statue.getX(), statue.getY(), statue.getZ(), yRot, 0);
@@ -76,5 +86,11 @@ public class PlayerModelArmorStandItem extends ArmorStandItem implements Polymer
     @Override
     public Item getPolymerItem(ItemStack itemStack, PacketContext packetContext) {
         return Items.ARMOR_STAND;
+    }
+
+    @Override
+    public @NotNull Component getName(ItemStack itemStack) {
+        ResolvableProfile resolvableProfile = itemStack.get(DataComponents.PROFILE);
+        return (resolvableProfile != null && resolvableProfile.name().isPresent() ? Component.translatable(this.descriptionId + ".named", resolvableProfile.name().get()) : super.getName(itemStack));
     }
 }

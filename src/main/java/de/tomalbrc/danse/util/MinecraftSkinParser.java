@@ -4,6 +4,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.component.CustomModelData;
 
 import java.awt.image.BufferedImage;
@@ -332,22 +333,28 @@ public class MinecraftSkinParser {
     }
 
     public enum BodyPart {
-        NONE("none", null),
-        HEAD("head", EquipmentSlot.HEAD),
-        BODY("body", EquipmentSlot.CHEST),
-        LEFT_ARM("arm_l", EquipmentSlot.CHEST),
-        RIGHT_ARM("arm_r", EquipmentSlot.CHEST),
-        LEFT_ARM_SLIM("arm_ls", EquipmentSlot.CHEST),
-        RIGHT_ARM_SLIM("arm_rs", EquipmentSlot.CHEST),
-        LEFT_LEG("leg_l", EquipmentSlot.LEGS),
-        RIGHT_LEG("leg_r", EquipmentSlot.LEGS);
+        NONE("none", null, null),
+        HEAD("head", EquipmentSlot.HEAD, ItemDisplayContext.HEAD),
+        BODY("body", EquipmentSlot.CHEST, null),
+        LEFT_ARM("arm_l", EquipmentSlot.CHEST, ItemDisplayContext.THIRD_PERSON_LEFT_HAND),
+        RIGHT_ARM("arm_r", EquipmentSlot.CHEST, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND),
+        LEFT_ARM_SLIM("arm_ls", EquipmentSlot.CHEST, ItemDisplayContext.THIRD_PERSON_LEFT_HAND),
+        RIGHT_ARM_SLIM("arm_rs", EquipmentSlot.CHEST, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND),
+        LEFT_LEG("leg_l", EquipmentSlot.LEGS, null),
+        RIGHT_LEG("leg_r", EquipmentSlot.LEGS, null);
 
         private final String name;
         private final EquipmentSlot slot;
+        private final ItemDisplayContext context;
 
-        BodyPart(String name, EquipmentSlot slot) {
+        BodyPart(String name, EquipmentSlot slot, ItemDisplayContext context) {
             this.name = name;
             this.slot = slot;
+            this.context = context;
+        }
+
+        public ItemDisplayContext getContext() {
+            return context;
         }
 
         public String getName() {
@@ -358,7 +365,7 @@ public class MinecraftSkinParser {
             return this.slot;
         }
 
-        public ResourceLocation id(boolean slim) {
+        public ResourceLocation modelId(boolean slim) {
             if (slim) {
                 return ResourceLocation.fromNamespaceAndPath("danse", getName() + "s");
             } else {

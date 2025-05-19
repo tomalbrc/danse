@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_transmute",
+  "category": "misc",
+  "input": "minecraft:player_head",
+  "material": "danse:player_statue",
+  "result": {
+    "id": "danse:player_statue"
+  }
+}

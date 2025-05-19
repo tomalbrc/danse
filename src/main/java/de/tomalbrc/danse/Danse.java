@@ -22,10 +22,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class Danse implements ModInitializer {
@@ -33,7 +36,7 @@ public class Danse implements ModInitializer {
     public static Logger LOGGER = LogUtils.getLogger();
     public static ResourcePackBuilder RPBUILDER;
 
-    public static Int2ObjectOpenHashMap<ItemStack> VIRTUAL_ENTITY_PICK_MAP = new Int2ObjectOpenHashMap<>();
+    public static Int2ObjectOpenHashMap<Supplier<ItemStack>> VIRTUAL_ENTITY_PICK_MAP = new Int2ObjectOpenHashMap<>();
 
     @Override
     public void onInitialize() {

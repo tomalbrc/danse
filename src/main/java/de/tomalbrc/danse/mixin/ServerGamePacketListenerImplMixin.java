@@ -53,11 +53,12 @@ public abstract class ServerGamePacketListenerImplMixin {
         }
     }
 
-    @Inject(method = "handlePickItemFromEntity", at = @At("HEAD"))
-    private void filament$handleEntityPick(ServerboundPickItemFromEntityPacket serverboundPickItemFromEntityPacket, CallbackInfo ci) {
+    @Inject(method = "handlePickItemFromEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;tryPickItem(Lnet/minecraft/world/item/ItemStack;)V"), cancellable = true)
+    private void danse$handleEntityPick(ServerboundPickItemFromEntityPacket serverboundPickItemFromEntityPacket, CallbackInfo ci) {
         var v = Danse.VIRTUAL_ENTITY_PICK_MAP.get(serverboundPickItemFromEntityPacket.id());
         if (v != null) {
-            this.tryPickItem(v);
+            this.tryPickItem(v.get());
+            ci.cancel();
         }
     }
 }

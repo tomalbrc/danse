@@ -2,6 +2,7 @@ package de.tomalbrc.danse.poly;
 
 import com.google.common.collect.ImmutableList;
 import de.tomalbrc.bil.api.AnimatedEntity;
+import de.tomalbrc.bil.core.extra.DisplayElementUpdateListener;
 import de.tomalbrc.bil.core.holder.entity.simple.SimpleEntityHolder;
 import de.tomalbrc.bil.core.holder.wrapper.*;
 import de.tomalbrc.bil.core.model.Model;
@@ -9,7 +10,7 @@ import de.tomalbrc.bil.core.model.Node;
 import de.tomalbrc.bil.core.model.Pose;
 import de.tomalbrc.danse.Danse;
 import de.tomalbrc.danse.entity.GesturePlayerModelEntity;
-import de.tomalbrc.danse.entity.PlayerModelArmorStand;
+import de.tomalbrc.danse.entity.StatuePlayerModelEntity;
 import de.tomalbrc.danse.util.MinecraftSkinParser;
 import de.tomalbrc.danse.util.TextureCache;
 import de.tomalbrc.danse.util.Util;
@@ -17,6 +18,7 @@ import eu.pb4.polymer.virtualentity.api.attachment.HolderAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.*;
 import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
 import eu.pb4.polymer.virtualentity.api.tracker.EntityTrackedData;
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import net.minecraft.core.component.DataComponents;
@@ -28,24 +30,29 @@ import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityEquipment;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Quaternionfc;
 
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class PlayerPartHolder<T extends PlayerModelArmorStand & AnimatedEntity> extends SimpleEntityHolder<T> {
-    private static final EntityEquipment EMPTY_EQUIPMENT = new EntityEquipment();
+public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity> extends SimpleEntityHolder<T> {
     private boolean didFirstRun = false;
 
     protected InteractionElement hitboxInteraction;
+
+    protected Map<MinecraftSkinParser.BodyPart, DisplayWrapper<ItemDisplayElement>> locatorPartMap = new Object2ObjectArrayMap<>();
+    private boolean didSetup;
 
     public PlayerPartHolder(T parent, Model model) {
         super(parent, model);
@@ -55,8 +62,55 @@ public class PlayerPartHolder<T extends PlayerModelArmorStand & AnimatedEntity> 
         this.hitboxInteraction = InteractionElement.redirect(parent);
         this.hitboxInteraction.setSize(this.dimensions.width(), this.dimensions.height());
         this.hitboxInteraction.ignorePositionUpdates();
-        Danse.VIRTUAL_ENTITY_PICK_MAP.put(this.hitboxInteraction.getEntityId(), this.parent.getPickResult());
+        Danse.VIRTUAL_ENTITY_PICK_MAP.put(this.hitboxInteraction.getEntityId(), this.parent::getPickResult);
         this.addElement(this.hitboxInteraction);
+    }
+
+    public void setLocatorItem(MinecraftSkinParser.BodyPart part, String name, ItemStack itemStack) {
+        if (!locatorPartMap.containsKey(part)) {
+            var e = this.addLocatorElement(name, itemStack, part.getContext());
+            if (e != null) {
+                e.element().setItem(itemStack);
+                locatorPartMap.put(part, e);
+            }
+        } else locatorPartMap.get(part).element().setItem(itemStack);
+    }
+
+    public DisplayWrapper<ItemDisplayElement> addLocatorElement(String name, ItemStack stack, ItemDisplayContext context) {
+        Locator locator = this.getLocator(name);
+        if (this.didSetup && locator != null) {
+            ItemDisplayElement element = this.createLocatorItemDisplay(stack, context);
+            DisplayWrapper<ItemDisplayElement> display = new DisplayWrapper<>(element, locator, false);
+            locator.addListener(new DisplayElementUpdateListener(display));
+
+            this.initializeDisplay(display);
+            this.addAdditionalDisplay(element);
+
+            return display;
+        }
+
+        return null;
+    }
+
+    private ItemDisplayElement createLocatorItemDisplay(ItemStack stack, ItemDisplayContext context) {
+        ItemDisplayElement element = new ItemDisplayElement();
+        element.setItem(stack.copy());
+        element.setItemDisplayContext(context);
+        element.setInterpolationDuration(2);
+        element.setTeleportDuration(2);
+        return element;
+    }
+
+    @Override
+    protected void updateLocator(Locator locator) {
+        if (!isDirty() && this.getAnimator().hasRunningAnimations()) {
+            Pose pose = this.animationComponent.findPose(locator);
+            if (pose == null) {
+                locator.updateListeners(this, locator.getDefaultPose());
+            } else {
+                locator.updateListeners(this, pose);
+            }
+        }
     }
 
     @Override
@@ -81,23 +135,19 @@ public class PlayerPartHolder<T extends PlayerModelArmorStand & AnimatedEntity> 
         }
 
         if (hitboxInteraction != null)
-            displays[displays.length-1] = this.hitboxInteraction.getEntityId();
+            displays[displays.length - 1] = this.hitboxInteraction.getEntityId();
 
         return displays;
     }
 
     public void setSkinData(Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> data) {
-        this.setSkinData(data, EMPTY_EQUIPMENT);
-    }
-
-    public void setSkinData(Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> data, EntityEquipment equipment) {
         for (Bone<?> x : this.bones) {
             if (x instanceof PlayerPartHolder.MultipartModelBone bone) {
                 MinecraftSkinParser.BodyPart part = MinecraftSkinParser.BodyPart.partFrom(bone.name());
                 if (part != MinecraftSkinParser.BodyPart.NONE) {
                     ItemStack item = bone.element().getItem();
                     MinecraftSkinParser.PartData partData = data.get(part);
-                    item.set(DataComponents.ITEM_MODEL, part.id(partData.slim() && part.isArm()));
+                    item.set(DataComponents.ITEM_MODEL, part.modelId(partData.slim() && part.isArm()));
 
                     item.set(DataComponents.CUSTOM_MODEL_DATA, partData.customModelDataInner());
                     bone.element().getDataTracker().set(DisplayTrackedData.Item.ITEM, item, true);
@@ -105,6 +155,20 @@ public class PlayerPartHolder<T extends PlayerModelArmorStand & AnimatedEntity> 
                     ItemStack outerItem = item.copy();
                     outerItem.set(DataComponents.CUSTOM_MODEL_DATA, partData.customModelDataOuter());
                     bone.outer.getDataTracker().set(DisplayTrackedData.Item.ITEM, outerItem, true);
+                }
+            }
+        }
+
+        setDisplayProps();
+    }
+
+    public void setEquipment(EntityEquipment equipment) {
+        for (Bone<?> x : this.bones) {
+            if (x instanceof PlayerPartHolder.MultipartModelBone bone) {
+                MinecraftSkinParser.BodyPart part = MinecraftSkinParser.BodyPart.partFrom(bone.name());
+                if (part != MinecraftSkinParser.BodyPart.NONE) {
+                    ItemStack item = bone.element().getItem();
+                    item.set(DataComponents.ITEM_MODEL, part.modelId(false));
 
                     boolean isBody = part == MinecraftSkinParser.BodyPart.BODY;
                     boolean isLeg = part.isLeg();
@@ -120,6 +184,13 @@ public class PlayerPartHolder<T extends PlayerModelArmorStand & AnimatedEntity> 
             }
         }
 
+        setLocatorItem(MinecraftSkinParser.BodyPart.LEFT_ARM, "offhand", equipment.get(EquipmentSlot.OFFHAND));
+        setLocatorItem(MinecraftSkinParser.BodyPart.RIGHT_ARM, "mainhand", equipment.get(EquipmentSlot.MAINHAND));
+
+        setDisplayProps();
+    }
+
+    private void setDisplayProps() {
         for (VirtualElement element : this.getElements()) {
             if (element instanceof DisplayElement displayElement) {
                 displayElement.setViewRange(0.5f);
@@ -131,19 +202,17 @@ public class PlayerPartHolder<T extends PlayerModelArmorStand & AnimatedEntity> 
         }
     }
 
-    public void setViewRange(float range) {
-        for (Bone<?> bone : this.bones) {
-            bone.element().setViewRange(range);
-        }
-    }
-
     protected boolean isDirty() {
         return !didFirstRun;
     }
 
     @Override
     public void updateElement(DisplayWrapper<?> display, @Nullable Pose pose) {
-        display.element().setYaw(this.parent.getYRot());
+        if (display instanceof MultipartModelBone multipartModelBone)
+            multipartModelBone.setYaw(this.parent.getYRot());
+        else
+            display.element().setYaw(this.parent.getYRot());
+
         if (this.hitboxInteraction != null) this.hitboxInteraction.setYaw(this.parent.getYRot());
 
         super.updateElement(display, pose);
@@ -154,22 +223,32 @@ public class PlayerPartHolder<T extends PlayerModelArmorStand & AnimatedEntity> 
             } else return;
         }
 
-        this.didFirstRun = true;
-
         if (display instanceof PlayerPartHolder.MultipartModelBone multipartModelBone && pose != null) {
             var mat = Util.compose(null, pose.readOnlyLeftRotation(), pose.readOnlyScale(), pose.readOnlyRightRotation());
             var rotation = rotation(multipartModelBone.bodyPart);
             if (rotation != null) {
                 var mat1 = new Matrix4f(mat);
-                mat1.translateLocal(pose.readOnlyTranslation());
                 mat1.mul(new Matrix4f().rotate(rotation));
+                mat1.translateLocal(pose.readOnlyTranslation());
                 display.element().setTransformation(mat1);
+
+                var l = locatorPartMap.get(multipartModelBone.bodyPart);
+                if (l != null) {
+                    Matrix4f locatorMatrix = new Matrix4f(mat1); // the matrix to rotate
+                    locatorMatrix.translate(l.node().transform().origin());
+                    locatorMatrix.rotate(l.getDefaultPose().matrix().getNormalizedRotation(new Quaternionf()));
+                    locatorMatrix.rotateX(Mth.PI);
+                    locatorMatrix.rotateY(Mth.PI);
+                    l.element().setTransformation(locatorMatrix);
+                    l.element().startInterpolationIfDirty();
+                    l.element().setYaw(this.parent.getYRot());
+                }
             }
 
             if (multipartModelBone.outer != null) {
                 var mat1 = new Matrix4f(mat);
-                mat1.translate(0.0f, offset(multipartModelBone), 0.0f);
                 if (rotation != null) mat1.mul(new Matrix4f().rotate(rotation));
+                mat1.translate(0.0f, offset(multipartModelBone), 0.0f);
                 mat1.scale(1.05f);
                 mat1.translateLocal(pose.readOnlyTranslation());
                 multipartModelBone.outer.setTransformation(mat1);
@@ -177,8 +256,8 @@ public class PlayerPartHolder<T extends PlayerModelArmorStand & AnimatedEntity> 
 
             if (multipartModelBone.armor != null) {
                 var mat1 = new Matrix4f(mat);
-                mat1.translate(0.0f, offset(multipartModelBone), 0.0f);
                 if (rotation != null) mat1.mul(new Matrix4f().rotate(rotation));
+                mat1.translate(0.0f, offset(multipartModelBone), 0.0f);
                 mat1.scale(1.1f);
                 mat1.translateLocal(pose.readOnlyTranslation());
                 multipartModelBone.armor.setTransformation(mat1);
@@ -186,8 +265,8 @@ public class PlayerPartHolder<T extends PlayerModelArmorStand & AnimatedEntity> 
 
             if (multipartModelBone.armorOuter != null) {
                 var mat1 = new Matrix4f(mat);
-                mat1.translate(0.0f, offsetArmor(multipartModelBone), 0.0f);
                 if (rotation != null) mat1.mul(new Matrix4f().rotate(rotation));
+                mat1.translate(0.0f, offsetArmor(multipartModelBone), 0.0f);
                 mat1.scale(1.2f);
                 mat1.translateLocal(pose.readOnlyTranslation());
                 multipartModelBone.armorOuter.setTransformation(mat1);
@@ -315,6 +394,14 @@ public class PlayerPartHolder<T extends PlayerModelArmorStand & AnimatedEntity> 
                     this.locatorMap.put(node.name(), Locator.of(node, defaultPose));
             }
         }
+
+        this.didSetup = true;
+    }
+
+    @Override
+    protected void onAsyncTick() {
+        super.onAsyncTick();
+        this.didFirstRun = true;
     }
 
     public static class MultipartModelBone extends ModelBone {
@@ -341,6 +428,12 @@ public class PlayerPartHolder<T extends PlayerModelArmorStand & AnimatedEntity> 
 
         public ImmutableList<ItemDisplayElement> additionalElements() {
             return ImmutableList.of(element(), this.outer, this.armor, this.armorOuter);
+        }
+
+        public void setYaw(float yRot) {
+            for (ItemDisplayElement element : this.additionalElements()) {
+                element.setYaw(yRot);
+            }
         }
     }
 }

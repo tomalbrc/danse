@@ -15,14 +15,14 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 // persistent model
-public class AnimatedPlayerModelEntity extends PlayerModelArmorStand implements AnimatedEntity {
+public class AnimatedPlayerModelEntity extends StatuePlayerModelEntity implements AnimatedEntity {
     public static final ResourceLocation ID = Util.id("player_model");
     protected static final String ANIMATION = "Animation";
 
     @Nullable
     protected String animation = null;
 
-    public AnimatedPlayerModelEntity(EntityType<? extends PlayerModelArmorStand> entityType, Level level) {
+    public AnimatedPlayerModelEntity(EntityType<? extends StatuePlayerModelEntity> entityType, Level level) {
         super(entityType, level);
 
         this.setNoGravity(true);
@@ -30,7 +30,8 @@ public class AnimatedPlayerModelEntity extends PlayerModelArmorStand implements 
     }
 
     public void setModel(Model model) {
-        assert this.holder == null;
+        if (this.holder != null)
+            holder.destroy();
 
         this.holder = new PlayerPartHolder<>(this, model);
         this.holder.setupHitbox();
@@ -39,7 +40,6 @@ public class AnimatedPlayerModelEntity extends PlayerModelArmorStand implements 
 
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
 
         if (tag.contains(ANIMATION)) {
             if (this.holder != null) {
@@ -60,6 +60,8 @@ public class AnimatedPlayerModelEntity extends PlayerModelArmorStand implements 
                 }
             }
         }
+
+        super.readAdditionalSaveData(tag);
 
         tag.getFloat("Yaw").ifPresent(this::setYRot);
     }

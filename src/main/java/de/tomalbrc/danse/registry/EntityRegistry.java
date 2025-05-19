@@ -2,7 +2,7 @@ package de.tomalbrc.danse.registry;
 
 import de.tomalbrc.danse.entity.AnimatedPlayerModelEntity;
 import de.tomalbrc.danse.entity.GesturePlayerModelEntity;
-import de.tomalbrc.danse.entity.PlayerModelArmorStand;
+import de.tomalbrc.danse.entity.StatuePlayerModelEntity;
 import eu.pb4.polymer.core.api.entity.PolymerEntityUtils;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.minecraft.core.Registry;
@@ -19,18 +19,18 @@ public class EntityRegistry {
     public static final EntityType<AnimatedPlayerModelEntity> PLAYER_MODEL = register(
             AnimatedPlayerModelEntity.ID,
             EntityType.Builder.of(AnimatedPlayerModelEntity::new, MobCategory.MISC)
-                    .sized(1.f, 2.f)
+                    .sized(0.6f, 1.8f)
     );
 
     public static final EntityType<GesturePlayerModelEntity> GESTURE_PLAYER_MODEL = register(
             GesturePlayerModelEntity.ID,
             EntityType.Builder.of(GesturePlayerModelEntity::new, MobCategory.MISC)
-                    .sized(1.f, 2.f).noSave().noSummon()
+                    .sized(0.6f, 1.8f).noSave().noSummon()
     );
 
-    public static final EntityType<PlayerModelArmorStand> PLAYER_STATUE = register(
-            PlayerModelArmorStand.ID,
-            EntityType.Builder.of(PlayerModelArmorStand::new, MobCategory.MISC).sized(0.5F, 1.975f).eyeHeight(1.7775f).clientTrackingRange(10)
+    public static final EntityType<StatuePlayerModelEntity> PLAYER_STATUE = register(
+            StatuePlayerModelEntity.ID,
+            EntityType.Builder.of(StatuePlayerModelEntity::new, MobCategory.MISC).sized(0.5F, 1.975f).eyeHeight(1.7775f).clientTrackingRange(10)
     );
 
     public static void register() {
