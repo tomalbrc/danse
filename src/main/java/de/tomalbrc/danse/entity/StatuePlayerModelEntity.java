@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.PropertyMap;
 import de.tomalbrc.bil.api.AnimatedEntity;
 import de.tomalbrc.bil.core.model.Model;
+import de.tomalbrc.danse.Danse;
 import de.tomalbrc.danse.mixin.ArmorStandInvoker;
 import de.tomalbrc.danse.poly.PlayerPartHolder;
 import de.tomalbrc.danse.poly.StatuePlayerPartHolder;
@@ -109,6 +110,8 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
         else if (this.playerName != null || this.playerUuid != null) {
             fetchGameProfile(this::setProfile);
             this.holder.setEquipment(this.equipment);
+        } else {
+            this.setTexture(Danse.STEVE_TEXTURE);
         }
     }
 
@@ -142,13 +145,11 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
             this.playerUuid = gameProfile.getId();
         });
 
-        profile.ifPresent(gameProfile -> TextureCache.fetch(gameProfile, this::setTexture));
+        profile.ifPresentOrElse(gameProfile -> TextureCache.fetch(gameProfile, this::setTexture), () -> this.setTexture(Danse.STEVE_TEXTURE));
     }
 
     public void setTexture(BufferedImage image) {
-        MinecraftSkinParser.calculate(image, data -> {
-            this.holder.setSkinData(data);
-        });
+        MinecraftSkinParser.calculate(image, data -> this.holder.setSkinData(data));
     }
 
     public void fetchGameProfile(Consumer<Optional<GameProfile>> cb) {

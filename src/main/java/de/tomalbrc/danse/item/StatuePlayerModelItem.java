@@ -1,6 +1,6 @@
 package de.tomalbrc.danse.item;
 
-import com.mojang.authlib.GameProfile;
+import de.tomalbrc.danse.Danse;
 import de.tomalbrc.danse.entity.StatuePlayerModelEntity;
 import de.tomalbrc.danse.registry.EntityRegistry;
 import eu.pb4.polymer.core.api.item.PolymerItem;
@@ -30,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 public class StatuePlayerModelItem extends ArmorStandItem implements PolymerItem {
@@ -67,7 +66,7 @@ public class StatuePlayerModelItem extends ArmorStandItem implements PolymerItem
                         profile.resolve().thenAccept(resolvableProfile -> statue.setProfile(Optional.of(resolvableProfile.gameProfile())));
                     }
                     else {
-                        statue.setProfile(Optional.of(new GameProfile(UUID.fromString("0"), "")));
+                        statue.setTexture(Danse.STEVE_TEXTURE);
                     }
 
                     float yRot = (float) Mth.floor((Mth.wrapDegrees(useOnContext.getRotation() - 180.0F) + 22.5F) / 45.0F) * 45.0F;

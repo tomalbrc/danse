@@ -1,6 +1,5 @@
 package de.tomalbrc.danse.registry;
 
-import com.mojang.authlib.properties.PropertyMap;
 import de.tomalbrc.danse.item.StatuePlayerModelItem;
 import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.core.api.item.PolymerItemGroupUtils;
@@ -17,9 +16,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.component.ResolvableProfile;
 
-import java.util.Optional;
 import java.util.function.Function;
 
 public class ItemRegistry {
@@ -38,7 +35,7 @@ public class ItemRegistry {
     }
 
     static public <T extends Item> T register(ResourceLocation identifier, Function<Item.Properties, T> function, ResourceLocation model) {
-        var x = function.apply(new Item.Properties().stacksTo(16).rarity(Rarity.UNCOMMON).setId(ResourceKey.create(Registries.ITEM, identifier)).modelId(model).component(DataComponents.PROFILE, new ResolvableProfile(Optional.of("Steve"), Optional.empty(), new PropertyMap())));
+        var x = function.apply(new Item.Properties().stacksTo(16).rarity(Rarity.UNCOMMON).setId(ResourceKey.create(Registries.ITEM, identifier)).modelId(model));
         Registry.register(BuiltInRegistries.ITEM, identifier, x);
         CUSTOM_ITEMS.putIfAbsent(identifier, x);
         return x;
