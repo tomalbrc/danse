@@ -12,14 +12,13 @@ import de.tomalbrc.danse.registry.ItemRegistry;
 import de.tomalbrc.danse.registry.PlayerModelRegistry;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 
 import javax.imageio.ImageIO;
@@ -31,7 +30,6 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class Danse implements ModInitializer {
@@ -40,7 +38,7 @@ public class Danse implements ModInitializer {
     public static ResourcePackBuilder RPBUILDER;
     public static BufferedImage STEVE_TEXTURE;
 
-    public static Int2ObjectOpenHashMap<Supplier<ItemStack>> VIRTUAL_ENTITY_PICK_MAP = new Int2ObjectOpenHashMap<>();
+    public static Int2IntArrayMap VIRTUAL_ENTITY_PICK_MAP = new Int2IntArrayMap();
 
     @Override
     public void onInitialize() {

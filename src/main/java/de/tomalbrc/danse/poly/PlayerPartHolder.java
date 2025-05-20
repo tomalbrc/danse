@@ -62,7 +62,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
         this.hitboxInteraction = InteractionElement.redirect(parent);
         this.hitboxInteraction.setSize(this.dimensions.width(), this.dimensions.height());
         this.hitboxInteraction.ignorePositionUpdates();
-        Danse.VIRTUAL_ENTITY_PICK_MAP.put(this.hitboxInteraction.getEntityId(), this.parent::getPickResult);
+        Danse.VIRTUAL_ENTITY_PICK_MAP.put(this.hitboxInteraction.getEntityId(), this.parent.getId());
         this.addElement(this.hitboxInteraction);
     }
 

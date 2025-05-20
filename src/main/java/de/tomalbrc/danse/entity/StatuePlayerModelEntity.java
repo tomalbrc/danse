@@ -110,8 +110,6 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
         else if (this.playerName != null || this.playerUuid != null) {
             fetchGameProfile(this::setProfile);
             this.holder.setEquipment(this.equipment);
-        } else {
-            this.setTexture(Danse.STEVE_TEXTURE);
         }
     }
 
@@ -168,7 +166,7 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
         var stack = ItemRegistry.PLAYER_STATUE.getDefaultInstance();
         stack.set(DataComponents.PROFILE, new ResolvableProfile(
                 Optional.ofNullable(this.playerName),
-                Optional.ofNullable(this.playerUuid),
+                Optional.ofNullable(this.playerName == null ? this.playerUuid : null),
                 new PropertyMap())
         );
         return stack;
