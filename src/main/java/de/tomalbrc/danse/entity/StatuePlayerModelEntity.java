@@ -4,10 +4,12 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.PropertyMap;
 import de.tomalbrc.bil.api.AnimatedEntity;
 import de.tomalbrc.bil.core.model.Model;
+import de.tomalbrc.danse.mixin.ArmorStandInvoker;
 import de.tomalbrc.danse.poly.PlayerPartHolder;
 import de.tomalbrc.danse.poly.StatuePlayerPartHolder;
 import de.tomalbrc.danse.registry.ItemRegistry;
 import de.tomalbrc.danse.registry.PlayerModelRegistry;
+import de.tomalbrc.danse.util.MinecraftSkinParser;
 import de.tomalbrc.danse.util.TextureCache;
 import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
@@ -29,6 +31,7 @@ import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.image.BufferedImage;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -37,6 +40,7 @@ import java.util.function.Consumer;
 public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntity {
     public static final ResourceLocation ID = Util.id("player_statue");
     private static final String PLAYER = "Player";
+    private static final String URL = "URL";
     private static final String PLAYER_UUID = "PlayerUUID";
     protected PlayerPartHolder<?> holder;
 
@@ -46,6 +50,8 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
     protected String playerName;
     @Nullable
     protected UUID playerUuid;
+    @Nullable
+    protected String url;
 
     public StatuePlayerModelEntity(EntityType<? extends ArmorStand> entityType, Level level) {
         super(entityType, level);
@@ -86,13 +92,24 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
 
         if (tag.contains(PLAYER_UUID)) {
             this.playerUuid = tag.read(PLAYER_UUID, UUIDUtil.LENIENT_CODEC).orElseThrow();
-        }
-        else if (tag.contains(PLAYER) && !tag.getString(PLAYER).orElseThrow().isBlank()) {
-            this.playerName = tag.getString(PLAYER).orElseThrow();
-        }
+        } else this.playerUuid = null;
 
-        fetchGameProfile(this::setProfile);
-        this.holder.setEquipment(this.equipment);
+
+        if (tag.contains(PLAYER) && !tag.getString(PLAYER).orElseThrow().isBlank()) {
+            this.playerName = tag.getString(PLAYER).orElseThrow();
+        } else this.playerName = null;
+
+        if (tag.contains(URL) && !tag.getString(URL).orElseThrow().isBlank()) {
+            this.url = tag.getString(URL).orElseThrow();
+        } else this.url = null;
+
+        if (this.url != null && !this.url.isBlank()) {
+            TextureCache.fetch(this.url, this::setTexture);
+        }
+        else if (this.playerName != null || this.playerUuid != null) {
+            fetchGameProfile(this::setProfile);
+            this.holder.setEquipment(this.equipment);
+        }
     }
 
     public void setAnyModel() {
@@ -125,9 +142,13 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
             this.playerUuid = gameProfile.getId();
         });
 
-        profile.ifPresent(gameProfile -> TextureCache.fetch(gameProfile, dataMap -> {
-            this.holder.setSkinData(dataMap);
-        }));
+        profile.ifPresent(gameProfile -> TextureCache.fetch(gameProfile, this::setTexture));
+    }
+
+    public void setTexture(BufferedImage image) {
+        MinecraftSkinParser.calculate(image, data -> {
+            this.holder.setSkinData(data);
+        });
     }
 
     public void fetchGameProfile(Consumer<Optional<GameProfile>> cb) {
@@ -161,7 +182,7 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
         );
         itemStack.set(DataComponents.CUSTOM_NAME, this.getCustomName());
         Block.popResource(this.level(), this.blockPosition(), itemStack);
-        this.brokenByAnything(serverLevel, damageSource);
+        ((ArmorStandInvoker)this).invokeBrokenByAnything(serverLevel, damageSource);
     }
 
     public boolean isPoseDirty() {

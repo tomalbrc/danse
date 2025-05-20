@@ -6,7 +6,6 @@ import com.mojang.authlib.GameProfile;
 import de.tomalbrc.danse.Danse;
 import it.unimi.dsi.fastutil.booleans.BooleanArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
@@ -29,53 +28,36 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public class TextureCache {
-    private static final Map<UUID, Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData>> SKIN_CACHE = new ConcurrentHashMap<>();
+    private static final Map<UUID, BufferedImage> SKIN_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, BufferedImage> SKIN_CACHE_URL = new ConcurrentHashMap<>();
+
     private static final Map<CacheKey, CustomModelData> ARMOR_CACHE = new ConcurrentHashMap<>();
     private static final Map<CacheKey, CustomModelData> TRIM_CACHE = new ConcurrentHashMap<>();
     private static List<Integer> PALETTE_KEY;
 
-    public static final ImmutableList<Direction> DIRECTIONS = ImmutableList.of(Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST, Direction.UP, Direction.DOWN);
-
-    public static void fetch(GameProfile profile, Consumer<Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData>> onFinish) {
+    public static void fetch(GameProfile profile, Consumer<BufferedImage> onFinish) {
         var val = SKIN_CACHE.get(profile.getId());
         if (val != null) {
             onFinish.accept(val);
             return;
         }
 
-        var textureBase64 = profile.getProperties().get("textures").iterator().next().value();
-        MinecraftSkinFetcher.fetchSkin(textureBase64, image -> {
-            Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> data = new Object2ObjectArrayMap<>();
-            for (MinecraftSkinParser.BodyPart part : MinecraftSkinParser.BodyPart.values()) {
-                List<Integer> colors = new ArrayList<>();
-                List<Boolean> alphas = new ArrayList<>();
+        if (profile.getProperties().containsKey("textures")) {
+            var textureBase64 = profile.getProperties().get("textures").iterator().next().value();
+            MinecraftSkinFetcher.fetchSkin(textureBase64, onFinish);
+        } else {
+            onFinish.accept(Danse.STEVE_TEXTURE);
+        }
+    }
 
-                for (Direction direction : DIRECTIONS) {
-                    MinecraftSkinParser.extractTextureRGB(image, part, MinecraftSkinParser.Layer.INNER, direction, colorData -> {
-                        colors.add(colorData.color());
-                        alphas.add(colorData.alpha());
-                    });
-                }
+    public static void fetch(String url, Consumer<BufferedImage> onFinish) {
+        var val = SKIN_CACHE_URL.get(url);
+        if (val != null) {
+            onFinish.accept(val);
+            return;
+        }
 
-                List<Integer> colorsOuter = new ArrayList<>();
-                List<Boolean> alphasOuter = new ArrayList<>();
-                if (image.getHeight() > 32) {
-                    for (final Direction direction : DIRECTIONS) {
-                        MinecraftSkinParser.extractTextureRGB(image, part, MinecraftSkinParser.Layer.OUTER, direction, colorData -> {
-                            colorsOuter.add(colorData.color());
-                            alphasOuter.add(colorData.alpha());
-                        });
-                    }
-                }
-
-                CustomModelData innerCmd = new CustomModelData(ImmutableList.of(), alphas, ImmutableList.of(), colors);
-                CustomModelData outerCmd = new CustomModelData(ImmutableList.of(), alphasOuter, ImmutableList.of(), colorsOuter);
-                data.put(part, new MinecraftSkinParser.PartData(innerCmd, outerCmd, MinecraftSkinParser.isSlimSkin(image)));
-            }
-
-            SKIN_CACHE.put(profile.getId(), data);
-            onFinish.accept(data);
-        });
+        MinecraftSkinFetcher.fetchSkinFromURL(url, onFinish);
     }
 
     public static CustomModelData armorCustomModelData(MinecraftSkinParser.BodyPart part, ItemStack itemStack, boolean inner) {
@@ -186,7 +168,7 @@ public class TextureCache {
             List<Integer> colors = new ArrayList<>();
             List<Boolean> alphas = new ArrayList<>();
 
-            for (Direction dir : TextureCache.DIRECTIONS) {
+            for (Direction dir : MinecraftSkinParser.DIRECTIONS) {
                 MinecraftSkinParser.extractTextureRGB(img, MinecraftSkinParser.NOTCH_TEXTURE_MAP, part, MinecraftSkinParser.Layer.INNER, dir, data -> {
                     if (textureEntry.dyeable != null) {
                         int tint = textureEntry.dyeable.colorWhenUndyed;
@@ -221,7 +203,7 @@ public class TextureCache {
             List<Integer> colors = new IntArrayList();
             List<Boolean> alphas = new BooleanArrayList();
 
-            for (Direction dir : TextureCache.DIRECTIONS) {
+            for (Direction dir : MinecraftSkinParser.DIRECTIONS) {
                 MinecraftSkinParser.extractTextureRGB(img, MinecraftSkinParser.NOTCH_TEXTURE_MAP, part, MinecraftSkinParser.Layer.INNER, dir, data -> {
                     colors.add(data.color());
                     alphas.add(data.alpha());

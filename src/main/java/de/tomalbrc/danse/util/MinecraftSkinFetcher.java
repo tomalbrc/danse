@@ -21,50 +21,51 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 public class MinecraftSkinFetcher {
-    private static final Gson gson = new Gson();
+    public static final Gson gson = new Gson();
     private static final Map<String, BufferedImage> CACHED_SKINS = new ConcurrentHashMap<>();
     private static final Map<String, CompletableFuture<BufferedImage>> FUTURE_CACHE = new ConcurrentHashMap<>();
 
     public static void fetchSkin(String base64val, Consumer<BufferedImage> callback) {
-        if (CACHED_SKINS.containsKey(base64val)) {
-            callback.accept(CACHED_SKINS.get(base64val));
+        String decodedJson = new String(Base64.getDecoder().decode(base64val));
+        JsonObject textureData = gson.fromJson(decodedJson, JsonObject.class);
+        var url = textureData.getAsJsonObject("textures").getAsJsonObject("SKIN").get("url").getAsString();
+        fetchSkinFromURL(url, callback);
+    }
+
+    public static void fetchSkinFromURL(String url, Consumer<BufferedImage> callback) {
+        if (CACHED_SKINS.containsKey(url)) {
+            callback.accept(CACHED_SKINS.get(url));
             return;
         }
 
-        var future = FUTURE_CACHE.computeIfAbsent(base64val, key ->
-                CompletableFuture.supplyAsync(() -> {
-                    String decodedJson = new String(Base64.getDecoder().decode(base64val));
-                    JsonObject textureData = gson.fromJson(decodedJson, JsonObject.class);
-                    return textureData.getAsJsonObject("textures").getAsJsonObject("SKIN").get("url").getAsString();
-                }).thenApplyAsync(url -> {
-                    if (url != null) {
-                        try {
-                            return downloadSkin(url);
-                        } catch (IOException | InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
+        var future = FUTURE_CACHE.computeIfAbsent(url, key -> CompletableFuture.supplyAsync(() -> {
+            if (url != null) {
+                try {
+                    return downloadSkin(url);
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return null;
+        }).thenApply(skinData -> {
+            if (skinData != null) {
+                try {
+                    var img = ImageIO.read(new ByteArrayInputStream(skinData));
+                    if (img != null) {
+                        CACHED_SKINS.put(url, img);
                     }
-                    return null;
-                }).thenApply(skinData -> {
-                    if (skinData != null) {
-                        try {
-                            var img = ImageIO.read(new ByteArrayInputStream(skinData));
-                            if (img != null) {
-                                CACHED_SKINS.put(base64val, img);
-                            }
-                            FUTURE_CACHE.remove(base64val);
-                            return img;
+                    FUTURE_CACHE.remove(url);
+                    return img;
 
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                    return null;
-                }).exceptionally(throwable -> {
-                    throwable.printStackTrace();
-                    return null;
-                })
-        );
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return null;
+        }).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        }));
 
         if (future.isDone()) {
             try {

@@ -5,6 +5,7 @@ import de.tomalbrc.danse.entity.GesturePlayerModelEntity;
 import de.tomalbrc.danse.poly.GestureCameraHolder;
 import de.tomalbrc.danse.registry.EntityRegistry;
 import de.tomalbrc.danse.registry.PlayerModelRegistry;
+import de.tomalbrc.danse.util.MinecraftSkinParser;
 import de.tomalbrc.danse.util.TextureCache;
 import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.core.api.utils.PolymerUtils;
@@ -34,7 +35,9 @@ public class GestureController {
         // to have a cached model/texture of players
         SkullBlockEntity.fetchGameProfile(serverPlayer.getUUID()).thenAccept(gameProfile -> {
             gameProfile.ifPresent(profile -> {
-                TextureCache.fetch(profile, (dataMap) -> {});
+                TextureCache.fetch(profile, image -> {
+                    MinecraftSkinParser.calculate(image, x -> {});
+                });
             });
         });
     }
@@ -73,27 +76,29 @@ public class GestureController {
     }
 
     public static void onStart(ServerPlayer player, String animationName) {
-        TextureCache.fetch(player.getGameProfile(), dataMap -> {
-            // destroy any previous gestures
-            GestureCameraHolder camera = GestureController.GESTURE_CAMS.get(player.getUUID());
-            if (camera != null) {
-                camera.destroy();
-            }
+        TextureCache.fetch(player.getGameProfile(), image -> {
+            MinecraftSkinParser.calculate(image, dataMap -> {
+                // destroy any previous gestures
+                GestureCameraHolder camera = GestureController.GESTURE_CAMS.get(player.getUUID());
+                if (camera != null) {
+                    camera.destroy();
+                }
 
-            GesturePlayerModelEntity playerModel = EntityRegistry.GESTURE_PLAYER_MODEL.create(player.serverLevel(), EntitySpawnReason.EVENT);
-            assert playerModel != null;
-            playerModel.setup(player, PlayerModelRegistry.getModel(animationName), dataMap);
-            playerModel.shouldCheckDistance(false);
+                GesturePlayerModelEntity playerModel = EntityRegistry.GESTURE_PLAYER_MODEL.create(player.serverLevel(), EntitySpawnReason.EVENT);
+                assert playerModel != null;
+                playerModel.setup(player, PlayerModelRegistry.getModel(animationName), dataMap);
+                playerModel.shouldCheckDistance(false);
 
-            GestureCameraHolder gestureCameraHolder = new GestureCameraHolder(player, playerModel);
-            GestureController.GESTURE_CAMS.put(player.getUUID(), gestureCameraHolder);
+                GestureCameraHolder gestureCameraHolder = new GestureCameraHolder(player, playerModel);
+                GestureController.GESTURE_CAMS.put(player.getUUID(), gestureCameraHolder);
 
-            ChunkAttachment.ofTicking(gestureCameraHolder, player.serverLevel(), player.position());
+                ChunkAttachment.ofTicking(gestureCameraHolder, player.serverLevel(), player.position());
 
-            // removes model etc when animation finishes
-            playerModel.playAnimation(animationName, () -> GestureController.onStop(gestureCameraHolder));
+                // removes model etc when animation finishes
+                playerModel.playAnimation(animationName, () -> GestureController.onStop(gestureCameraHolder));
 
-            player.serverLevel().addFreshEntity(playerModel);
+                player.serverLevel().addFreshEntity(playerModel);
+            });
         });
     }
 }

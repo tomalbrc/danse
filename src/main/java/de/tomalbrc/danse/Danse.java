@@ -22,6 +22,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -35,6 +38,7 @@ public class Danse implements ModInitializer {
     public static final String MODID = "danse";
     public static Logger LOGGER = LogUtils.getLogger();
     public static ResourcePackBuilder RPBUILDER;
+    public static BufferedImage STEVE_TEXTURE;
 
     public static Int2ObjectOpenHashMap<Supplier<ItemStack>> VIRTUAL_ENTITY_PICK_MAP = new Int2ObjectOpenHashMap<>();
 
@@ -55,7 +59,15 @@ public class Danse implements ModInitializer {
             loadAnimations();
         });
 
-        PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(resourcePackBuilder -> RPBUILDER = resourcePackBuilder);
+        PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(resourcePackBuilder -> {
+            RPBUILDER = resourcePackBuilder;
+            var imageData = RPBUILDER.getDataOrSource("assets/minecraft/textures/entity/player/wide/steve.png");
+            try {
+                STEVE_TEXTURE = ImageIO.read(new ByteArrayInputStream(imageData));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
         ServerPlayConnectionEvents.JOIN.register((serverGamePacketListener, packetSender, minecraftServer) -> GestureController.onConnect(serverGamePacketListener.player));
         ServerPlayConnectionEvents.DISCONNECT.register((serverGamePacketListener, minecraftServer) -> GestureController.onDisconnect(serverGamePacketListener.player));
         CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> GestureCommand.register(dispatcher));

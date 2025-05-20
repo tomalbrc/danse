@@ -1,5 +1,7 @@
 package de.tomalbrc.danse.util;
 
+import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -8,8 +10,8 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.component.CustomModelData;
 
 import java.awt.image.BufferedImage;
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public class MinecraftSkinParser {
@@ -18,6 +20,9 @@ public class MinecraftSkinParser {
     public static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> NOTCH_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
     public static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> CLASSIC_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
     public static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> SLIM_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
+
+    private static final Map<BufferedImage, Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData>> PARSED_CACHE = new ConcurrentHashMap<>();
+    public static final ImmutableList<Direction> DIRECTIONS = ImmutableList.of(Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST, Direction.UP, Direction.DOWN);
 
     static {
         defineSteveTextures(CLASSIC_TEXTURE_MAP);
@@ -330,6 +335,45 @@ public class MinecraftSkinParser {
         int x = startX + dx;
         int rgb = image.getRGB(x, y);
         return new ColorData(rgb);
+    }
+
+    public static void calculate(BufferedImage image, Consumer<Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData>> onFinish) {
+        var cached = PARSED_CACHE.get(image);
+        if (cached != null) {
+            onFinish.accept(cached);
+            return;
+        }
+
+        Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> data = new Object2ObjectArrayMap<>();
+        for (MinecraftSkinParser.BodyPart part : MinecraftSkinParser.BodyPart.values()) {
+            List<Integer> colors = new ArrayList<>();
+            List<Boolean> alphas = new ArrayList<>();
+
+            for (Direction direction : DIRECTIONS) {
+                MinecraftSkinParser.extractTextureRGB(image, part, MinecraftSkinParser.Layer.INNER, direction, colorData -> {
+                    colors.add(colorData.color());
+                    alphas.add(colorData.alpha());
+                });
+            }
+
+            List<Integer> colorsOuter = new ArrayList<>();
+            List<Boolean> alphasOuter = new ArrayList<>();
+            if (image.getHeight() > 32) {
+                for (final Direction direction : DIRECTIONS) {
+                    MinecraftSkinParser.extractTextureRGB(image, part, MinecraftSkinParser.Layer.OUTER, direction, colorData -> {
+                        colorsOuter.add(colorData.color());
+                        alphasOuter.add(colorData.alpha());
+                    });
+                }
+            }
+
+            CustomModelData innerCmd = new CustomModelData(ImmutableList.of(), alphas, ImmutableList.of(), colors);
+            CustomModelData outerCmd = new CustomModelData(ImmutableList.of(), alphasOuter, ImmutableList.of(), colorsOuter);
+            data.put(part, new MinecraftSkinParser.PartData(innerCmd, outerCmd, MinecraftSkinParser.isSlimSkin(image)));
+        }
+
+        if (image != null) PARSED_CACHE.put(image, data);
+        onFinish.accept(data);
     }
 
     public enum BodyPart {
