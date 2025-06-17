@@ -6,12 +6,13 @@ import de.tomalbrc.danse.poly.PlayerPartHolder;
 import de.tomalbrc.danse.registry.PlayerModelRegistry;
 import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 // persistent model
@@ -39,9 +40,9 @@ public class AnimatedPlayerModelEntity extends StatuePlayerModelEntity implement
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
+    public void readAdditionalSaveData(ValueInput valueInput) {
 
-        if (tag.contains(ANIMATION)) {
+        valueInput.getString(ANIMATION).ifPresent(anim -> {
             if (this.holder != null) {
                 this.holder.destroy();
             }
@@ -50,7 +51,7 @@ public class AnimatedPlayerModelEntity extends StatuePlayerModelEntity implement
                 this.holder.getAnimator().stopAnimation(this.animation);
             }
 
-            this.animation = tag.getString(ANIMATION).orElseThrow();
+            this.animation = anim;
 
             if (!this.animation.isBlank()) {
                 var model = PlayerModelRegistry.getModel(this.animation);
@@ -59,22 +60,25 @@ public class AnimatedPlayerModelEntity extends StatuePlayerModelEntity implement
                     this.holder.getAnimator().playAnimation(this.animation, () -> this.animation = null);
                 }
             }
+        });
+
+        super.readAdditionalSaveData(valueInput);
+
+        var yRot = valueInput.getFloatOr("Yaw", Float.NaN);
+        if (!Float.isNaN(yRot)) {
+            this.setYRot(yRot);
         }
-
-        super.readAdditionalSaveData(tag);
-
-        tag.getFloat("Yaw").ifPresent(this::setYRot);
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
+    public void addAdditionalSaveData(ValueOutput valueOutput) {
+        super.addAdditionalSaveData(valueOutput);
 
         if (this.animation != null && !this.animation.isBlank()) {
-            tag.putString(ANIMATION, this.animation);
+            valueOutput.putString(ANIMATION, this.animation);
         }
 
-        tag.putFloat("Yaw", this.getYRot());
+        valueOutput.putFloat("Yaw", this.getYRot());
     }
 
     public void playAnimation(String animation, Runnable onFinish) {

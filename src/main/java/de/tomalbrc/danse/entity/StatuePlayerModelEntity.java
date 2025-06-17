@@ -17,7 +17,6 @@ import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
 import net.minecraft.core.Rotations;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
@@ -29,6 +28,8 @@ import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.SkullBlockEntity;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,26 +84,17 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
+    public void readAdditionalSaveData(ValueInput valueInput) {
+        super.readAdditionalSaveData(valueInput);
 
         if (this.holder == null) {
             // get any/first animation
             setAnyModel();
         }
 
-        if (tag.contains(PLAYER_UUID)) {
-            this.playerUuid = tag.read(PLAYER_UUID, UUIDUtil.LENIENT_CODEC).orElseThrow();
-        } else this.playerUuid = null;
-
-
-        if (tag.contains(PLAYER) && !tag.getString(PLAYER).orElseThrow().isBlank()) {
-            this.playerName = tag.getString(PLAYER).orElseThrow();
-        } else this.playerName = null;
-
-        if (tag.contains(URL) && !tag.getString(URL).orElseThrow().isBlank()) {
-            this.url = tag.getString(URL).orElseThrow();
-        } else this.url = null;
+        this.playerUuid = valueInput.read(PLAYER_UUID, UUIDUtil.LENIENT_CODEC).orElse(null);
+        this.playerName = valueInput.getStringOr(PLAYER, null);
+        this.url = valueInput.getStringOr(URL, null);
 
         if (this.url != null && !this.url.isBlank()) {
             TextureCache.fetch(this.url, this::setTexture);
@@ -118,15 +110,15 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
+    public void addAdditionalSaveData(ValueOutput valueOutput) {
+        super.addAdditionalSaveData(valueOutput);
 
         if (this.playerName != null && !this.playerName.isBlank()) {
-            tag.putString(PLAYER, this.playerName);
+            valueOutput.putString(PLAYER, this.playerName);
         }
 
         if (this.playerUuid != null) {
-            tag.store(PLAYER_UUID, UUIDUtil.LENIENT_CODEC, this.playerUuid);
+            valueOutput.store(PLAYER_UUID, UUIDUtil.LENIENT_CODEC, this.playerUuid);
         }
     }
 

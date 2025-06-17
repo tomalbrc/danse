@@ -84,7 +84,7 @@ public class GestureController {
                     camera.destroy();
                 }
 
-                GesturePlayerModelEntity playerModel = EntityRegistry.GESTURE_PLAYER_MODEL.create(player.serverLevel(), EntitySpawnReason.EVENT);
+                GesturePlayerModelEntity playerModel = EntityRegistry.GESTURE_PLAYER_MODEL.create(player.level(), EntitySpawnReason.EVENT);
                 assert playerModel != null;
                 playerModel.setup(player, PlayerModelRegistry.getModel(animationName), dataMap);
                 playerModel.shouldCheckDistance(false);
@@ -92,12 +92,12 @@ public class GestureController {
                 GestureCameraHolder gestureCameraHolder = new GestureCameraHolder(player, playerModel);
                 GestureController.GESTURE_CAMS.put(player.getUUID(), gestureCameraHolder);
 
-                ChunkAttachment.ofTicking(gestureCameraHolder, player.serverLevel(), player.position());
+                ChunkAttachment.ofTicking(gestureCameraHolder, player.level(), player.position());
 
                 // removes model etc when animation finishes
                 playerModel.playAnimation(animationName, () -> GestureController.onStop(gestureCameraHolder));
 
-                player.serverLevel().addFreshEntity(playerModel);
+                player.level().addFreshEntity(playerModel);
             });
         });
     }

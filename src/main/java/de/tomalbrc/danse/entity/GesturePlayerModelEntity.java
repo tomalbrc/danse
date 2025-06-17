@@ -6,12 +6,12 @@ import de.tomalbrc.danse.poly.PlayerPartHolder;
 import de.tomalbrc.danse.util.MinecraftSkinParser;
 import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.Map;
 
@@ -62,7 +62,7 @@ public class GesturePlayerModelEntity extends AnimatedPlayerModelEntity {
     }
 
     @Override
-    public boolean saveAsPassenger(CompoundTag compoundTag) {
+    public boolean saveAsPassenger(ValueOutput valueOutput) {
         return false;
     }
 
