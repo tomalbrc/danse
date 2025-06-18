@@ -62,6 +62,13 @@ The mod uses the new 1.21.4 item models and custom_model_data to dynamically dis
 
 ---
 
+# Adding custom animations
+
+Put your .bbmodel or .ajblueprint files into the `config/danse/` folder.
+You get can templates [here](https://github.com/tomalbrc/danse/tree/main/src/main/resources/model/danse)
+
+The name of the animation will be used in-game
+
 # License
 
 Versions before 2.0.0 are LPGL-3.0 licensed.
