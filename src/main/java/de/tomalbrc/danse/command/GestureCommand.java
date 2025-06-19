@@ -17,7 +17,7 @@ public class GestureCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         LiteralCommandNode<CommandSourceStack> gestureNode = Commands
-                .literal("gesture").requires(Permissions.require("danse.animation", 2))
+                .literal("gesture").requires(Permissions.require("danse.animation", 1).or((s) -> !ModConfig.getInstance().permissionCheck))
                 .build();
 
         dispatcher.getRoot().addChild(gestureNode);
@@ -27,10 +27,7 @@ public class GestureCommand {
                     .replace(" ", "-")
                     .replace("(", "")
                     .replace(")", "");
-            if (ModConfig.getInstance().permissionCheck)
-                gestureNode.addChild(literal(name).requires(Permissions.require("danse.animation." + name, 2)).executes(ctx -> execute(ctx.getSource().getPlayerOrException(), animation)).build());
-            else
-                gestureNode.addChild(literal(name).executes(ctx -> execute(ctx.getSource().getPlayerOrException(), animation)).build());
+            gestureNode.addChild(literal(name).requires(Permissions.require("danse.animation." + name, 1).or((s) -> !ModConfig.getInstance().permissionCheck)).executes(ctx -> execute(ctx.getSource().getPlayerOrException(), animation)).build());
         }
     }
 
