@@ -57,7 +57,7 @@ public class GestureController {
 
             List<SynchedEntityData.DataValue<?>> data = new ObjectArrayList<>();
             data.add(SynchedEntityData.DataValue.create(EntityTrackedData.FLAGS, player.getEntityData().get(EntityTrackedData.FLAGS)));
-            camera.getPlayerModel().getHolder().sendPacket(new ClientboundSetEntityDataPacket(player.getId(), data));
+            camera.getPlayerModel().getHolder().getWatchingPlayers().forEach(p -> camera.getPlayerModel().getHolder().sendPacketDirect(p, new ClientboundSetEntityDataPacket(player.getId(), data)));
 
             var packet = new ClientboundPlayerPositionPacket(player.getId(), new PositionMoveRotation(camera.getOrigin().add(0, 0, 0), Vec3.ZERO, player.getYRot() + player.getEyeHeight(), player.getXRot()), Set.of(Relative.X, Relative.Y, Relative.Z));
             player.connection.send(
