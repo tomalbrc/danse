@@ -23,10 +23,7 @@ public class LivingEntityMixin {
     @Inject(method = "hurtServer", at = @At("HEAD"))
     private void danse$handleDamage(ServerLevel serverLevel, DamageSource damageSource, float f, CallbackInfoReturnable<Boolean> cir) {
         if ((Object) this instanceof ServerPlayer serverPlayer) {
-            var cam = GestureController.GESTURE_CAMS.get(serverPlayer.getUUID());
-            if (cam != null) {
-                GestureController.onStop(cam);
-            }
+            GestureController.onStop(serverPlayer);
         }
     }
 }

@@ -15,6 +15,7 @@ import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder;
 import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
@@ -52,6 +53,11 @@ public class Danse implements ModInitializer {
 
         EntityRegistry.register();
         ItemRegistry.register();
+
+        ServerPlayerEvents.COPY_FROM.register((serverPlayer, serverPlayer1, b) -> {
+            var cameraHolder = GestureController.GESTURE_CAMS.get(serverPlayer.getUUID());
+            if (cameraHolder != null) GestureController.onStop(cameraHolder);
+        });
 
         ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> {
             loadAnimations();

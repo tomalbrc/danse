@@ -49,6 +49,13 @@ public class GestureController {
         }
     }
 
+    public static void onStop(ServerPlayer player) {
+        var cam = GestureController.GESTURE_CAMS.get(player.getUUID());
+        if (cam != null) {
+            GestureController.onStop(cam);
+        }
+    }
+
     public static void onStop(GestureCameraHolder camera) {
         var player = camera.getPlayer();
         if (!player.hasDisconnected()) {
@@ -59,16 +66,18 @@ public class GestureController {
             data.add(SynchedEntityData.DataValue.create(EntityTrackedData.FLAGS, player.getEntityData().get(EntityTrackedData.FLAGS)));
             camera.getPlayerModel().getHolder().getWatchingPlayers().forEach(p -> camera.getPlayerModel().getHolder().sendPacketDirect(p, new ClientboundSetEntityDataPacket(player.getId(), data)));
 
-            var packet = new ClientboundPlayerPositionPacket(player.getId(), new PositionMoveRotation(camera.getOrigin().add(0, 0, 0), Vec3.ZERO, player.getYRot() + player.getEyeHeight(), player.getXRot()), Set.of(Relative.X, Relative.Y, Relative.Z));
+            var pmr = new PositionMoveRotation(camera.getOrigin().add(0, 0, 0), Vec3.ZERO, player.getYRot() + player.getEyeHeight(), player.getXRot());
+            var packet = new ClientboundPlayerPositionPacket(player.getId(), pmr, Set.of(Relative.X, Relative.Y, Relative.Z));
+            var p2 = new ClientboundEntityPositionSyncPacket(player.getId(), pmr, true);
             player.connection.send(
                     new ClientboundBundlePacket(ImmutableList.of(
                             new ClientboundSetCameraPacket(player),
                             VirtualEntityUtils.createRidePacket(camera.getCameraId(), IntList.of()),
                             new ClientboundGameEventPacket(ClientboundGameEventPacket.CHANGE_GAME_MODE, player.gameMode().getId()),
-                            packet
+                            packet,
+                            p2
                     ))
             );
-            player.teleportTo(camera.getOrigin().x, camera.getOrigin().y, camera.getOrigin().z);
         }
 
         camera.destroy();
