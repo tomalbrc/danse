@@ -11,6 +11,7 @@ loom {
 }
 
 repositories {
+    mavenCentral()
     maven { url "https://maven.tomalbrc.de" }
     maven { url 'https://maven.nucleoid.xyz' }
 }
@@ -28,6 +29,9 @@ dependencies {
     modRuntimeOnly "eu.pb4:polymer-autohost:${project.polymer_version}"
     
     modImplementation include("de.tomalbrc:blockbench-import-library:${project.bil_version}")
+
+    include(modImplementation('me.lucko:fabric-permissions-api:0.4.0'))
+
 }
 
 processResources {
