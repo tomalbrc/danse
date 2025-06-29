@@ -8,12 +8,15 @@ import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Consumer;
 
 // persistent model
 public class AnimatedPlayerModelEntity extends StatuePlayerModelEntity implements AnimatedEntity {
@@ -57,7 +60,7 @@ public class AnimatedPlayerModelEntity extends StatuePlayerModelEntity implement
                 var model = PlayerModelRegistry.getModel(this.animation);
                 if (model != null && model.animations().containsKey(this.animation)) {
                     this.setModel(model);
-                    this.holder.getAnimator().playAnimation(this.animation, () -> this.animation = null);
+                    this.holder.getAnimator().playAnimation(this.animation, (serverPlayer) -> this.animation = null);
                 }
             }
         });
@@ -81,7 +84,7 @@ public class AnimatedPlayerModelEntity extends StatuePlayerModelEntity implement
         valueOutput.putFloat("Yaw", this.getYRot());
     }
 
-    public void playAnimation(String animation, Runnable onFinish) {
+    public void playAnimation(String animation, Consumer<ServerPlayer> onFinish) {
         this.animation = animation;
         this.holder.getAnimator().playAnimation(animation, onFinish);
     }

@@ -2,6 +2,8 @@ package de.tomalbrc.danse.poly;
 
 import com.google.common.collect.ImmutableList;
 import de.tomalbrc.bil.api.AnimatedEntity;
+import de.tomalbrc.bil.core.component.AnimationComponent;
+import de.tomalbrc.bil.core.element.PerPlayerItemDisplayElement;
 import de.tomalbrc.bil.core.extra.DisplayElementUpdateListener;
 import de.tomalbrc.bil.core.holder.entity.simple.SimpleEntityHolder;
 import de.tomalbrc.bil.core.holder.wrapper.*;
@@ -15,7 +17,10 @@ import de.tomalbrc.danse.util.MinecraftSkinParser;
 import de.tomalbrc.danse.util.TextureCache;
 import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.virtualentity.api.attachment.HolderAttachment;
-import eu.pb4.polymer.virtualentity.api.elements.*;
+import eu.pb4.polymer.virtualentity.api.elements.DisplayElement;
+import eu.pb4.polymer.virtualentity.api.elements.InteractionElement;
+import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
+import eu.pb4.polymer.virtualentity.api.elements.VirtualElement;
 import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
 import eu.pb4.polymer.virtualentity.api.tracker.EntityTrackedData;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
@@ -29,6 +34,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityEquipment;
@@ -51,7 +57,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
 
     protected InteractionElement hitboxInteraction;
 
-    protected Map<MinecraftSkinParser.BodyPart, DisplayWrapper<ItemDisplayElement>> locatorPartMap = new Object2ObjectArrayMap<>();
+    protected Map<MinecraftSkinParser.BodyPart, DisplayWrapper<PerPlayerItemDisplayElement>> locatorPartMap = new Object2ObjectArrayMap<>();
     private boolean didSetup;
 
     public PlayerPartHolder(T parent, Model model) {
@@ -76,11 +82,11 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
         } else locatorPartMap.get(part).element().setItem(itemStack);
     }
 
-    public DisplayWrapper<ItemDisplayElement> addLocatorElement(String name, ItemStack stack, ItemDisplayContext context) {
+    public DisplayWrapper<PerPlayerItemDisplayElement> addLocatorElement(String name, ItemStack stack, ItemDisplayContext context) {
         Locator locator = this.getLocator(name);
         if (this.didSetup && locator != null) {
-            ItemDisplayElement element = this.createLocatorItemDisplay(stack, context);
-            DisplayWrapper<ItemDisplayElement> display = new DisplayWrapper<>(element, locator, false);
+            PerPlayerItemDisplayElement element = this.createLocatorItemDisplay(stack, context);
+            DisplayWrapper<PerPlayerItemDisplayElement> display = new DisplayWrapper<>(element, locator, false);
             locator.addListener(new DisplayElementUpdateListener(display));
 
             this.initializeDisplay(display);
@@ -92,9 +98,8 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
         return null;
     }
 
-    private ItemDisplayElement createLocatorItemDisplay(ItemStack stack, ItemDisplayContext context) {
-        ItemDisplayElement element = new ItemDisplayElement();
-        element.setItem(stack.copy());
+    private PerPlayerItemDisplayElement createLocatorItemDisplay(ItemStack stack, ItemDisplayContext context) {
+        PerPlayerItemDisplayElement element = new PerPlayerItemDisplayElement(stack.copy());
         element.setItemDisplayContext(context);
         element.setInterpolationDuration(2);
         element.setTeleportDuration(2);
@@ -102,13 +107,18 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
     }
 
     @Override
-    protected void updateLocator(Locator locator) {
-        if (!isDirty() && this.getAnimator().hasRunningAnimations()) {
-            Pose pose = this.animationComponent.findPose(locator);
-            if (pose == null) {
-                locator.updateListeners(this, locator.getDefaultPose());
-            } else {
-                locator.updateListeners(this, pose);
+    protected void updateLocator(ServerPlayer serverPlayer, Locator locator) {
+        if (isDirty() || this.getAnimator().hasRunningAnimations()) {
+            if (locator.requiresUpdate()) {
+                AnimationComponent.PoseQueryResult queryResult = this.animationComponent.findPose(serverPlayer, locator);
+                if (queryResult != null) {
+                    Pose pose = queryResult.pose() == null ? locator.getLastPose(serverPlayer) : queryResult.pose();
+                    if (pose != null) {
+                        locator.updateListeners(queryResult.owner(), this, pose);
+                    } else {
+                        locator.updateListeners(queryResult.owner(), this, locator.getDefaultPose());
+                    }
+                }
             }
         }
     }
@@ -207,7 +217,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
     }
 
     @Override
-    public void updateElement(DisplayWrapper<?> display, @Nullable Pose pose) {
+    public void updateElement(ServerPlayer serverPlayer, DisplayWrapper<?> display, @Nullable Pose pose) {
         if (display instanceof MultipartModelBone multipartModelBone)
             multipartModelBone.setYaw(this.parent.getYRot());
         else
@@ -215,7 +225,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
 
         if (this.hitboxInteraction != null) this.hitboxInteraction.setYaw(this.parent.getYRot());
 
-        super.updateElement(display, pose);
+        super.updateElement(serverPlayer, display, pose);
 
         if (pose == null) {
             if (isDirty()) {
@@ -230,7 +240,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
                 var mat1 = new Matrix4f(mat);
                 mat1.mul(new Matrix4f().rotate(rotation));
                 mat1.translateLocal(pose.readOnlyTranslation());
-                display.element().setTransformation(mat1);
+                display.element().setTransformation(null, mat1);
 
                 var l = locatorPartMap.get(multipartModelBone.bodyPart);
                 if (l != null) {
@@ -299,7 +309,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
     }
 
     @Nullable
-    protected ItemDisplayElement createBoneDisplay(ResourceLocation modelData) {
+    protected PerPlayerItemDisplayElement createBoneDisplay(ResourceLocation modelData) {
         var display = super.createBoneDisplay(modelData);
 
         if (display == null)
@@ -347,11 +357,11 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
             MinecraftSkinParser.BodyPart part = MinecraftSkinParser.BodyPart.partFrom(node.name());
             switch (node.type()) {
                 case BONE:
-                    ItemDisplayElement boneDisplay = this.createBoneDisplay(node.modelData());
+                    var boneDisplay = this.createBoneDisplay(node.modelData());
                     if (part != MinecraftSkinParser.BodyPart.NONE) {
-                        ItemDisplayElement boneDisplayOuter = this.createBoneDisplay(node.modelData());
-                        ItemDisplayElement boneDisplayArmor = this.createBoneDisplay(node.modelData());
-                        ItemDisplayElement boneDisplayArmorOuter = this.createBoneDisplay(node.modelData());
+                        var boneDisplayOuter = this.createBoneDisplay(node.modelData());
+                        var boneDisplayArmor = this.createBoneDisplay(node.modelData());
+                        var boneDisplayArmorOuter = this.createBoneDisplay(node.modelData());
                         if (boneDisplay != null) {
                             bones.add(MultipartModelBone.of(boneDisplay, boneDisplayOuter, boneDisplayArmor, boneDisplayArmorOuter, node, defaultPose));
                             this.addElement(boneDisplay);
@@ -365,7 +375,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
                     break;
                 case ITEM:
                     if (node.displayDataElement() != null) {
-                        ItemDisplayElement bone = new ItemDisplayElement(BuiltInRegistries.ITEM.getValue(node.displayDataElement().getItem()));
+                        var bone = createItemDisplayElement(BuiltInRegistries.ITEM.getValue(node.displayDataElement().getItem()).getDefaultInstance());
                         bone.setInterpolationDuration(2);
                         bone.setTeleportDuration(2);
                         bones.add(ItemBone.of(bone, node, defaultPose));
@@ -374,7 +384,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
                     break;
                 case BLOCK:
                     if (node.displayDataElement() != null) {
-                        BlockDisplayElement bone = new BlockDisplayElement(BuiltInRegistries.BLOCK.getValue(node.displayDataElement().getBlock()).defaultBlockState());
+                        var bone = createBlockDisplayElement(BuiltInRegistries.BLOCK.getValue(node.displayDataElement().getBlock()).defaultBlockState());
                         bone.setInterpolationDuration(2);
                         bone.setTeleportDuration(2);
                         bones.add(BlockBone.of(bone, node, defaultPose));
@@ -383,7 +393,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
                     break;
                 case TEXT:
                     if (node.displayDataElement() != null) {
-                        TextDisplayElement bone = new TextDisplayElement(Component.literal(node.displayDataElement().getText()));
+                        var bone = createTextDisplayElement(Component.literal(node.displayDataElement().getText()));
                         bone.setInterpolationDuration(2);
                         bone.setTeleportDuration(2);
                         bones.add(TextBone.of(bone, node, defaultPose));
@@ -410,7 +420,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
         public final ItemDisplayElement armorOuter;
         public final MinecraftSkinParser.BodyPart bodyPart;
 
-        protected MultipartModelBone(ItemDisplayElement element, ItemDisplayElement outer, ItemDisplayElement armor, ItemDisplayElement armorOuter, Node node, Pose defaultPose, boolean isHead) {
+        protected MultipartModelBone(PerPlayerItemDisplayElement element, PerPlayerItemDisplayElement outer, PerPlayerItemDisplayElement armor, PerPlayerItemDisplayElement armorOuter, Node node, Pose defaultPose, boolean isHead) {
             super(element, node, defaultPose, isHead);
             this.outer = outer;
             this.armor = armor;
@@ -422,7 +432,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
             return this.bodyPart;
         }
 
-        public static MultipartModelBone of(ItemDisplayElement inner, ItemDisplayElement outer, ItemDisplayElement armor, ItemDisplayElement armorOuter, @NotNull Node node, Pose defaultPose) {
+        public static MultipartModelBone of(PerPlayerItemDisplayElement inner, PerPlayerItemDisplayElement outer, PerPlayerItemDisplayElement armor, PerPlayerItemDisplayElement armorOuter, @NotNull Node node, Pose defaultPose) {
             return new MultipartModelBone(inner, outer, armor, armorOuter, node, defaultPose, false);
         }
 

@@ -104,7 +104,7 @@ public class GestureController {
                 ChunkAttachment.ofTicking(gestureCameraHolder, player.level(), player.position());
 
                 // removes model etc when animation finishes
-                playerModel.playAnimation(animationName, () -> GestureController.onStop(gestureCameraHolder));
+                playerModel.playAnimation(animationName, (unused) -> GestureController.onStop(gestureCameraHolder));
 
                 player.level().addFreshEntity(playerModel);
             });
