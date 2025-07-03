@@ -10,9 +10,6 @@
     "LivingEntityMixin",
     "ServerGamePacketListenerImplMixin"
   ],
-  "client": [
-    "ItemStackRenderStateMixin"
-  ],
   "injectors": {
     "defaultRequire": 1
   }
