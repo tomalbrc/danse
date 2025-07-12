@@ -18,30 +18,21 @@ import net.minecraft.world.item.equipment.trim.ArmorTrim;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.awt.image.Raster;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public class TextureCache {
-    private static final Map<UUID, BufferedImage> SKIN_CACHE = new ConcurrentHashMap<>();
-    private static final Map<String, BufferedImage> SKIN_CACHE_URL = new ConcurrentHashMap<>();
-
     private static final Map<CacheKey, CustomModelData> ARMOR_CACHE = new ConcurrentHashMap<>();
     private static final Map<CacheKey, CustomModelData> TRIM_CACHE = new ConcurrentHashMap<>();
     private static List<Integer> PALETTE_KEY;
 
     public static void fetch(GameProfile profile, Consumer<BufferedImage> onFinish) {
-        var val = SKIN_CACHE.get(profile.getId());
-        if (val != null) {
-            onFinish.accept(val);
-            return;
-        }
-
         if (profile.getProperties().containsKey("textures")) {
             var textureBase64 = profile.getProperties().get("textures").iterator().next().value();
             MinecraftSkinFetcher.fetchSkin(textureBase64, onFinish);
@@ -51,12 +42,6 @@ public class TextureCache {
     }
 
     public static void fetch(String url, Consumer<BufferedImage> onFinish) {
-        var val = SKIN_CACHE_URL.get(url);
-        if (val != null) {
-            onFinish.accept(val);
-            return;
-        }
-
         MinecraftSkinFetcher.fetchSkinFromURL(url, onFinish);
     }
 
@@ -142,11 +127,22 @@ public class TextureCache {
         }
 
         try (InputStream in = new ByteArrayInputStream(pngBytes)) {
-            BufferedImage img = ImageIO.read(in);
             List<Integer> colors = new IntArrayList();
-
+            BufferedImage img = ImageIO.read(in);
+            Raster raster = img.getRaster();
+            boolean grayscale = raster.getNumBands() == 1;
             for (int i = 0; i < img.getWidth(); i++) {
-                colors.add(img.getRGB(i, 0));
+                if (grayscale) {
+                    int r = raster.getSample(i, 0, 0);
+                    int rgba = (0xFF << 24) | (r << 16) | (r << 8) | r;
+                    colors.add(rgba);
+                } else {
+                    int r = raster.getSample(i, 0, 0);
+                    int g = raster.getSample(i, 0, 1);
+                    int b = raster.getSample(i, 0, 2);
+                    int rgba = (0xFF << 24) | (r << 16) | (g << 8) | b;
+                    colors.add(rgba);
+                }
             }
 
             return colors;
@@ -254,7 +250,7 @@ public class TextureCache {
                 if (data.getBoolean(i) == Boolean.TRUE) {
                     var color = data.getColor(i);
                     var paletteIndex = PALETTE_KEY.indexOf(color);
-                    data.colors().set(i, coloredPalette.get(paletteIndex));
+                    if (paletteIndex != -1) data.colors().set(i, coloredPalette.get(paletteIndex));
                 }
             }
         }
