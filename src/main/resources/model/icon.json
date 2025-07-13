@@ -1,0 +1,27 @@
+{
+	"textures": {
+		"0": "ICON",
+		"particle": "ICON"
+	},
+	"elements": [
+		{
+			"from": [0, 0, 7.75],
+			"to": [16, 16, 7.75],
+			"rotation": {"angle": 0, "axis": "y", "origin": [0, 0, 7.75]},
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#0"},
+				"east": {"uv": [0, 0, 0, 16], "texture": "#missing"},
+				"west": {"uv": [0, 0, 0, 16], "texture": "#missing"},
+				"up": {"uv": [0, 0, 16, 0], "texture": "#missing"},
+				"down": {"uv": [0, 0, 16, 0], "texture": "#missing"}
+			}
+		}
+	],
+	"gui_light": "front",
+	"display": {
+		"gui": {
+			"rotation": [-180, 0, -180],
+			"scale": [3, 3, 3]
+		}
+	}
+}

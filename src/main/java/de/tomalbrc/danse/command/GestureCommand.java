@@ -3,10 +3,10 @@ package de.tomalbrc.danse.command;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import de.tomalbrc.bil.util.Permissions;
 import de.tomalbrc.danse.GestureController;
 import de.tomalbrc.danse.ModConfig;
 import de.tomalbrc.danse.registry.PlayerModelRegistry;
-import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
@@ -32,12 +32,11 @@ public class GestureCommand {
     }
 
     private static int execute(ServerPlayer player, String animationName) {
-        if (!player.onGround() && !player.isCreative()) {
+        if ((!player.onGround() && !player.isCreative()) || GestureController.GESTURE_CAMS.containsKey(player.getUUID())) {
             return 0;
         }
 
         GestureController.onStart(player, animationName);
-
 
         return Command.SINGLE_SUCCESS;
     }

@@ -10,6 +10,7 @@ import de.tomalbrc.danse.emotecraft.EmotecraftLoader;
 import de.tomalbrc.danse.registry.EntityRegistry;
 import de.tomalbrc.danse.registry.ItemRegistry;
 import de.tomalbrc.danse.registry.PlayerModelRegistry;
+import de.tomalbrc.danse.util.GestureDialog;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder;
 import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
@@ -50,6 +51,8 @@ public class Danse implements ModInitializer {
         PlayerModelRegistry.loadBuiltin();
 
         loadAnimations();
+        if (ModConfig.getInstance().addGestureDialog)
+            GestureDialog.add();
 
         EntityRegistry.register();
         ItemRegistry.register();
@@ -59,11 +62,9 @@ public class Danse implements ModInitializer {
             if (cameraHolder != null) GestureController.onStop(cameraHolder);
         });
 
-        ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> {
-            loadAnimations();
-        });
+        ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> loadAnimations());
 
-        PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(resourcePackBuilder -> {
+        PolymerResourcePackUtils.RESOURCE_PACK_AFTER_INITIAL_CREATION_EVENT.register(resourcePackBuilder -> {
             RPBUILDER = resourcePackBuilder;
             var imageData = RPBUILDER.getDataOrSource("assets/minecraft/textures/entity/player/wide/steve.png");
             try {
@@ -109,4 +110,5 @@ public class Danse implements ModInitializer {
             throw new RuntimeException(e);
         }
     }
+
 }

@@ -19,6 +19,9 @@ public class ModConfig {
     @SerializedName("permission-check")
     public boolean permissionCheck = false;
 
+    @SerializedName("add-gesture-dialog")
+    public boolean addGestureDialog = true;
+
     public static ModConfig getInstance() {
         if (instance == null) {
             if (!load()) // only save if file wasn't just created
@@ -29,11 +32,8 @@ public class ModConfig {
     public static boolean load() {
         if (!CONFIG_FILE_PATH.toFile().exists()) {
             instance = new ModConfig();
-            try {
-                if (CONFIG_FILE_PATH.toFile().createNewFile()) {
-                    FileOutputStream stream = new FileOutputStream(CONFIG_FILE_PATH.toFile());
-                    stream.write(JSON.toJson(instance).getBytes(StandardCharsets.UTF_8));
-                }
+            try (FileOutputStream stream = new FileOutputStream(CONFIG_FILE_PATH.toFile())) {
+                stream.write(JSON.toJson(instance).getBytes(StandardCharsets.UTF_8));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

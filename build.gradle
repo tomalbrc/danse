@@ -14,6 +14,7 @@ repositories {
     mavenCentral()
     maven { url "https://maven.tomalbrc.de" }
     maven { url 'https://maven.nucleoid.xyz' }
+    mavenLocal()
 }
 
 dependencies {
@@ -30,7 +31,7 @@ dependencies {
     
     modImplementation include("de.tomalbrc:blockbench-import-library:${project.bil_version}")
 
-    include(modImplementation('me.lucko:fabric-permissions-api:0.4.0'))
+    modImplementation include("de.tomalbrc:DialogUtils:${project.dialogutils_version}")
 
 }
 
