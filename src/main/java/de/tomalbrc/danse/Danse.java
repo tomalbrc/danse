@@ -64,8 +64,8 @@ public class Danse implements ModInitializer {
 
         ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> loadAnimations());
 
+        PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(x -> RPBUILDER = x);
         PolymerResourcePackUtils.RESOURCE_PACK_AFTER_INITIAL_CREATION_EVENT.register(resourcePackBuilder -> {
-            RPBUILDER = resourcePackBuilder;
             var imageData = RPBUILDER.getDataOrSource("assets/minecraft/textures/entity/player/wide/steve.png");
             try {
                 STEVE_TEXTURE = ImageIO.read(new ByteArrayInputStream(imageData));
