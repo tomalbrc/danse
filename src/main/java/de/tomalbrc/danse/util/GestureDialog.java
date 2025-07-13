@@ -1,8 +1,8 @@
 package de.tomalbrc.danse.util;
 
+import de.tomalbrc.danse.Danse;
 import de.tomalbrc.danse.registry.PlayerModelRegistry;
 import de.tomalbrc.dialogutils.DialogUtils;
-import de.tomalbrc.dialogutils.util.Globals;
 import de.tomalbrc.dialogutils.util.TextAligner;
 import de.tomalbrc.dialogutils.util.TextUtil;
 import eu.pb4.polymer.resourcepack.api.AssetPaths;
@@ -30,7 +30,7 @@ public class GestureDialog {
 
     static {
         try {
-            DEFAULT_ICON = Objects.requireNonNull(FabricLoader.class.getResourceAsStream("/model/danse/helicopter_icon.png")).readAllBytes();
+            DEFAULT_ICON = Objects.requireNonNull(Danse.class.getResourceAsStream("/model/danse/helicopter_icon.png")).readAllBytes();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -64,7 +64,6 @@ public class GestureDialog {
             var d = fontAssetBuilder.build().toJson().replace("minecraft:", "");
             resourcePackBuilder.addData("assets/danse/font/gesture.json", d.getBytes(StandardCharsets.UTF_8));
 
-            if (Globals.RP_BUILDER == null) TextAligner.init(resourcePackBuilder);
             var iconSpace = TextAligner.alignSingleLine(" ", TextAligner.Align.CENTER, (width - (33 * columns)) / (columns * 2));
 
             for (int i = 0; i < dialogEntries.size(); i += columns) {
@@ -103,7 +102,7 @@ public class GestureDialog {
 
 
     private static byte[] getIcon(String iconName) {
-        var is = FabricLoader.class.getResourceAsStream("/model/danse/" + iconName + ".png");
+        var is = Danse.class.getResourceAsStream("/model/danse/" + iconName + ".png");
         if (is != null) {
             try {
                 return is.readAllBytes();

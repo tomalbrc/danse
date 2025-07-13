@@ -28,6 +28,7 @@
     "polymer-resource-pack": "*",
     "polymer-core": "*",
     "polymer-virtual-entity": "*",
-    "bil": ">=1.4.1"
+    "bil": ">=1.5.2",
+    "dialogutils": ">=1.1.4"
   }
 }
