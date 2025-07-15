@@ -20,7 +20,6 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.PositionMoveRotation;
-import net.minecraft.world.entity.Relative;
 import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import net.minecraft.world.phys.Vec3;
 
@@ -66,8 +65,8 @@ public class GestureController {
             data.add(SynchedEntityData.DataValue.create(EntityTrackedData.FLAGS, player.getEntityData().get(EntityTrackedData.FLAGS)));
             camera.getPlayerModel().getHolder().getWatchingPlayers().forEach(p -> camera.getPlayerModel().getHolder().sendPacketDirect(p, new ClientboundSetEntityDataPacket(player.getId(), data)));
 
-            var pmr = new PositionMoveRotation(camera.getOrigin().add(0, 0, 0), Vec3.ZERO, player.getYRot() + player.getEyeHeight(), player.getXRot());
-            var packet = new ClientboundPlayerPositionPacket(player.getId(), pmr, Set.of(Relative.X, Relative.Y, Relative.Z));
+            var pmr = new PositionMoveRotation(camera.getOrigin(), Vec3.ZERO, player.getYRot() + player.getEyeHeight(), player.getXRot());
+            var packet = new ClientboundPlayerPositionPacket(player.getId(), pmr, Set.of());
             var p2 = new ClientboundEntityPositionSyncPacket(player.getId(), pmr, true);
             player.connection.send(
                     new ClientboundBundlePacket(ImmutableList.of(
