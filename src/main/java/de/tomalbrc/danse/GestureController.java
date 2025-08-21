@@ -18,6 +18,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.level.block.entity.SkullBlockEntity;
@@ -59,7 +60,9 @@ public class GestureController {
         var player = camera.getPlayer();
         if (!player.hasDisconnected()) {
             PolymerUtils.reloadInventory(player);
-            camera.getPlayerModel().getHolder().sendPacket(new ClientboundSetEquipmentPacket(player.getId(), Util.getEquipment(player, false)));
+            for (ServerGamePacketListenerImpl watchingPlayer : camera.getPlayerModel().getHolder().getWatchingPlayers()) {
+                watchingPlayer.send(new ClientboundSetEquipmentPacket(player.getId(), Util.getEquipment(player, false)));
+            }
 
             List<SynchedEntityData.DataValue<?>> data = new ObjectArrayList<>();
             data.add(SynchedEntityData.DataValue.create(EntityTrackedData.FLAGS, player.getEntityData().get(EntityTrackedData.FLAGS)));
