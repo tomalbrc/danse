@@ -35,7 +35,7 @@ public class GestureDialog {
         }
     }
 
-    public static void add() {
+    public static void add(boolean register) {
         Map<String, byte[]> filemap = new Object2ObjectOpenHashMap<>();
 
         int columns = 3;
@@ -91,8 +91,10 @@ public class GestureDialog {
         var dialog = new NoticeDialog(data, btn);
 
         var dialogId = Util.id("gestures");
-        DialogUtils.registerDialog(dialogId, dialog);
-        DialogUtils.registerQuickDialog(dialogId);
+        if (register) {
+            DialogUtils.registerDialog(dialogId, dialog);
+            DialogUtils.registerQuickDialog(dialogId);
+        }
 
         PolymerResourcePackUtils.RESOURCE_PACK_AFTER_INITIAL_CREATION_EVENT.register(resourcePackBuilder -> filemap.forEach(resourcePackBuilder::addData));
 

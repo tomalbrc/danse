@@ -50,8 +50,7 @@ public class Danse implements ModInitializer {
         PlayerModelRegistry.loadBuiltin();
 
         loadAnimations();
-        if (ModConfig.getInstance().addGestureDialog)
-            GestureDialog.add();
+        GestureDialog.add(ModConfig.getInstance().addGestureDialog);
 
         EntityRegistry.register();
         ItemRegistry.register();
