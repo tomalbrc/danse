@@ -14,7 +14,8 @@ repositories {
     mavenCentral()
     maven { url "https://maven.tomalbrc.de" }
     maven { url 'https://maven.nucleoid.xyz' }
-    }
+    mavenLocal()
+}
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -27,7 +28,7 @@ dependencies {
     modImplementation "eu.pb4:polymer-core:${project.polymer_version}"
     modImplementation "eu.pb4:polymer-virtual-entity:${project.polymer_version}"
     modRuntimeOnly "eu.pb4:polymer-autohost:${project.polymer_version}"
-    
+
     modImplementation include("de.tomalbrc:blockbench-import-library:${project.bil_version}")
     modImplementation include("de.tomalbrc:DialogUtils:${project.dialogutils_version}")
 }

@@ -11,8 +11,8 @@ import de.tomalbrc.danse.registry.EntityRegistry;
 import de.tomalbrc.danse.registry.ItemRegistry;
 import de.tomalbrc.danse.registry.PlayerModelRegistry;
 import de.tomalbrc.danse.util.GestureDialog;
+import de.tomalbrc.dialogutils.DialogUtils;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
-import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder;
 import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -37,7 +37,6 @@ import java.util.stream.Stream;
 public class Danse implements ModInitializer {
     public static final String MODID = "danse";
     public static Logger LOGGER = LogUtils.getLogger();
-    public static ResourcePackBuilder RPBUILDER;
     public static BufferedImage STEVE_TEXTURE;
 
     public static Int2IntArrayMap VIRTUAL_ENTITY_PICK_MAP = new Int2IntArrayMap();
@@ -64,15 +63,13 @@ public class Danse implements ModInitializer {
 
         ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> loadAnimations());
 
-        PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(x -> RPBUILDER = x);
-        PolymerResourcePackUtils.RESOURCE_PACK_AFTER_INITIAL_CREATION_EVENT.register(resourcePackBuilder -> {
-            var imageData = RPBUILDER.getDataOrSource("assets/minecraft/textures/entity/player/wide/steve.png");
-            try {
-                STEVE_TEXTURE = ImageIO.read(new ByteArrayInputStream(imageData));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        var imageData = DialogUtils.resourcePackBuilder().getDataOrSource("assets/minecraft/textures/entity/player/wide/steve.png");
+        try {
+            STEVE_TEXTURE = ImageIO.read(new ByteArrayInputStream(imageData));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         ServerPlayConnectionEvents.JOIN.register((serverGamePacketListener, packetSender, minecraftServer) -> GestureController.onConnect(serverGamePacketListener.player));
         ServerPlayConnectionEvents.DISCONNECT.register((serverGamePacketListener, minecraftServer) -> GestureController.onDisconnect(serverGamePacketListener.player));
         CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> GestureCommand.register(dispatcher));
