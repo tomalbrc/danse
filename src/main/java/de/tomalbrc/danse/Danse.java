@@ -24,6 +24,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -46,6 +47,7 @@ public class Danse implements ModInitializer {
         PolymerResourcePackUtils.addModAssets(MODID);
         PolymerResourcePackUtils.markAsRequired();
 
+        DialogUtils.init();
         ModConfig.load();
         PlayerModelRegistry.loadBuiltin();
 
