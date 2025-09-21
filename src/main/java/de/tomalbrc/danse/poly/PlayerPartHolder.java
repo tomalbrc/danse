@@ -25,7 +25,6 @@ import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
 import eu.pb4.polymer.virtualentity.api.tracker.EntityTrackedData;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -100,9 +99,9 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
 
     private PerPlayerItemDisplayElement createLocatorItemDisplay(ItemStack stack, ItemDisplayContext context) {
         PerPlayerItemDisplayElement element = new PerPlayerItemDisplayElement(stack.copy());
+        element.ignorePositionUpdates();
         element.setItemDisplayContext(context);
-        element.setInterpolationDuration(2);
-        element.setTeleportDuration(2);
+        element.setInterpolationDuration(1);
         return element;
     }
 
@@ -214,6 +213,19 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
 
     protected boolean isDirty() {
         return !didFirstRun;
+    }
+
+    protected void updateElement(ServerPlayer serverPlayer, DisplayWrapper<?> display) {
+        var queryResult = this.animationComponent.findPose(serverPlayer, display);
+        if (queryResult != null) {
+            if (queryResult.owner() != serverPlayer && display.element().getDataTracker().isDirty()) {
+                return;
+            }
+
+            this.updateElement(queryResult.owner(), display, queryResult.pose());
+        } else if (isDirty()) {
+            this.updateElement(null, display, display.getLastPose(serverPlayer));
+        }
     }
 
     @Override
@@ -349,10 +361,8 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
 
     @Override
     protected void setupElements(List<Bone<?>> bones) {
-        ObjectIterator<Node> nodes = this.model.nodeMap().values().iterator();
 
-        while (nodes.hasNext()) {
-            Node node = nodes.next();
+        for (Node node : this.model.nodeMap().values()) {
             Pose defaultPose = this.model.defaultPose().get(node.uuid());
             MinecraftSkinParser.BodyPart part = MinecraftSkinParser.BodyPart.partFrom(node.name());
             switch (node.type()) {

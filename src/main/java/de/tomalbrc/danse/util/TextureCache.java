@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.mojang.authlib.GameProfile;
 import de.tomalbrc.danse.Danse;
-import de.tomalbrc.dialogutils.DialogUtils;
 import it.unimi.dsi.fastutil.booleans.BooleanArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.minecraft.core.Direction;
@@ -109,7 +108,7 @@ public class TextureCache {
 
     private static EquipmentAsset loadEquipmentAsset(ResourceLocation loc) {
         String path = String.format("assets/%s/equipment/%s.json", loc.getNamespace(), loc.getPath());
-        byte[] jsonBytes = DialogUtils.resourcePackBuilder().getDataOrSource(path);
+        byte[] jsonBytes = Danse.RESOURCEPACK_BUILDER.getDataOrSource(path);
 
         if (jsonBytes == null) return null;
 
@@ -122,7 +121,7 @@ public class TextureCache {
 
     private static List<Integer> loadPaletteData(ResourceLocation id) {
         String pngPath = String.format("assets/%s/textures/trims/color_palettes/%s.png", id.getNamespace(), id.getPath());
-        byte[] pngBytes = DialogUtils.resourcePackBuilder().getDataOrSource(pngPath);
+        byte[] pngBytes = Danse.RESOURCEPACK_BUILDER.getDataOrSource(pngPath);
         if (pngBytes == null) {
             return null;
         }
@@ -155,7 +154,7 @@ public class TextureCache {
     private static CustomModelData loadArmorTextureData(MinecraftSkinParser.BodyPart part, EquipmentAsset.TextureEntry textureEntry, DyedItemColor itemColor, String folder) {
         var id = ResourceLocation.parse(textureEntry.texture);
         String pngPath = String.format("assets/%s/textures/entity/equipment/%s/%s.png", id.getNamespace(), folder, id.getPath());
-        byte[] pngBytes = DialogUtils.resourcePackBuilder().getDataOrSource(pngPath);
+        byte[] pngBytes = Danse.RESOURCEPACK_BUILDER.getDataOrSource(pngPath);
         if (pngBytes == null) {
             return CustomModelData.EMPTY;
         }
@@ -190,7 +189,7 @@ public class TextureCache {
 
     private static CustomModelData loadTrimTextureData(MinecraftSkinParser.BodyPart part, ResourceLocation id, String folder) {
         String pngPath = String.format("assets/%s/textures/trims/entity/%s/%s.png", id.getNamespace(), folder, id.getPath());
-        byte[] pngBytes = DialogUtils.resourcePackBuilder().getDataOrSource(pngPath);
+        byte[] pngBytes = Danse.RESOURCEPACK_BUILDER.getDataOrSource(pngPath);
         if (pngBytes == null) {
             return CustomModelData.EMPTY;
         }

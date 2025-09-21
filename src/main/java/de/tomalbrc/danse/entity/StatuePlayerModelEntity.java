@@ -102,6 +102,8 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
         else if (this.playerName != null || this.playerUuid != null) {
             fetchGameProfile(this::setProfile);
             this.holder.setEquipment(this.equipment);
+        } else {
+            this.setTexture(Danse.STEVE_TEXTURE);
         }
     }
 

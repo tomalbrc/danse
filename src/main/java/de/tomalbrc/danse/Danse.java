@@ -13,6 +13,7 @@ import de.tomalbrc.danse.registry.PlayerModelRegistry;
 import de.tomalbrc.danse.util.GestureDialog;
 import de.tomalbrc.dialogutils.DialogUtils;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
+import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder;
 import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -24,7 +25,6 @@ import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -37,6 +37,7 @@ import java.util.stream.Stream;
 
 public class Danse implements ModInitializer {
     public static final String MODID = "danse";
+    public static ResourcePackBuilder RESOURCEPACK_BUILDER;
     public static Logger LOGGER = LogUtils.getLogger();
     public static BufferedImage STEVE_TEXTURE;
 
@@ -47,12 +48,14 @@ public class Danse implements ModInitializer {
         PolymerResourcePackUtils.addModAssets(MODID);
         PolymerResourcePackUtils.markAsRequired();
 
-        DialogUtils.init();
         ModConfig.load();
         PlayerModelRegistry.loadBuiltin();
 
         loadAnimations();
-        GestureDialog.add(ModConfig.getInstance().addGestureDialog);
+
+        if (DialogUtils.fontReader() != null) {
+            GestureDialog.add(ModConfig.getInstance().addGestureDialog);
+        } else DialogUtils.FONT_AVAILABLE.register(font -> GestureDialog.add(ModConfig.getInstance().addGestureDialog));
 
         EntityRegistry.register();
         ItemRegistry.register();
@@ -64,7 +67,8 @@ public class Danse implements ModInitializer {
 
         ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> loadAnimations());
 
-        var imageData = DialogUtils.resourcePackBuilder().getDataOrSource("assets/minecraft/textures/entity/player/wide/steve.png");
+        RESOURCEPACK_BUILDER = PolymerResourcePackUtils.createBuilder(FabricLoader.getInstance().getGameDir().resolve("polymer/danse"));
+        var imageData = RESOURCEPACK_BUILDER.getDataOrSource("assets/minecraft/textures/entity/player/wide/steve.png");
         try {
             STEVE_TEXTURE = ImageIO.read(new ByteArrayInputStream(imageData));
         } catch (IOException e) {
@@ -74,6 +78,7 @@ public class Danse implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register((serverGamePacketListener, packetSender, minecraftServer) -> GestureController.onConnect(serverGamePacketListener.player));
         ServerPlayConnectionEvents.DISCONNECT.register((serverGamePacketListener, minecraftServer) -> GestureController.onDisconnect(serverGamePacketListener.player));
         CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> GestureCommand.register(dispatcher));
+        PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(resourcePackBuilder -> RESOURCEPACK_BUILDER = resourcePackBuilder);
     }
 
     private static List<Path> loadFiles(String subDir, String suffix) throws IOException {
