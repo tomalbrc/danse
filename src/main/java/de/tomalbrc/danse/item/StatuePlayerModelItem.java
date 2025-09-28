@@ -3,6 +3,7 @@ package de.tomalbrc.danse.item;
 import de.tomalbrc.danse.Danse;
 import de.tomalbrc.danse.entity.StatuePlayerModelEntity;
 import de.tomalbrc.danse.registry.EntityRegistry;
+import de.tomalbrc.dialogutils.DialogUtils;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -29,7 +30,6 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import xyz.nucleoid.packettweaker.PacketContext;
 
-import java.util.Optional;
 import java.util.function.Consumer;
 
 public class StatuePlayerModelItem extends ArmorStandItem implements PolymerItem {
@@ -63,7 +63,7 @@ public class StatuePlayerModelItem extends ArmorStandItem implements PolymerItem
 
                     var profile = itemStack.get(DataComponents.PROFILE);
                     if (profile != null) {
-                        profile.resolve().thenAccept(resolvableProfile -> statue.setProfile(Optional.of(resolvableProfile.gameProfile())));
+                        profile.resolveProfile(DialogUtils.SERVER.services().profileResolver()).thenAccept(statue::setProfile);
                     }
                     else {
                         statue.setTexture(Danse.STEVE_TEXTURE);

@@ -3,17 +3,16 @@ package de.tomalbrc.danse.util;
 import de.tomalbrc.danse.Danse;
 import de.tomalbrc.danse.registry.PlayerModelRegistry;
 import de.tomalbrc.dialogutils.DialogUtils;
-import de.tomalbrc.dialogutils.util.TextAligner;
+import de.tomalbrc.dialogutils.util.ComponentAligner;
 import de.tomalbrc.dialogutils.util.TextUtil;
 import eu.pb4.polymer.resourcepack.api.AssetPaths;
-import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
+import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder;
 import eu.pb4.polymer.resourcepack.extras.api.format.font.BitmapProvider;
 import eu.pb4.polymer.resourcepack.extras.api.format.font.FontAsset;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.util.StringUtil;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.*;
 import net.minecraft.server.dialog.*;
 import net.minecraft.server.dialog.body.DialogBody;
 import net.minecraft.server.dialog.body.PlainMessage;
@@ -21,7 +20,10 @@ import net.minecraft.server.dialog.body.PlainMessage;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class GestureDialog {
     public static Dialog DIALOG;
@@ -35,9 +37,7 @@ public class GestureDialog {
         }
     }
 
-    public static void add(boolean register) {
-        Map<String, byte[]> filemap = new Object2ObjectOpenHashMap<>();
-
+    public static void add(boolean register, ResourcePackBuilder resourcePackBuilder, Runnable onFontCreated) {
         int columns = 3;
         int width = 240;
 
@@ -53,7 +53,7 @@ public class GestureDialog {
             var entry = String.valueOf((char) (0xE001 + i));
             if (iconStream != null) {
                 fontAssetBuilder.add(BitmapProvider.builder(Util.id("font/" + name)).height(32).ascent(16).chars(entry));
-                filemap.put(AssetPaths.texture(Util.id("font/" + name)), iconStream);
+                resourcePackBuilder.addData(AssetPaths.texture(Util.id("font/" + name)), iconStream);
             }
 
             var iconStr = "<font:danse:gesture>" + entry + "</font>";
@@ -62,27 +62,35 @@ public class GestureDialog {
         }
 
         var d = fontAssetBuilder.build().toJson().replace("minecraft:", "");
-        filemap.put("assets/danse/font/gesture.json", d.getBytes(StandardCharsets.UTF_8));
+        resourcePackBuilder.addData("assets/danse/font/gesture.json", d.getBytes(StandardCharsets.UTF_8));
+        onFontCreated.run();
 
-        var iconSpace = TextAligner.alignSingleLine(" ", TextAligner.Align.CENTER, (width - (33 * columns)) / (columns * 2));
+        var iconSpace = ComponentAligner.align(Component.literal(" "), TextUtil.Alignment.CENTER, (width - (33 * columns)) / (columns * 2));
 
         for (int i = 0; i < dialogEntries.size(); i += columns) {
-            StringBuilder line1 = new StringBuilder();
-            StringBuilder line2 = new StringBuilder();
-            StringBuilder spaceLine = new StringBuilder();
+            MutableComponent line1 = Component.empty();
+            MutableComponent line2 = Component.empty();
+            MutableComponent spaceLine = Component.empty();
 
             for (int j = i; j < i + columns && j < dialogEntries.size(); j++) {
                 var dialogEntry = dialogEntries.get(j);
-                var iconCombined = wrapCmd(dialogEntry.animation, iconSpace + dialogEntry.icon + iconSpace);
-                var labels = wrapCmd(dialogEntry.animation, TextAligner.alignSingleLine(dialogEntry.text, TextAligner.Align.CENTER, width / columns));
+                var iconCombined = wrapCmd(dialogEntry.animation, Component.empty().append(iconSpace).append(TextUtil.parse(dialogEntry.icon)).append(iconSpace));
+                var labels = wrapCmd(dialogEntry.animation, ComponentAligner.align(TextUtil.parse(dialogEntry.text), TextUtil.Alignment.CENTER, width / columns));
 
                 line1.append(iconCombined);
                 line2.append(labels);
-
-                spaceLine.append(wrapCmd(dialogEntry.animation, TextAligner.alignSingleLine(" ".repeat(8), TextAligner.Align.CENTER, width / columns)));
+                spaceLine.append(wrapCmd(dialogEntry.animation, ComponentAligner.align(ComponentAligner.spacer(8), TextUtil.Alignment.CENTER, width / columns)));
             }
 
-            var parsed = TextUtil.parse(TextAligner.wrapDefaultFont(spaceLine + "\n" + line1 + "\n" + spaceLine + "\n" + spaceLine + "\n" + line2));
+            int c = (dialogEntries.size()) % 3;
+            if (c != 0 && i/columns == columns) {
+                var s = ComponentAligner.spacer(width/columns);
+                line1.append(s);
+                line2.append(s);
+                spaceLine.append(s);
+            }
+
+            Component parsed = ComponentAligner.defaultFont(Component.empty().append(spaceLine).append("\n").append(line1).append("\n").append(spaceLine).append(spaceLine).append("\n").append(line2));
             bodies.add(new PlainMessage(parsed, width));
         }
 
@@ -96,13 +104,14 @@ public class GestureDialog {
             DialogUtils.registerQuickDialog(dialogId);
         }
 
-        PolymerResourcePackUtils.RESOURCE_PACK_AFTER_INITIAL_CREATION_EVENT.register(resourcePackBuilder -> filemap.forEach(resourcePackBuilder::addData));
-
         DIALOG = dialog;
     }
 
-    private static String wrapCmd(String anim, String s) {
-        return "<run_cmd:'gesture " + anim + "'>" + s + "</run_cmd>";
+    private static MutableComponent wrapCmd(String anim, MutableComponent component) {
+        var style = Style.EMPTY
+                .withClickEvent(new ClickEvent.RunCommand("gesture " + anim))
+                .withHoverEvent(new HoverEvent.ShowText(Component.literal(StringUtil.capitalize(anim))));
+        return Component.empty().withStyle(style).append(component);
     }
 
 

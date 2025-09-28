@@ -21,7 +21,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.PositionMoveRotation;
-import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
@@ -33,12 +32,8 @@ public class GestureController {
 
     public static void onConnect(ServerPlayer serverPlayer) {
         // to have a cached model/texture of players
-        SkullBlockEntity.fetchGameProfile(serverPlayer.getUUID()).thenAccept(gameProfile -> {
-            gameProfile.ifPresent(profile -> {
-                TextureCache.fetch(profile, image -> {
-                    MinecraftSkinParser.calculate(image, x -> {});
-                });
-            });
+        TextureCache.fetch(serverPlayer.getGameProfile(), image -> {
+            MinecraftSkinParser.calculate(image, x -> {});
         });
     }
 

@@ -33,8 +33,8 @@ public class TextureCache {
     private static List<Integer> PALETTE_KEY;
 
     public static void fetch(GameProfile profile, Consumer<BufferedImage> onFinish) {
-        if (profile.getProperties().containsKey("textures")) {
-            var textureBase64 = profile.getProperties().get("textures").iterator().next().value();
+        if (profile.properties().containsKey("textures")) {
+            var textureBase64 = profile.properties().get("textures").iterator().next().value();
             MinecraftSkinFetcher.fetchSkin(textureBase64, onFinish);
         } else {
             onFinish.accept(Danse.STEVE_TEXTURE);

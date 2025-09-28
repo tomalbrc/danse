@@ -1,7 +1,6 @@
 package de.tomalbrc.danse.entity;
 
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.PropertyMap;
 import de.tomalbrc.bil.api.AnimatedEntity;
 import de.tomalbrc.bil.core.model.Model;
 import de.tomalbrc.danse.Danse;
@@ -13,6 +12,7 @@ import de.tomalbrc.danse.registry.PlayerModelRegistry;
 import de.tomalbrc.danse.util.MinecraftSkinParser;
 import de.tomalbrc.danse.util.TextureCache;
 import de.tomalbrc.danse.util.Util;
+import de.tomalbrc.dialogutils.DialogUtils;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
 import net.minecraft.core.Rotations;
 import net.minecraft.core.UUIDUtil;
@@ -27,14 +27,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.image.BufferedImage;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -131,26 +129,24 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
         }
     }
 
-    public void setProfile(Optional<GameProfile> profile) {
-        profile.ifPresent(gameProfile -> {
-            this.playerName = gameProfile.getName();
-            this.playerUuid = gameProfile.getId();
-        });
+    public void setProfile(GameProfile profile) {
+        this.playerName = profile.name();
+        this.playerUuid = profile.id();
 
-        profile.ifPresentOrElse(gameProfile -> TextureCache.fetch(gameProfile, this::setTexture), () -> this.setTexture(Danse.STEVE_TEXTURE));
+        TextureCache.fetch(profile, this::setTexture);
     }
 
     public void setTexture(BufferedImage image) {
         MinecraftSkinParser.calculate(image, data -> this.holder.setSkinData(data));
     }
 
-    public void fetchGameProfile(Consumer<Optional<GameProfile>> cb) {
+    public void fetchGameProfile(Consumer<GameProfile> cb) {
         if (this.playerUuid != null) {
-            SkullBlockEntity.fetchGameProfile(this.playerUuid).thenAccept(cb);
+            ResolvableProfile.createUnresolved(playerUuid).resolveProfile(DialogUtils.SERVER.services().profileResolver()).thenAccept(cb);
         }
 
         if (this.playerName != null && !this.playerName.isBlank()) {
-            SkullBlockEntity.fetchGameProfile(this.playerName).thenAccept(cb);
+            ResolvableProfile.createUnresolved(playerName).resolveProfile(DialogUtils.SERVER.services().profileResolver()).thenAccept(cb);
         }
     }
 
@@ -158,21 +154,14 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
     @NotNull
     public ItemStack getPickResult() {
         var stack = ItemRegistry.PLAYER_STATUE.getDefaultInstance();
-        stack.set(DataComponents.PROFILE, new ResolvableProfile(
-                Optional.ofNullable(this.playerName),
-                Optional.ofNullable(this.playerName == null ? this.playerUuid : null),
-                new PropertyMap())
-        );
+        stack.set(DataComponents.PROFILE, this.playerUuid != null ? ResolvableProfile.createUnresolved(this.playerUuid) : ResolvableProfile.createUnresolved(this.playerName));
         return stack;
     }
 
     public void customBrokenByPlayer(ServerLevel serverLevel, DamageSource damageSource) {
         ItemStack itemStack = new ItemStack(ItemRegistry.PLAYER_STATUE);
-        itemStack.set(DataComponents.PROFILE, new ResolvableProfile(
-                Optional.ofNullable(this.playerName),
-                Optional.ofNullable(this.playerUuid),
-                new PropertyMap())
-        );
+        itemStack.set(DataComponents.PROFILE, this.playerUuid != null ? ResolvableProfile.createUnresolved(this.playerUuid) : ResolvableProfile.createUnresolved(this.playerName));
+
         itemStack.set(DataComponents.CUSTOM_NAME, this.getCustomName());
         Block.popResource(this.level(), this.blockPosition(), itemStack);
         ((ArmorStandInvoker)this).invokeBrokenByAnything(serverLevel, damageSource);

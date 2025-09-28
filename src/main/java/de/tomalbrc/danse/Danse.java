@@ -11,9 +11,12 @@ import de.tomalbrc.danse.registry.EntityRegistry;
 import de.tomalbrc.danse.registry.ItemRegistry;
 import de.tomalbrc.danse.registry.PlayerModelRegistry;
 import de.tomalbrc.danse.util.GestureDialog;
-import de.tomalbrc.dialogutils.DialogUtils;
+import de.tomalbrc.dialogutils.util.FontUtil;
+import eu.pb4.polymer.autohost.impl.AutoHostConfig;
+import eu.pb4.polymer.common.impl.CommonImpl;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder;
+import eu.pb4.polymer.resourcepack.impl.PolymerResourcePackMod;
 import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -53,9 +56,17 @@ public class Danse implements ModInitializer {
 
         loadAnimations();
 
-        if (DialogUtils.fontReader() != null) {
-            GestureDialog.add(ModConfig.getInstance().addGestureDialog);
-        } else DialogUtils.FONT_AVAILABLE.register(font -> GestureDialog.add(ModConfig.getInstance().addGestureDialog));
+        ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> {
+            if (!CommonImpl.loadConfig("auto-host", AutoHostConfig.class).enabled)
+                PolymerResourcePackMod.generateAndCall(minecraftServer, true, minecraftServer::sendSystemMessage, () -> {});
+        });
+
+        PolymerResourcePackUtils.RESOURCE_PACK_AFTER_INITIAL_CREATION_EVENT.register(resourcePackBuilder -> {
+            FontUtil.registerDefaultFonts(resourcePackBuilder);
+            GestureDialog.add(ModConfig.getInstance().addGestureDialog, resourcePackBuilder, () -> {
+                FontUtil.loadFont(resourcePackBuilder, ResourceLocation.fromNamespaceAndPath(MODID, "gesture"));
+            });
+        });
 
         EntityRegistry.register();
         ItemRegistry.register();
