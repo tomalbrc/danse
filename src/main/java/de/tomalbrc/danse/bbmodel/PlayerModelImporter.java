@@ -13,7 +13,6 @@ import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
-import it.unimi.dsi.fastutil.objects.ObjectListIterator;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Vector3f;
 
@@ -73,10 +72,8 @@ public class PlayerModelImporter extends AjBlueprintImporter {
         Object2ObjectOpenHashMap<UUID, Node> nodeMap = new Object2ObjectOpenHashMap<>();
         ObjectArraySet<BbTexture> textures = new ObjectArraySet<>();
         textures.addAll(this.model.textures);
-        ObjectListIterator<BbOutliner.ChildEntry> iterator = this.model.outliner.iterator();
 
-        while (iterator.hasNext()) {
-            BbOutliner.ChildEntry entry = iterator.next();
+        for (BbOutliner.ChildEntry entry : this.model.outliner) {
             if (entry.isNode()) {
                 this.createBones(null, null, this.model.outliner, nodeMap);
             }

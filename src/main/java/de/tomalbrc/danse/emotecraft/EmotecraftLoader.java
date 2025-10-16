@@ -33,7 +33,6 @@ public class EmotecraftLoader extends AjBlueprintLoader {
                 EmoteConverter.convertAndAddTo(file, model);
             }
 
-            this.postProcess(model);
             return new PlayerModelImporter(model).importModel();
         } catch (Throwable throwable) {
             throw new JsonParseException("Failed to parse: " + name, throwable);
