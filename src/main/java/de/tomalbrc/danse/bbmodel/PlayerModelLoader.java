@@ -20,8 +20,6 @@ public class PlayerModelLoader extends AjBlueprintLoader {
             if (model.modelIdentifier == null) model.modelIdentifier = model.name;
             model.modelIdentifier = ModelLoader.normalizedModelId(model.modelIdentifier);
 
-            this.postProcess(model);
-
             return new PlayerModelImporter(model).importModel();
         } catch (Throwable throwable) {
             throw new JsonParseException("Failed to parse: " + name, throwable);
