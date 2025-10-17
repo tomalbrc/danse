@@ -52,12 +52,10 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity> extends SimpleEntityHolder<T> {
-    private boolean didFirstRun = false;
-
+    protected final Map<MinecraftSkinParser.BodyPart, DisplayWrapper<PerPlayerItemDisplayElement>> locatorPartMap = new Object2ObjectArrayMap<>();
     protected InteractionElement hitboxInteraction;
-
-    protected Map<MinecraftSkinParser.BodyPart, DisplayWrapper<PerPlayerItemDisplayElement>> locatorPartMap = new Object2ObjectArrayMap<>();
-    private boolean didSetup;
+    private boolean didSetup = false;
+    private boolean didFirstRun = false;
 
     public PlayerPartHolder(T parent, Model model) {
         super(parent, model);
@@ -72,6 +70,9 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
     }
 
     public void setLocatorItem(MinecraftSkinParser.BodyPart part, String name, ItemStack itemStack) {
+        if (itemStack == ItemStack.EMPTY)
+            itemStack = Items.AIR.getDefaultInstance();
+
         if (!locatorPartMap.containsKey(part)) {
             var e = this.addLocatorElement(name, itemStack, part.getContext());
             if (e != null) {
