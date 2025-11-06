@@ -376,6 +376,10 @@ public class MinecraftSkinParser {
         onFinish.accept(data);
     }
 
+    public static void remove(BufferedImage i) {
+        PARSED_CACHE.remove(i);
+    }
+
     public enum BodyPart {
         NONE("none", null, null),
         HEAD("head", EquipmentSlot.HEAD, ItemDisplayContext.HEAD),

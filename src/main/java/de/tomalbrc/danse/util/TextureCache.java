@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -32,8 +33,12 @@ public class TextureCache {
     private static final Map<CacheKey, CustomModelData> TRIM_CACHE = new ConcurrentHashMap<>();
     private static List<Integer> PALETTE_KEY;
 
+    public static Map<UUID, BufferedImage> SKINS = new ConcurrentHashMap<>();
+
     public static void fetch(GameProfile profile, Consumer<BufferedImage> onFinish) {
-        if (profile.properties().containsKey("textures")) {
+        if (SKINS.containsKey(profile.id())) {
+            onFinish.accept(SKINS.get(profile.id()));
+        } else if (profile.properties().containsKey("textures")) {
             var textureBase64 = profile.properties().get("textures").iterator().next().value();
             MinecraftSkinFetcher.fetchSkin(textureBase64, onFinish);
         } else {

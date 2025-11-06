@@ -22,7 +22,6 @@ import java.util.function.Consumer;
 
 public class MinecraftSkinFetcher {
     public static final Gson gson = new Gson();
-    private static final Map<String, BufferedImage> CACHED_SKINS = new ConcurrentHashMap<>();
     private static final Map<String, CompletableFuture<BufferedImage>> FUTURE_CACHE = new ConcurrentHashMap<>();
 
     public static void fetchSkin(String base64val, Consumer<BufferedImage> callback) {
@@ -33,10 +32,6 @@ public class MinecraftSkinFetcher {
     }
 
     public static void fetchSkinFromURL(String url, Consumer<BufferedImage> callback) {
-        if (CACHED_SKINS.containsKey(url)) {
-            callback.accept(CACHED_SKINS.get(url));
-            return;
-        }
 
         var future = FUTURE_CACHE.computeIfAbsent(url, key -> CompletableFuture.supplyAsync(() -> {
             if (url != null) {
@@ -51,12 +46,8 @@ public class MinecraftSkinFetcher {
             if (skinData != null) {
                 try {
                     var img = ImageIO.read(new ByteArrayInputStream(skinData));
-                    if (img != null) {
-                        CACHED_SKINS.put(url, img);
-                    }
                     FUTURE_CACHE.remove(url);
                     return img;
-
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

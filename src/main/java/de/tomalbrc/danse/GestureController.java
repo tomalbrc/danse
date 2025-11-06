@@ -42,6 +42,8 @@ public class GestureController {
         if (cam != null) {
             onStop(cam);
         }
+        var rem = TextureCache.SKINS.remove(serverPlayer.getUUID());
+        if (rem != null) MinecraftSkinParser.remove(rem);
     }
 
     public static void onStop(ServerPlayer player) {
