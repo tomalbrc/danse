@@ -1,6 +1,7 @@
 package de.tomalbrc.danse;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -14,7 +15,7 @@ import java.nio.file.Path;
 public class ModConfig {
     static Path CONFIG_FILE_PATH = FabricLoader.getInstance().getConfigDir().resolve("danse.json");
     static ModConfig instance;
-    static Gson JSON = de.tomalbrc.bil.json.JSON.GENERIC_BUILDER.create();
+    static Gson JSON = new GsonBuilder().setPrettyPrinting().create();
 
     @SerializedName("permission-check")
     public boolean permissionCheck = false;
@@ -29,6 +30,7 @@ public class ModConfig {
         }
         return instance;
     }
+
     public static boolean load() {
         if (!CONFIG_FILE_PATH.toFile().exists()) {
             instance = new ModConfig();
