@@ -24,7 +24,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 
 import javax.imageio.ImageIO;
@@ -64,7 +64,7 @@ public class Danse implements ModInitializer {
         PolymerResourcePackUtils.RESOURCE_PACK_AFTER_INITIAL_CREATION_EVENT.register(resourcePackBuilder -> {
             FontUtil.registerDefaultFonts(resourcePackBuilder);
             GestureDialog.add(ModConfig.getInstance().addGestureDialog, resourcePackBuilder, () -> {
-                FontUtil.loadFont(resourcePackBuilder, ResourceLocation.fromNamespaceAndPath(MODID, "gesture"));
+                FontUtil.loadFont(resourcePackBuilder, Identifier.fromNamespaceAndPath(MODID, "gesture"));
             });
         });
 
@@ -117,7 +117,7 @@ public class Danse implements ModInitializer {
             }
 
             if (added) {
-                Model model = loader.loadResource(ResourceLocation.fromNamespaceAndPath("danse", "tightly-coupled"));
+                Model model = loader.loadResource(Identifier.fromNamespaceAndPath("danse", "tightly-coupled"));
                 PlayerModelRegistry.addFrom(model);
             }
         } catch (IOException e) {

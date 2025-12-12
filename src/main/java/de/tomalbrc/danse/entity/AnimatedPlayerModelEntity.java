@@ -6,7 +6,7 @@ import de.tomalbrc.danse.poly.PlayerPartHolder;
 import de.tomalbrc.danse.registry.PlayerModelRegistry;
 import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
@@ -14,13 +14,14 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
 // persistent model
 public class AnimatedPlayerModelEntity extends StatuePlayerModelEntity implements AnimatedEntity {
-    public static final ResourceLocation ID = Util.id("player_model");
+    public static final Identifier ID = Util.id("player_model");
     protected static final String ANIMATION = "Animation";
 
     @Nullable
@@ -43,7 +44,7 @@ public class AnimatedPlayerModelEntity extends StatuePlayerModelEntity implement
     }
 
     @Override
-    public void readAdditionalSaveData(ValueInput valueInput) {
+    public void readAdditionalSaveData(@NotNull ValueInput valueInput) {
 
         valueInput.getString(ANIMATION).ifPresent(anim -> {
             if (this.holder != null) {

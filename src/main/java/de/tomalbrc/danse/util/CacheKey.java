@@ -1,13 +1,13 @@
 package de.tomalbrc.danse.util;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class CacheKey {
-    private final ResourceLocation assetLocation;
+    private final Identifier assetLocation;
     private final MinecraftSkinParser.BodyPart part;
     private final boolean inner;
 
-    public CacheKey(ResourceLocation assetLocation, MinecraftSkinParser.BodyPart part, boolean inner) {
+    public CacheKey(Identifier assetLocation, MinecraftSkinParser.BodyPart part, boolean inner) {
         this.assetLocation = assetLocation;
         this.part = part;
         this.inner = inner;

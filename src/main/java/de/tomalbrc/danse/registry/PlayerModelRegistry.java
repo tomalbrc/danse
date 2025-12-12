@@ -5,7 +5,7 @@ import de.tomalbrc.bil.core.model.Model;
 import de.tomalbrc.danse.Danse;
 import de.tomalbrc.danse.bbmodel.PlayerModelLoader;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.List;
 import java.util.Map;
@@ -29,7 +29,7 @@ public class PlayerModelRegistry {
         );
 
         for (String filename : sourceModels) {
-            Model model = new PlayerModelLoader().loadResource(ResourceLocation.fromNamespaceAndPath("danse", filename));
+            Model model = new PlayerModelLoader().loadResource(Identifier.fromNamespaceAndPath("danse", filename));
             for (String animationName : model.animations().keySet()) {
                 animationModelMap.put(animationName, model);
             }

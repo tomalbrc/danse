@@ -32,7 +32,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.util.Mth;
@@ -322,7 +322,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
     }
 
     @Nullable
-    protected PerPlayerItemDisplayElement createBoneDisplay(ResourceLocation modelData) {
+    protected PerPlayerItemDisplayElement createBoneDisplay(Identifier modelData) {
         var display = super.createBoneDisplay(modelData);
 
         if (display == null)
@@ -335,7 +335,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
     }
 
     @Override
-    protected void startWatchingExtraPackets(ServerGamePacketListenerImpl player, Consumer<Packet<ClientGamePacketListener>> consumer) {
+    protected void startWatchingExtraPackets(ServerGamePacketListenerImpl player, Consumer<Packet<@NotNull ClientGamePacketListener>> consumer) {
         super.startWatchingExtraPackets(player, consumer);
 
         if (this.parent instanceof GesturePlayerModelEntity gesturePlayerModel) {

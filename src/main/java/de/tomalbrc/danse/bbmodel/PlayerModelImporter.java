@@ -13,7 +13,7 @@ import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.joml.Vector3f;
 
 import java.util.Map;
@@ -27,7 +27,7 @@ public class PlayerModelImporter extends AjBlueprintImporter {
         super(model);
     }
 
-    public static ResourceLocation addItemModel(String partName, Map<String, ResourcePackModel.DisplayTransform> transformMap) {
+    public static Identifier addItemModel(String partName, Map<String, ResourcePackModel.DisplayTransform> transformMap) {
         PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(resourcePackBuilder -> {
             addPart(partName, transformMap, resourcePackBuilder);
             if (Util.isArm(partName)) {
@@ -37,11 +37,11 @@ public class PlayerModelImporter extends AjBlueprintImporter {
             }
         });
 
-        return ResourceLocation.fromNamespaceAndPath("danse", partName);
+        return Identifier.fromNamespaceAndPath("danse", partName);
     }
 
     @Override
-    protected ResourceLocation generateModel(BbOutliner outliner) {
+    protected Identifier generateModel(BbOutliner outliner) {
         return switch (outliner.name) {
             case "head" ->
                     generateModelPart(outliner, new Vector3f(0, 5.90f, 0), new Vector3f(0.9375f, 0.9375f, 0.9375f));
@@ -55,7 +55,7 @@ public class PlayerModelImporter extends AjBlueprintImporter {
         };
     }
 
-    protected ResourceLocation generateModelPart(BbOutliner outliner, Vector3f pos, Vector3f scale) {
+    protected Identifier generateModelPart(BbOutliner outliner, Vector3f pos, Vector3f scale) {
         return addItemModel(outliner.name.toLowerCase(), ImmutableMap.of("head", new ResourcePackModel.DisplayTransform(null, pos, scale)));
     }
 

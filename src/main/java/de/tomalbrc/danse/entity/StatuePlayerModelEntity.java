@@ -17,7 +17,7 @@ import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
 import net.minecraft.core.Rotations;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
@@ -38,7 +38,7 @@ import java.util.function.Consumer;
 
 // ArmorStand-like base
 public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntity {
-    public static final ResourceLocation ID = Util.id("player_statue");
+    public static final Identifier ID = Util.id("player_statue");
     private static final String PLAYER = "Player";
     private static final String URL = "URL";
     private static final String PLAYER_UUID = "PlayerUUID";
@@ -53,7 +53,7 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
     @Nullable
     protected String url;
 
-    public StatuePlayerModelEntity(EntityType<? extends ArmorStand> entityType, Level level) {
+    public StatuePlayerModelEntity(EntityType<? extends @NotNull ArmorStand> entityType, Level level) {
         super(entityType, level);
     }
 
@@ -82,7 +82,7 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
     }
 
     @Override
-    public void readAdditionalSaveData(ValueInput valueInput) {
+    public void readAdditionalSaveData(@NotNull ValueInput valueInput) {
         super.readAdditionalSaveData(valueInput);
 
         if (this.holder == null) {

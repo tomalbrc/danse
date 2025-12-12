@@ -7,7 +7,7 @@ import de.tomalbrc.danse.util.MinecraftSkinParser;
 import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
@@ -17,7 +17,7 @@ import java.util.Map;
 
 // non-persistent gesture entity
 public class GesturePlayerModelEntity extends AnimatedPlayerModelEntity {
-    public static final ResourceLocation ID = Util.id("gesture_player_model");
+    public static final Identifier ID = Util.id("gesture_player_model");
 
     private ServerPlayer player;
     private boolean checkDistance = true;

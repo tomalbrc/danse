@@ -4,7 +4,7 @@ import com.mojang.datafixers.util.Pair;
 import de.tomalbrc.danse.Danse;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.Vec3i;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -18,8 +18,8 @@ import java.util.List;
 public class Util {
     public static final EquipmentSlot[] SLOTS = EquipmentSlot.values();
 
-    public static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Danse.MODID, path);
+    public static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Danse.MODID, path);
     }
 
     public static List<Pair<EquipmentSlot, ItemStack>> getEquipment(LivingEntity entity, boolean empty) {

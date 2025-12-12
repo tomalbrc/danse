@@ -3,7 +3,7 @@ package de.tomalbrc.danse.util;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -413,11 +413,11 @@ public class MinecraftSkinParser {
             return this.slot;
         }
 
-        public ResourceLocation modelId(boolean slim) {
+        public Identifier modelId(boolean slim) {
             if (slim) {
-                return ResourceLocation.fromNamespaceAndPath("danse", getName() + "s");
+                return Identifier.fromNamespaceAndPath("danse", getName() + "s");
             } else {
-                return ResourceLocation.fromNamespaceAndPath("danse", getName());
+                return Identifier.fromNamespaceAndPath("danse", getName());
             }
         }
 

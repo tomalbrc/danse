@@ -8,7 +8,7 @@ import it.unimi.dsi.fastutil.booleans.BooleanArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomModelData;
@@ -59,7 +59,7 @@ public class TextureCache {
             return CustomModelData.EMPTY;
         }
 
-        ResourceLocation loc = eq.assetId().get().location();
+        Identifier loc = eq.assetId().get().identifier();
         CacheKey key = new CacheKey(loc, part, inner);
         CustomModelData cachedData = ARMOR_CACHE.get(key);
         if (cachedData != null) {
@@ -111,7 +111,7 @@ public class TextureCache {
         return result;
     }
 
-    private static EquipmentAsset loadEquipmentAsset(ResourceLocation loc) {
+    private static EquipmentAsset loadEquipmentAsset(Identifier loc) {
         String path = String.format("assets/%s/equipment/%s.json", loc.getNamespace(), loc.getPath());
         byte[] jsonBytes = Danse.RESOURCEPACK_BUILDER.getDataOrSource(path);
 
@@ -124,7 +124,7 @@ public class TextureCache {
         }
     }
 
-    private static List<Integer> loadPaletteData(ResourceLocation id) {
+    private static List<Integer> loadPaletteData(Identifier id) {
         String pngPath = String.format("assets/%s/textures/trims/color_palettes/%s.png", id.getNamespace(), id.getPath());
         byte[] pngBytes = Danse.RESOURCEPACK_BUILDER.getDataOrSource(pngPath);
         if (pngBytes == null) {
@@ -157,7 +157,7 @@ public class TextureCache {
     }
 
     private static CustomModelData loadArmorTextureData(MinecraftSkinParser.BodyPart part, EquipmentAsset.TextureEntry textureEntry, DyedItemColor itemColor, String folder) {
-        var id = ResourceLocation.parse(textureEntry.texture);
+        var id = Identifier.parse(textureEntry.texture);
         String pngPath = String.format("assets/%s/textures/entity/equipment/%s/%s.png", id.getNamespace(), folder, id.getPath());
         byte[] pngBytes = Danse.RESOURCEPACK_BUILDER.getDataOrSource(pngPath);
         if (pngBytes == null) {
@@ -192,7 +192,7 @@ public class TextureCache {
         }
     }
 
-    private static CustomModelData loadTrimTextureData(MinecraftSkinParser.BodyPart part, ResourceLocation id, String folder) {
+    private static CustomModelData loadTrimTextureData(MinecraftSkinParser.BodyPart part, Identifier id, String folder) {
         String pngPath = String.format("assets/%s/textures/trims/entity/%s/%s.png", id.getNamespace(), folder, id.getPath());
         byte[] pngBytes = Danse.RESOURCEPACK_BUILDER.getDataOrSource(pngPath);
         if (pngBytes == null) {
@@ -224,7 +224,7 @@ public class TextureCache {
         ArmorTrim trim = itemStack.get(DataComponents.TRIM);
         assert trim != null;
 
-        var materialId = ResourceLocation.parse(trim.material().getRegisteredName());
+        var materialId = Identifier.parse(trim.material().getRegisteredName());
         var patternId = trim.pattern().value().assetId();
 
         CacheKey key = new CacheKey(patternId, part, inner);
@@ -233,7 +233,7 @@ public class TextureCache {
             return tinted(new CustomModelData(cachedData.floats(), new BooleanArrayList(cachedData.flags()), cachedData.strings(), new IntArrayList(cachedData.colors())), materialId);
         }
 
-        if (PALETTE_KEY == null) PALETTE_KEY = loadPaletteData(ResourceLocation.withDefaultNamespace("trim_palette"));
+        if (PALETTE_KEY == null) PALETTE_KEY = loadPaletteData(Identifier.withDefaultNamespace("trim_palette"));
 
         String folder;
         if (inner) {
@@ -248,7 +248,7 @@ public class TextureCache {
         return tinted(new CustomModelData(data.floats(), new BooleanArrayList(data.flags()), data.strings(), new IntArrayList(data.colors())), materialId);
     }
 
-    private static CustomModelData tinted(CustomModelData data, ResourceLocation materialId) {
+    private static CustomModelData tinted(CustomModelData data, Identifier materialId) {
         List<Integer> coloredPalette = loadPaletteData(materialId);
         if (coloredPalette != null) {
             for (int i = 0; i < data.colors().size(); i++) {
