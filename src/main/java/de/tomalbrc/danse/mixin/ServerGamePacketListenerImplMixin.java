@@ -56,7 +56,7 @@ public abstract class ServerGamePacketListenerImplMixin {
         return i;
     }
 
-    @Inject(method = "handleInteract", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;hasClientLoaded()Z"), cancellable = true)
+    @Inject(method = "handleInteract", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;hasClientLoaded()Z"), cancellable = true)
     private void danse$preventInteract(ServerboundInteractPacket serverboundInteractPacket, CallbackInfo ci) {
         if (GestureController.GESTURE_CAMS.containsKey(player.getUUID())) {
             ci.cancel();
