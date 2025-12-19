@@ -40,7 +40,9 @@ public class TextureCache {
             onFinish.accept(SKINS.get(profile.id()));
         } else if (profile.properties().containsKey("textures")) {
             var textureBase64 = profile.properties().get("textures").iterator().next().value();
-            MinecraftSkinFetcher.fetchSkin(textureBase64, onFinish);
+            MinecraftSkinFetcher.fetchSkin(textureBase64, (x) -> {
+                Danse.SERVER.execute(()-> onFinish.accept(x));
+            });
         } else {
             onFinish.accept(Danse.STEVE_TEXTURE);
         }

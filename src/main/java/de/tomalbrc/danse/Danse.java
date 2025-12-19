@@ -1,6 +1,7 @@
 package de.tomalbrc.danse;
 
 import com.google.gson.Gson;
+import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.logging.LogUtils;
 import de.tomalbrc.bil.core.model.Model;
 import de.tomalbrc.danse.bbmodel.PlayerModelLoader;
@@ -25,6 +26,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 
 import javax.imageio.ImageIO;
@@ -40,6 +42,7 @@ import java.util.stream.Stream;
 
 public class Danse implements ModInitializer {
     public static final String MODID = "danse";
+    public static MinecraftServer SERVER;
     public static ResourcePackBuilder RESOURCEPACK_BUILDER;
     public static Logger LOGGER = LogUtils.getLogger();
     public static BufferedImage STEVE_TEXTURE;
@@ -57,6 +60,7 @@ public class Danse implements ModInitializer {
         loadAnimations();
 
         ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> {
+            SERVER = minecraftServer;
             if (!CommonImpl.loadConfig("auto-host", AutoHostConfig.class).enabled)
                 PolymerResourcePackMod.generateAndCall(minecraftServer, true, minecraftServer::sendSystemMessage, () -> {});
         });

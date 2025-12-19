@@ -86,7 +86,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
         Locator locator = this.getLocator(name);
         if (this.didSetup && locator != null) {
             PerPlayerItemDisplayElement element = this.createLocatorItemDisplay(stack, context);
-            DisplayWrapper<PerPlayerItemDisplayElement> display = new DisplayWrapper<>(element, locator, false);
+            DisplayWrapper<PerPlayerItemDisplayElement> display = new DisplayWrapper<>(element, locator,null);
             locator.addListener(new DisplayElementUpdateListener(display));
 
             this.initializeDisplay(display);
@@ -223,7 +223,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
                 return;
             }
 
-            this.updateElement(queryResult.owner(), display, queryResult.pose());
+            this.updateElement(null, display, queryResult.pose());
         } else if (isDirty()) {
             this.updateElement(null, display, display.getLastPose(serverPlayer));
         }
@@ -431,8 +431,8 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
         public final ItemDisplayElement armorOuter;
         public final MinecraftSkinParser.BodyPart bodyPart;
 
-        protected MultipartModelBone(PerPlayerItemDisplayElement element, PerPlayerItemDisplayElement outer, PerPlayerItemDisplayElement armor, PerPlayerItemDisplayElement armorOuter, Node node, Pose defaultPose, boolean isHead) {
-            super(element, node, defaultPose, isHead);
+        protected MultipartModelBone(PerPlayerItemDisplayElement element, PerPlayerItemDisplayElement outer, PerPlayerItemDisplayElement armor, PerPlayerItemDisplayElement armorOuter, Node node, Pose defaultPose) {
+            super(element, node, defaultPose,null);
             this.outer = outer;
             this.armor = armor;
             this.armorOuter = armorOuter;
@@ -444,10 +444,10 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
         }
 
         public static MultipartModelBone of(PerPlayerItemDisplayElement inner, PerPlayerItemDisplayElement outer, PerPlayerItemDisplayElement armor, PerPlayerItemDisplayElement armorOuter, @NotNull Node node, Pose defaultPose) {
-            return new MultipartModelBone(inner, outer, armor, armorOuter, node, defaultPose, false);
+            return new MultipartModelBone(inner, outer, armor, armorOuter, node, defaultPose);
         }
 
-        public ImmutableList<ItemDisplayElement> additionalElements() {
+        public ImmutableList<@NotNull ItemDisplayElement> additionalElements() {
             return ImmutableList.of(element(), this.outer, this.armor, this.armorOuter);
         }
 
