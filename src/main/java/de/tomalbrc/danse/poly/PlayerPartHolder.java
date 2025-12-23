@@ -86,7 +86,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
         Locator locator = this.getLocator(name);
         if (this.didSetup && locator != null) {
             PerPlayerItemDisplayElement element = this.createLocatorItemDisplay(stack, context);
-            DisplayWrapper<PerPlayerItemDisplayElement> display = new DisplayWrapper<>(element, locator,null);
+            DisplayWrapper<PerPlayerItemDisplayElement> display = new DisplayWrapper<>(element, locator);
             locator.addListener(new DisplayElementUpdateListener(display));
 
             this.initializeDisplay(display);
@@ -432,7 +432,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
         public final MinecraftSkinParser.BodyPart bodyPart;
 
         protected MultipartModelBone(PerPlayerItemDisplayElement element, PerPlayerItemDisplayElement outer, PerPlayerItemDisplayElement armor, PerPlayerItemDisplayElement armorOuter, Node node, Pose defaultPose) {
-            super(element, node, defaultPose,null);
+            super(element, node, defaultPose);
             this.outer = outer;
             this.armor = armor;
             this.armorOuter = armorOuter;
