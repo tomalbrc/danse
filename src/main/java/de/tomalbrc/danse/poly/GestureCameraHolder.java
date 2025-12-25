@@ -5,6 +5,7 @@ import de.tomalbrc.danse.GestureController;
 import de.tomalbrc.danse.entity.GesturePlayerModelEntity;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.VirtualEntityUtils;
+import eu.pb4.polymer.virtualentity.api.attachment.HolderAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.BlockDisplayElement;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.network.protocol.Packet;
@@ -19,6 +20,8 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -50,9 +53,16 @@ public class GestureCameraHolder extends ElementHolder {
         this.origin = player.position();
         this.player = player;
         this.updatePos();
-        this.cameraElement.setTeleportDuration(2);
+        this.cameraElement.setTeleportDuration(0);
         this.cameraElement.ignorePositionUpdates();
         this.addElement(cameraElement);
+    }
+
+    @Override
+    protected void onAttachmentSet(HolderAttachment attachment, @Nullable HolderAttachment oldAttachment) {
+        super.onAttachmentSet(attachment, oldAttachment);
+        this.updatePos();
+        this.cameraElement.setTeleportDuration(2);
     }
 
     public void setPitch(float pitch) {
@@ -78,7 +88,7 @@ public class GestureCameraHolder extends ElementHolder {
     }
 
     @Override
-    protected void startWatchingExtraPackets(ServerGamePacketListenerImpl player, Consumer<Packet<ClientGamePacketListener>> packetConsumer) {
+    protected void startWatchingExtraPackets(ServerGamePacketListenerImpl player, Consumer<Packet<@NotNull ClientGamePacketListener>> packetConsumer) {
         super.startWatchingExtraPackets(player, packetConsumer);
         packetConsumer.accept(VirtualEntityUtils.createRidePacket(cameraElement.getEntityId(), IntList.of(player.player.getId())));
         packetConsumer.accept(VirtualEntityUtils.createSetCameraEntityPacket(cameraElement.getEntityId()));

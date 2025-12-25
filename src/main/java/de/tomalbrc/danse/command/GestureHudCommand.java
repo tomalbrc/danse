@@ -6,23 +6,23 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import de.tomalbrc.bil.util.Permissions;
 import de.tomalbrc.danse.GestureController;
 import de.tomalbrc.danse.ModConfig;
+import de.tomalbrc.danse.poly.HudHolder;
 import de.tomalbrc.danse.registry.PlayerModelRegistry;
-import de.tomalbrc.danse.util.GestureDialog;
+import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
 
 import static net.minecraft.commands.Commands.literal;
 
-public class GestureCommand {
+public class GestureHudCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         LiteralCommandNode<CommandSourceStack> gestureNode = Commands
-                .literal("gesture").requires(Permissions.require("danse.animation", 1).or((s) -> !ModConfig.getInstance().permissionCheck))
+                .literal("emote").requires(Permissions.require("danse.emote", 1).or((s) -> !ModConfig.getInstance().permissionCheck))
                 .executes(ctx -> {
                     var player = ctx.getSource().getPlayer();
                     if (player != null) {
-                        player.openDialog(Holder.direct(GestureDialog.DIALOG));
+                        openHud(player);
                     }
                     return Command.SINGLE_SUCCESS;
                 })
@@ -36,6 +36,14 @@ public class GestureCommand {
                     .replace("(", "")
                     .replace(")", "");
             gestureNode.addChild(literal(name).requires(Permissions.require("danse.animation." + name, 1).or((s) -> !ModConfig.getInstance().permissionCheck)).executes(ctx -> execute(ctx.getSource().getPlayerOrException(), animation)).build());
+        }
+    }
+
+    public static void openHud(ServerPlayer player) {
+        if (!GestureController.GESTURE_CAMS.containsKey(player.getUUID()) && !player.hasContainerOpen()) {
+            var hud = new HudHolder(player);
+            EntityAttachment.ofTicking(hud, player);
+            hud.startWatching(player);
         }
     }
 

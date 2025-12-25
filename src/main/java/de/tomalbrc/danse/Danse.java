@@ -1,7 +1,6 @@
 package de.tomalbrc.danse;
 
 import com.google.gson.Gson;
-import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.logging.LogUtils;
 import de.tomalbrc.bil.core.model.Model;
 import de.tomalbrc.danse.bbmodel.PlayerModelLoader;
@@ -92,7 +91,10 @@ public class Danse implements ModInitializer {
 
         ServerPlayConnectionEvents.JOIN.register((serverGamePacketListener, packetSender, minecraftServer) -> GestureController.onConnect(serverGamePacketListener.player));
         ServerPlayConnectionEvents.DISCONNECT.register((serverGamePacketListener, minecraftServer) -> GestureController.onDisconnect(serverGamePacketListener.player));
-        CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> GestureCommand.register(dispatcher));
+        CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> {
+            GestureCommand.register(dispatcher);
+            //GestureHudCommand.register(dispatcher);
+        });
         PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(resourcePackBuilder -> RESOURCEPACK_BUILDER = resourcePackBuilder);
     }
 

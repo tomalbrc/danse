@@ -32,6 +32,7 @@ dependencies {
 
     modImplementation include("eu.pb4:map-canvas-api:${project.mapcanvas_version}")
     modImplementation(include("eu.pb4:placeholder-api:${project.papi_version}"))
+    modImplementation include("eu.pb4:sgui:${project.sgui_version}")
 
     modImplementation include("de.tomalbrc:blockbench-import-library:${project.bil_version}")
     modImplementation include("de.tomalbrc:DialogUtils:${project.dialogutils_version}")
