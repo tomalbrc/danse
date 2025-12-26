@@ -23,6 +23,9 @@ public class ModConfig {
     @SerializedName("add-gesture-dialog")
     public boolean addGestureDialog = true;
 
+    public boolean fancyHud = true;
+    public boolean flatHud = true;
+
     public static ModConfig getInstance() {
         if (instance == null) {
             if (!load()) // only save if file wasn't just created

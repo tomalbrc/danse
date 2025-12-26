@@ -22,7 +22,11 @@ public class GestureCommand {
                 .executes(ctx -> {
                     var player = ctx.getSource().getPlayer();
                     if (player != null) {
-                        player.openDialog(Holder.direct(GestureDialog.DIALOG));
+                        if (ModConfig.getInstance().fancyHud) {
+                            GestureHudCommand.openHud(player);
+                        } else {
+                            player.openDialog(Holder.direct(GestureDialog.DIALOG));
+                        }
                     }
                     return Command.SINGLE_SUCCESS;
                 })

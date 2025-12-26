@@ -2,6 +2,7 @@ package de.tomalbrc.danse.mixin;
 
 import de.tomalbrc.danse.Danse;
 import de.tomalbrc.danse.GestureController;
+import de.tomalbrc.danse.ModConfig;
 import de.tomalbrc.danse.command.GestureHudCommand;
 import net.minecraft.network.protocol.game.ServerboundInteractPacket;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
@@ -33,7 +34,7 @@ public abstract class ServerGamePacketListenerImplMixin {
             }
 
             ci.cancel();
-        } else {
+        } else if (ModConfig.getInstance().fancyHud) {
             if (serverboundPlayerInputPacket.input().sprint() && serverboundPlayerInputPacket.input().shift()) {
                 GestureHudCommand.openHud(player);
                 ci.cancel();
