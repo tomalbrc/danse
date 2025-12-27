@@ -25,8 +25,6 @@ public class ModConfig {
 
     @SerializedName("fancy-hud")
     public boolean fancyHud = true;
-    @SerializedName("fancy-hud-flat")
-    public boolean fancyHudFlat = true;
 
     public static ModConfig getInstance() {
         if (instance == null) {
