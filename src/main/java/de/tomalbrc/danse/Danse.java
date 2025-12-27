@@ -3,6 +3,8 @@ package de.tomalbrc.danse;
 import com.google.gson.Gson;
 import com.mojang.logging.LogUtils;
 import de.tomalbrc.bil.core.model.Model;
+import de.tomalbrc.bil.file.loader.AjBlueprintLoader;
+import de.tomalbrc.bil.file.loader.AjModelLoader;
 import de.tomalbrc.danse.bbmodel.PlayerModelLoader;
 import de.tomalbrc.danse.command.GestureCommand;
 import de.tomalbrc.danse.emotecraft.EmotecraftAnimationFile;
