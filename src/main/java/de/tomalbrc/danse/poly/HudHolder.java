@@ -208,13 +208,13 @@ public class HudHolder extends ElementHolder {
                 //this.textDisplayElementList.get(i).setBackground(0x00_000000);
                 this.textDisplayElementList.get(i).setTextOpacity((byte)0);
                 this.textDisplayElementList.get(i).setBackground(0xFF_80bf80);
-                this.labels.get(i).setBackground(0xff_101010);
+                //this.labels.get(i).setBackground(0xff_101010);
                 this.labels.get(i).setBackground(0xFF_508f50);
             } else {
                 this.textDisplayElementList.get(i).setTextOpacity((byte)255);
                 this.textDisplayElementList.get(i).setText(TextUtil.parse("<gray>" + iconText(i)));
                 this.textDisplayElementList.get(i).setBackground(0xff_101010);
-                this.labels.get(i).setBackground(0xff_101010);
+                //this.labels.get(i).setBackground(0xff_101010);
                 this.labels.get(i).setBackground(0xff_202020);
             }
         }
