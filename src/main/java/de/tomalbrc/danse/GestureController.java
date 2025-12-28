@@ -33,7 +33,7 @@ public class GestureController {
     public static void onConnect(ServerPlayer serverPlayer) {
         // to have a cached model/texture of players
         TextureCache.fetch(serverPlayer.getGameProfile(), image -> {
-            MinecraftSkinParser.calculate(image, x -> {});
+            MinecraftSkinParser.calculate(serverPlayer.getUUID(), image, x -> {});
         });
     }
 
@@ -42,8 +42,7 @@ public class GestureController {
         if (cam != null) {
             onStop(cam);
         }
-        var rem = TextureCache.SKINS.remove(serverPlayer.getUUID());
-        if (rem != null) MinecraftSkinParser.remove(rem);
+        MinecraftSkinParser.remove(serverPlayer.getUUID());
     }
 
     public static void onStop(ServerPlayer player) {
@@ -85,7 +84,7 @@ public class GestureController {
 
     public static void onStart(ServerPlayer player, String animationName) {
         TextureCache.fetch(player.getGameProfile(), image -> {
-            MinecraftSkinParser.calculate(image, dataMap -> {
+            MinecraftSkinParser.calculate(player.getUUID(), image, dataMap -> {
                 // destroy any previous gestures
                 GestureCameraHolder camera = GestureController.GESTURE_CAMS.get(player.getUUID());
                 if (camera != null) {

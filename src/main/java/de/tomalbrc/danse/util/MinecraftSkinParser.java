@@ -21,7 +21,7 @@ public class MinecraftSkinParser {
     public static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> CLASSIC_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
     public static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> SLIM_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
 
-    private static final Map<BufferedImage, Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData>> PARSED_CACHE = new ConcurrentHashMap<>();
+    private static final Map<UUID, Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData>> PARSED_CACHE = new ConcurrentHashMap<>();
     public static final ImmutableList<Direction> DIRECTIONS = ImmutableList.of(Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST, Direction.UP, Direction.DOWN);
 
     static {
@@ -337,7 +337,7 @@ public class MinecraftSkinParser {
         return new ColorData(rgb);
     }
 
-    public static void calculate(BufferedImage image, Consumer<Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData>> onFinish) {
+    public static void calculate(UUID id, BufferedImage image, Consumer<Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData>> onFinish) {
         var cached = PARSED_CACHE.get(image);
         if (cached != null) {
             onFinish.accept(cached);
@@ -372,11 +372,11 @@ public class MinecraftSkinParser {
             data.put(part, new MinecraftSkinParser.PartData(innerCmd, outerCmd, MinecraftSkinParser.isSlimSkin(image)));
         }
 
-        if (image != null) PARSED_CACHE.put(image, data);
+        if (image != null) PARSED_CACHE.put(id, data);
         onFinish.accept(data);
     }
 
-    public static void remove(BufferedImage i) {
+    public static void remove(UUID i) {
         PARSED_CACHE.remove(i);
     }
 

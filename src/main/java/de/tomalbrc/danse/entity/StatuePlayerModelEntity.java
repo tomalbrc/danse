@@ -96,8 +96,7 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
 
         if (this.url != null && !this.url.isBlank()) {
             TextureCache.fetch(this.url, this::setTexture);
-        }
-        else if (this.playerName != null || this.playerUuid != null) {
+        } else if (this.playerName != null || this.playerUuid != null) {
             fetchGameProfile(this::setProfile);
             this.holder.setEquipment(this.equipment);
         } else {
@@ -137,7 +136,7 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
     }
 
     public void setTexture(BufferedImage image) {
-        MinecraftSkinParser.calculate(image, data -> this.holder.setSkinData(data));
+        MinecraftSkinParser.calculate(playerUuid, image, data -> this.holder.setSkinData(data));
     }
 
     public void fetchGameProfile(Consumer<GameProfile> cb) {
