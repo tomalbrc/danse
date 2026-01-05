@@ -105,7 +105,9 @@ public class GestureController {
                 // removes model etc when animation finishes
                 playerModel.playAnimation(animationName, (unused) -> GestureController.onStop(gestureCameraHolder));
 
-                player.level().addFreshEntity(playerModel);
+                player.level().getServer().execute(() -> {
+                    player.level().addFreshEntity(playerModel);
+                });
             });
         });
     }
