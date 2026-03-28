@@ -102,7 +102,7 @@ public class HudHolder extends ElementHolder {
         this.selection = new TextDisplayElement();
         this.setup(this.selection);
         this.selection.setText(Component.literal("\n\n\n").append(ComponentAligner.spacer(30)));
-        this.addElement(this.selection);
+        //this.addElement(this.selection);
 
         this.gui.open();
 
