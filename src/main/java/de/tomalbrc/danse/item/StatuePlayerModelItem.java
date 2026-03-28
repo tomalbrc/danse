@@ -5,6 +5,7 @@ import de.tomalbrc.danse.entity.StatuePlayerModelEntity;
 import de.tomalbrc.danse.registry.EntityRegistry;
 import de.tomalbrc.dialogutils.DialogUtils;
 import eu.pb4.polymer.core.api.item.PolymerItem;
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
@@ -28,7 +29,6 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
-import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.function.Consumer;
 

@@ -9,8 +9,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.Services;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.item.component.DyedItemColor;
@@ -115,7 +113,7 @@ public class TextureCache {
             }
         }
 
-        if (!itemStack.is(ItemTags.DYEABLE)) ARMOR_CACHE.put(key, result);
+        if (!itemStack.has(DataComponents.DYE)) ARMOR_CACHE.put(key, result);
 
         if (result != CustomModelData.EMPTY && trimCmd != CustomModelData.EMPTY) {
             return merged(new CustomModelData(result.floats(), new BooleanArrayList(result.flags()), result.strings(), new IntArrayList(result.colors())), trimCmd);

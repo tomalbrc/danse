@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.14-SNAPSHOT'
+    id 'net.fabricmc.fabric-loom' version '1.15-SNAPSHOT'
     id 'maven-publish'
 }
 
@@ -20,23 +20,22 @@ repositories {
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    modImplementation "eu.pb4:polymer-resource-pack:${project.polymer_version}"
-    modImplementation "eu.pb4:polymer-resource-pack-extras:${project.polymer_version}"
-    modImplementation "eu.pb4:polymer-core:${project.polymer_version}"
-    modImplementation "eu.pb4:polymer-virtual-entity:${project.polymer_version}"
-    modImplementation "eu.pb4:polymer-autohost:${project.polymer_version}"
+    implementation "eu.pb4:polymer-resource-pack:${project.polymer_version}"
+    implementation "eu.pb4:polymer-resource-pack-extras:${project.polymer_version}"
+    implementation "eu.pb4:polymer-core:${project.polymer_version}"
+    implementation "eu.pb4:polymer-virtual-entity:${project.polymer_version}"
+    implementation "eu.pb4:polymer-autohost:${project.polymer_version}"
 
-    modImplementation include("eu.pb4:map-canvas-api:${project.mapcanvas_version}")
-    modImplementation(include("eu.pb4:placeholder-api:${project.papi_version}"))
-    modImplementation include("eu.pb4:sgui:${project.sgui_version}")
+    implementation include("eu.pb4:map-canvas-api:${project.mapcanvas_version}")
+    implementation include("eu.pb4:placeholder-api:${project.papi_version}")
+    implementation include("eu.pb4:sgui:${project.sgui_version}")
 
-    modImplementation include("de.tomalbrc:blockbench-import-library:${project.bil_version}")
-    modImplementation include("de.tomalbrc:DialogUtils:${project.dialogutils_version}")
-    modImplementation include("de.tomalbrc:DialogUtils:${project.dialogutils_version}")
+    implementation include("de.tomalbrc:blockbench-import-library:${project.bil_version}")
+    implementation include("de.tomalbrc:DialogUtils:${project.dialogutils_version}")
+    implementation include("de.tomalbrc:DialogUtils:${project.dialogutils_version}")
 }
 
 processResources {
@@ -61,14 +60,13 @@ jar {
 
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release.set(21)
+    it.options.release.set(25)
 }
 
 java {
     withSourcesJar()
 }
 
-// configure the maven publication
 publishing {
     publications {
         mavenJava(MavenPublication) {
@@ -76,11 +74,7 @@ publishing {
         }
     }
 
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
-        // Add repositories to publish to here.
-        // Notice: This block does NOT have the same function as the block in the top level.
-        // The repositories here will be used for publishing your artifact, not for
-        // retrieving dependencies.
+
     }
 }

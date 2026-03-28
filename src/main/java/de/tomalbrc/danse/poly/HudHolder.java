@@ -3,6 +3,7 @@ package de.tomalbrc.danse.poly;
 import de.tomalbrc.bil.core.holder.wrapper.Bone;
 import de.tomalbrc.danse.GestureController;
 import de.tomalbrc.danse.registry.PlayerModelRegistry;
+import de.tomalbrc.danse.util.GestureDialog;
 import de.tomalbrc.dialogutils.util.ComponentAligner;
 import de.tomalbrc.dialogutils.util.TextUtil;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
@@ -12,8 +13,10 @@ import eu.pb4.polymer.virtualentity.api.elements.VirtualElement;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.HotbarGui;
 import net.fabricmc.loader.impl.util.StringUtil;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.util.Brightness;
@@ -59,19 +62,25 @@ public class HudHolder extends ElementHolder {
             }
 
             @Override
-            public void onClose() {
-                super.onClose();
+            public void onManualClose() {
+                super.onManualClose();
+                if (getAttachment() != null) destroy();
+            }
+
+            @Override
+            public void onPlayerClose(boolean success) {
+                super.onPlayerClose(success);
                 if (getAttachment() != null) destroy();
             }
         };
 
 
         for (int i = 0; i < 9; i++) {
-            this.gui.setSlot(i, GuiElementBuilder.from(Items.PAPER.getDefaultInstance()).model(Items.AIR.getDefaultInstance().get(DataComponents.ITEM_MODEL)).setItemName(Component.literal(
+            this.gui.setSlot(i, GuiElementBuilder.from(Items.PAPER.getDefaultInstance()).model(Identifier.withDefaultNamespace("air")).setItemName(Component.literal(
                     StringUtil.capitalize(PlayerModelRegistry.getAnimations().get(i))
             )));
 
-            TextDisplayElement element = new TextDisplayElement(TextUtil.parse(iconText(i)));
+            TextDisplayElement element = new TextDisplayElement(iconText(i));
             element.setBrightness(Brightness.FULL_BRIGHT);
             this.setup(element);
             this.addElement(element);
@@ -93,7 +102,7 @@ public class HudHolder extends ElementHolder {
         this.selection = new TextDisplayElement();
         this.setup(this.selection);
         this.selection.setText(Component.literal("\n\n\n").append(ComponentAligner.spacer(30)));
-        //this.addElement(this.selection);
+        this.addElement(this.selection);
 
         this.gui.open();
 
@@ -182,9 +191,9 @@ public class HudHolder extends ElementHolder {
         }
     }
 
-    protected String iconText(int index) {
+    protected MutableComponent iconText(int index) {
         var entry = String.valueOf((char) (0xE001 + index));
-        return "\n<font:danse:gesture>" + entry + "</font>\n\n";
+        return Component.literal("\n").append(Component.literal(entry).withStyle(Style.EMPTY.withFont(GestureDialog.FONT))).append("\n\n");
     }
 
     protected Component labelText(int index) {
@@ -203,7 +212,7 @@ public class HudHolder extends ElementHolder {
         this.slot = s;
         for (int i = 0; i < this.textDisplayElementList.size(); i++) {
             if (slot == i) {
-                this.textDisplayElementList.get(i).setText(TextUtil.parse("<white>" + iconText(i)));
+                this.textDisplayElementList.get(i).setText(iconText(i).withColor(0xFFFFFF));
                 //this.textDisplayElementList.get(i).setText(Component.empty());
                 //this.textDisplayElementList.get(i).setBackground(0x00_000000);
                 this.textDisplayElementList.get(i).setTextOpacity((byte)0);
@@ -212,7 +221,7 @@ public class HudHolder extends ElementHolder {
                 this.labels.get(i).setBackground(0xFF_508f50);
             } else {
                 this.textDisplayElementList.get(i).setTextOpacity((byte)255);
-                this.textDisplayElementList.get(i).setText(TextUtil.parse("<gray>" + iconText(i)));
+                this.textDisplayElementList.get(i).setText(iconText(i).withColor(0x7f7f7f));
                 this.textDisplayElementList.get(i).setBackground(0xff_101010);
                 //this.labels.get(i).setBackground(0xff_101010);
                 this.labels.get(i).setBackground(0xff_202020);

@@ -17,12 +17,12 @@ import de.tomalbrc.danse.util.MinecraftSkinParser;
 import de.tomalbrc.danse.util.TextureCache;
 import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.virtualentity.api.attachment.HolderAttachment;
+import eu.pb4.polymer.virtualentity.api.data.DisplayEntityData;
+import eu.pb4.polymer.virtualentity.api.data.EntityData;
 import eu.pb4.polymer.virtualentity.api.elements.DisplayElement;
 import eu.pb4.polymer.virtualentity.api.elements.InteractionElement;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import eu.pb4.polymer.virtualentity.api.elements.VirtualElement;
-import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
-import eu.pb4.polymer.virtualentity.api.tracker.EntityTrackedData;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.component.DataComponents;
@@ -160,11 +160,11 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
                     item.set(DataComponents.ITEM_MODEL, part.modelId(partData.slim() && part.isArm()));
 
                     item.set(DataComponents.CUSTOM_MODEL_DATA, partData.customModelDataInner());
-                    bone.element().getDataTracker().set(DisplayTrackedData.Item.ITEM, item, true);
+                    bone.element().getSyncedData().set(DisplayEntityData.Item.ITEM, item, true);
 
                     ItemStack outerItem = item.copy();
                     outerItem.set(DataComponents.CUSTOM_MODEL_DATA, partData.customModelDataOuter());
-                    bone.outer.getDataTracker().set(DisplayTrackedData.Item.ITEM, outerItem, true);
+                    bone.outer.getSyncedData().set(DisplayEntityData.Item.ITEM, outerItem, true);
                 }
             }
         }
@@ -185,11 +185,11 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
 
                     ItemStack armorItem = item.copy();
                     armorItem.set(DataComponents.CUSTOM_MODEL_DATA, TextureCache.armorCustomModelData(part, equipment.get(isBody ? EquipmentSlot.LEGS : part.getSlot()), true));
-                    bone.armor.getDataTracker().set(DisplayTrackedData.Item.ITEM, armorItem, true);
+                    bone.armor.getSyncedData().set(DisplayEntityData.Item.ITEM, armorItem, true);
 
                     ItemStack armorItemOuter = item.copy();
                     armorItemOuter.set(DataComponents.CUSTOM_MODEL_DATA, TextureCache.armorCustomModelData(part, equipment.get(isLeg ? EquipmentSlot.FEET : part.getSlot()), false));
-                    bone.armorOuter.getDataTracker().set(DisplayTrackedData.Item.ITEM, armorItemOuter, true);
+                    bone.armorOuter.getSyncedData().set(DisplayEntityData.Item.ITEM, armorItemOuter, true);
                 }
             }
         }
@@ -219,7 +219,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
     protected void updateElement(ServerPlayer serverPlayer, DisplayWrapper<?> display) {
         var queryResult = this.animationComponent.findPose(serverPlayer, display);
         if (queryResult != null) {
-            if (queryResult.owner() != serverPlayer && display.element().getDataTracker().isDirty()) {
+            if (queryResult.owner() != serverPlayer && display.element().getSyncedData().isDirty()) {
                 return;
             }
 
@@ -340,7 +340,7 @@ public class PlayerPartHolder<T extends StatuePlayerModelEntity & AnimatedEntity
 
         if (this.parent instanceof GesturePlayerModelEntity gesturePlayerModel) {
             List<SynchedEntityData.DataValue<?>> data = new ObjectArrayList<>();
-            data.add(SynchedEntityData.DataValue.create(EntityTrackedData.FLAGS, (byte) ((1 << EntityTrackedData.INVISIBLE_FLAG_INDEX))));
+            data.add(SynchedEntityData.DataValue.create(EntityData.FLAGS, (byte) ((1 << EntityData.INVISIBLE_FLAG_INDEX))));
             consumer.accept(new ClientboundSetEntityDataPacket(gesturePlayerModel.getPlayer().getId(), data));
         }
     }

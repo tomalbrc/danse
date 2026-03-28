@@ -13,6 +13,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.util.StringUtil;
 import net.minecraft.network.chat.*;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.dialog.*;
 import net.minecraft.server.dialog.body.DialogBody;
 import net.minecraft.server.dialog.body.PlainMessage;
@@ -27,6 +28,7 @@ import java.util.Optional;
 
 public class GestureDialog {
     public static Dialog DIALOG;
+    public static FontDescription FONT = new FontDescription.Resource(Identifier.fromNamespaceAndPath("danse", "gesture"));
     static byte[] DEFAULT_ICON;
 
     static {
@@ -56,7 +58,7 @@ public class GestureDialog {
                 resourcePackBuilder.addData(AssetPaths.texture(Util.id("font/" + name)), iconStream);
             }
 
-            var iconStr = "<font:danse:gesture>" + entry + "</font>";
+            var iconStr = Component.literal(entry).withStyle(Style.EMPTY.withFont(FONT));
             var labelStr = StringUtil.capitalize(animation);
             dialogEntries.add(new DialogEntry(animation, iconStr, labelStr, width));
         }
@@ -77,7 +79,7 @@ public class GestureDialog {
 
             for (int col = row; col < row + columns && col < dialogEntries.size(); col++) {
                 var dialogEntry = dialogEntries.get(col);
-                var icon = wrapCmd(dialogEntry.animation, Component.empty().append(iconSpace).append(TextUtil.parse(dialogEntry.icon)).append(iconSpace));
+                var icon = wrapCmd(dialogEntry.animation, Component.empty().append(iconSpace).append(dialogEntry.icon).append(iconSpace));
                 var labels = wrapCmd(dialogEntry.animation, ComponentAligner.align(ComponentAligner.defaultFont(TextUtil.parse(dialogEntry.text)), TextUtil.Alignment.CENTER, width / columns));
 
                 line1.append(icon);
@@ -139,7 +141,7 @@ public class GestureDialog {
         return DEFAULT_ICON;
     }
 
-    private record DialogEntry(String animation, String icon, String text, int width) {
+    private record DialogEntry(String animation, Component icon, String text, int width) {
 
     }
 }

@@ -11,7 +11,7 @@ import de.tomalbrc.danse.util.Util;
 import eu.pb4.polymer.core.api.utils.PolymerUtils;
 import eu.pb4.polymer.virtualentity.api.VirtualEntityUtils;
 import eu.pb4.polymer.virtualentity.api.attachment.ChunkAttachment;
-import eu.pb4.polymer.virtualentity.api.tracker.EntityTrackedData;
+import eu.pb4.polymer.virtualentity.api.data.EntityData;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
@@ -61,7 +61,7 @@ public class GestureController {
             }
 
             List<SynchedEntityData.DataValue<?>> data = new ObjectArrayList<>();
-            data.add(SynchedEntityData.DataValue.create(EntityTrackedData.FLAGS, player.getEntityData().get(EntityTrackedData.FLAGS)));
+            data.add(SynchedEntityData.DataValue.create(EntityData.FLAGS, player.getEntityData().get(EntityData.FLAGS)));
             camera.getPlayerModel().getHolder().sendPacket(new ClientboundSetEntityDataPacket(player.getId(), data));
 
             var pmr = new PositionMoveRotation(camera.getOrigin(), Vec3.ZERO, player.getYRot(), player.getXRot());
@@ -70,7 +70,7 @@ public class GestureController {
             player.connection.send(
                     new ClientboundBundlePacket(ImmutableList.of(
                             new ClientboundSetCameraPacket(player),
-                            VirtualEntityUtils.createRidePacket(camera.getCameraId(), IntList.of()),
+                            VirtualEntityUtils.createClientboundSetPassengersPacket(camera.getCameraId(), IntList.of()),
                             new ClientboundGameEventPacket(ClientboundGameEventPacket.CHANGE_GAME_MODE, player.gameMode().getId()),
                             packet,
                             p2

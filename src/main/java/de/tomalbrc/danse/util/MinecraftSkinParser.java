@@ -338,7 +338,7 @@ public class MinecraftSkinParser {
     }
 
     public static void calculate(UUID id, BufferedImage image, Consumer<Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData>> onFinish) {
-        var cached = PARSED_CACHE.get(image);
+        var cached = PARSED_CACHE.get(id);
         if (cached != null) {
             onFinish.accept(cached);
             return;

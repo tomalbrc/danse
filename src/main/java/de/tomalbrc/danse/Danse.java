@@ -3,8 +3,6 @@ package de.tomalbrc.danse;
 import com.google.gson.Gson;
 import com.mojang.logging.LogUtils;
 import de.tomalbrc.bil.core.model.Model;
-import de.tomalbrc.bil.file.loader.AjBlueprintLoader;
-import de.tomalbrc.bil.file.loader.AjModelLoader;
 import de.tomalbrc.danse.bbmodel.PlayerModelLoader;
 import de.tomalbrc.danse.command.GestureCommand;
 import de.tomalbrc.danse.emotecraft.EmotecraftAnimationFile;
@@ -16,9 +14,12 @@ import de.tomalbrc.danse.util.GestureDialog;
 import de.tomalbrc.dialogutils.util.FontUtil;
 import eu.pb4.polymer.autohost.impl.AutoHostConfig;
 import eu.pb4.polymer.common.impl.CommonImpl;
+import eu.pb4.polymer.resourcepack.api.OutputGenerator;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder;
+import eu.pb4.polymer.resourcepack.api.ResourcePackStatusConsumer;
 import eu.pb4.polymer.resourcepack.impl.PolymerResourcePackMod;
+import eu.pb4.polymer.resourcepack.impl.generation.DefaultRPBuilder;
 import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -63,7 +64,7 @@ public class Danse implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> {
             SERVER = minecraftServer;
             if (!CommonImpl.loadConfig("auto-host", AutoHostConfig.class).enabled)
-                PolymerResourcePackMod.generateAndCall(minecraftServer, true, minecraftServer::sendSystemMessage, () -> {});
+                PolymerResourcePackMod.generateAndCall(minecraftServer, true, minecraftServer::sendSystemMessage, result -> {});
         });
 
         PolymerResourcePackUtils.RESOURCE_PACK_AFTER_INITIAL_CREATION_EVENT.register(resourcePackBuilder -> {
@@ -83,7 +84,7 @@ public class Danse implements ModInitializer {
 
         ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> loadAnimations());
 
-        RESOURCEPACK_BUILDER = PolymerResourcePackUtils.createBuilder(FabricLoader.getInstance().getGameDir().resolve("polymer/danse"));
+        RESOURCEPACK_BUILDER = new DefaultRPBuilder<>(OutputGenerator.zipGenerator(Path.of("polymer/danse")), ResourcePackStatusConsumer.nonLogging());
         var imageData = RESOURCEPACK_BUILDER.getDataOrSource("assets/minecraft/textures/entity/player/wide/steve.png");
         try {
             STEVE_TEXTURE = ImageIO.read(new ByteArrayInputStream(imageData));

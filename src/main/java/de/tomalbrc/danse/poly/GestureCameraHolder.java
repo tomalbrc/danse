@@ -90,8 +90,8 @@ public class GestureCameraHolder extends ElementHolder {
     @Override
     protected void startWatchingExtraPackets(ServerGamePacketListenerImpl player, Consumer<Packet<@NotNull ClientGamePacketListener>> packetConsumer) {
         super.startWatchingExtraPackets(player, packetConsumer);
-        packetConsumer.accept(VirtualEntityUtils.createRidePacket(cameraElement.getEntityId(), IntList.of(player.player.getId())));
-        packetConsumer.accept(VirtualEntityUtils.createSetCameraEntityPacket(cameraElement.getEntityId()));
+        packetConsumer.accept(VirtualEntityUtils.createClientboundSetPassengersPacket(cameraElement.getEntityId(), IntList.of(player.player.getId())));
+        packetConsumer.accept(VirtualEntityUtils.createClientboundSetCameraPacket(cameraElement.getEntityId()));
         packetConsumer.accept(new ClientboundGameEventPacket(ClientboundGameEventPacket.CHANGE_GAME_MODE, GameType.SPECTATOR.getId()));
     }
 
