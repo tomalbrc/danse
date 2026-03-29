@@ -372,7 +372,7 @@ public class MinecraftSkinParser {
             data.put(part, new MinecraftSkinParser.PartData(innerCmd, outerCmd, MinecraftSkinParser.isSlimSkin(image)));
         }
 
-        if (image != null) PARSED_CACHE.put(id, data);
+        if (image != null && id != null) PARSED_CACHE.put(id, data);
         onFinish.accept(data);
     }
 
