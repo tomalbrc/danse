@@ -27,7 +27,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -35,8 +34,6 @@ public class TextureCache {
     private static final Map<CacheKey, CustomModelData> ARMOR_CACHE = new ConcurrentHashMap<>();
     private static final Map<CacheKey, CustomModelData> TRIM_CACHE = new ConcurrentHashMap<>();
     private static List<Integer> PALETTE_KEY;
-
-    public static Map<UUID, BufferedImage> SKINS = new ConcurrentHashMap<>();
 
     public static void fetch(GameProfile profile, Consumer<BufferedImage> onFinish) {
         if (profile.properties().containsKey("textures")) {
