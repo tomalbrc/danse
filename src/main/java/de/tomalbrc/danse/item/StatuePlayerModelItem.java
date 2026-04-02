@@ -3,6 +3,7 @@ package de.tomalbrc.danse.item;
 import de.tomalbrc.danse.Danse;
 import de.tomalbrc.danse.entity.StatuePlayerModelEntity;
 import de.tomalbrc.danse.registry.EntityRegistry;
+import de.tomalbrc.danse.util.Util;
 import de.tomalbrc.dialogutils.DialogUtils;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
@@ -10,6 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -34,8 +36,10 @@ import java.util.function.Consumer;
 
 public class StatuePlayerModelItem extends ArmorStandItem implements PolymerItem {
 
+    private static final Identifier ITEM_MODEL = Util.id("player_statue");
+
     public StatuePlayerModelItem(Properties properties) {
-        super(properties);
+        super(properties.modelId(ITEM_MODEL));
     }
 
     @Override
