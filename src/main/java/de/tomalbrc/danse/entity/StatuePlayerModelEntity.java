@@ -98,10 +98,10 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
             TextureCache.fetch(this.url, this::setTexture);
         } else if (this.playerName != null || this.playerUuid != null) {
             fetchGameProfile(this::setProfile);
-            this.holder.setEquipment(this.equipment);
         } else {
             this.setTexture(Danse.STEVE_TEXTURE);
         }
+        this.holder.setEquipment(this.equipment);
     }
 
     public void setAnyModel() {
@@ -152,15 +152,17 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
     @Override
     @NotNull
     public ItemStack getPickResult() {
-        var stack = ItemRegistry.PLAYER_STATUE.getDefaultInstance();
-        stack.set(DataComponents.PROFILE, this.playerUuid != null ? ResolvableProfile.createUnresolved(this.playerUuid) : ResolvableProfile.createUnresolved(this.playerName));
-        return stack;
+        ItemStack itemStack = new ItemStack(ItemRegistry.PLAYER_STATUE);
+        if (this.playerUuid != null) {
+            itemStack.set(DataComponents.PROFILE, ResolvableProfile.createUnresolved(this.playerUuid));
+        } else if (this.playerName != null) {
+            itemStack.set(DataComponents.PROFILE, ResolvableProfile.createUnresolved(this.playerName));
+        }
+        return itemStack;
     }
 
     public void customBrokenByPlayer(ServerLevel serverLevel, DamageSource damageSource) {
-        ItemStack itemStack = new ItemStack(ItemRegistry.PLAYER_STATUE);
-        itemStack.set(DataComponents.PROFILE, this.playerUuid != null ? ResolvableProfile.createUnresolved(this.playerUuid) : ResolvableProfile.createUnresolved(this.playerName));
-
+        var itemStack = getPickResult();
         itemStack.set(DataComponents.CUSTOM_NAME, this.getCustomName());
         Block.popResource(this.level(), this.blockPosition(), itemStack);
         ((ArmorStandInvoker)this).invokeBrokenByAnything(serverLevel, damageSource);
