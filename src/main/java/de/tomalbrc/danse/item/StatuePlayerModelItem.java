@@ -3,12 +3,14 @@ package de.tomalbrc.danse.item;
 import de.tomalbrc.danse.Danse;
 import de.tomalbrc.danse.entity.StatuePlayerModelEntity;
 import de.tomalbrc.danse.registry.EntityRegistry;
+import de.tomalbrc.danse.util.Util;
 import de.tomalbrc.dialogutils.DialogUtils;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -28,11 +30,14 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.function.Consumer;
 
 public class StatuePlayerModelItem extends ArmorStandItem implements PolymerItem {
+
+    private static final Identifier ITEM_MODEL = Util.id("player_statue");
 
     public StatuePlayerModelItem(Properties properties) {
         super(properties);
@@ -87,6 +92,11 @@ public class StatuePlayerModelItem extends ArmorStandItem implements PolymerItem
     @Override
     public Item getPolymerItem(ItemStack itemStack, PacketContext packetContext) {
         return Items.ARMOR_STAND;
+    }
+
+    @Override
+    public @Nullable Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {
+        return ITEM_MODEL;
     }
 
     @Override
