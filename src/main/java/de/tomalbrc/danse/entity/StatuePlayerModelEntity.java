@@ -38,6 +38,8 @@ import java.util.function.Consumer;
 
 // ArmorStand-like base
 public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntity {
+    private static final UUID ZERO_UUID = new UUID(0,0);
+
     public static final Identifier ID = Util.id("player_statue");
     private static final String PLAYER = "Player";
     private static final String URL = "URL";
@@ -47,9 +49,9 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
     private boolean poseDirty = true;
 
     @Nullable
-    protected String playerName;
+    protected String playerName = "Steve";
     @Nullable
-    protected UUID playerUuid;
+    protected UUID playerUuid = ZERO_UUID;
     @Nullable
     protected String url;
 

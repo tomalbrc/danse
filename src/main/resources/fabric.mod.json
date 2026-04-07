@@ -6,7 +6,7 @@
   "description": "",
   "icon": "icon.png",
   "authors": [
-    "tomalbrc"
+    "tomalbrc", "Drex"
   ],
   "contact": {
     "repo": "https://github.com/tomalbrc/danse"
@@ -23,12 +23,12 @@
   ],
   "depends": {
     "fabricloader": ">=${loader_version}",
-    "minecraft": ">=1.21.11",
+    "minecraft": ">=26.1",
     "fabric-api": "*",
     "polymer-resource-pack": "*",
     "polymer-core": "*",
     "polymer-virtual-entity": "*",
-    "bil": ">=1.8.2",
+    "bil": ">=2.0.5",
     "dialogutils": ">=1.1.4"
   }
 }
