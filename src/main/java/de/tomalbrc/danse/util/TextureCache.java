@@ -2,7 +2,6 @@ package de.tomalbrc.danse.util;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
-import com.mojang.authlib.GameProfile;
 import de.tomalbrc.danse.Danse;
 import it.unimi.dsi.fastutil.booleans.BooleanArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -19,44 +18,16 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 
 public class TextureCache {
     private static final Map<CacheKey, CustomModelData> ARMOR_CACHE = new ConcurrentHashMap<>();
     private static final Map<CacheKey, CustomModelData> TRIM_CACHE = new ConcurrentHashMap<>();
     private static List<Integer> PALETTE_KEY;
-
-    public static void fetch(GameProfile profile, Consumer<BufferedImage> onFinish) {
-        if (profile.properties().containsKey("textures")) {
-            var skin = Danse.SERVER.services().sessionService().getTextures(profile).skin();
-            if (skin == null) {
-                onFinish.accept(Danse.STEVE_TEXTURE);
-                return;
-            }
-
-            var url = skin.getUrl();
-            try {
-                var img = ImageIO.read(new URI(url).toURL());
-                Danse.SERVER.execute(()-> onFinish.accept(img));
-            } catch (IOException | URISyntaxException e) {
-                throw new RuntimeException(e);
-            }
-
-        } else {
-            onFinish.accept(Danse.STEVE_TEXTURE);
-        }
-    }
-
-    public static void fetch(String url, Consumer<BufferedImage> onFinish) {
-        MinecraftSkinFetcher.fetchSkinFromURL(url, onFinish);
-    }
 
     public static CustomModelData armorCustomModelData(MinecraftSkinParser.BodyPart part, ItemStack itemStack, boolean inner) {
         if (!itemStack.has(DataComponents.EQUIPPABLE))
