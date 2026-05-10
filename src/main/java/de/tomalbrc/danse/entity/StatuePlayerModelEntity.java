@@ -3,14 +3,13 @@ package de.tomalbrc.danse.entity;
 import com.mojang.authlib.GameProfile;
 import de.tomalbrc.bil.api.AnimatedEntity;
 import de.tomalbrc.bil.core.model.Model;
-import de.tomalbrc.danse.Danse;
 import de.tomalbrc.danse.mixin.ArmorStandInvoker;
 import de.tomalbrc.danse.poly.PlayerPartHolder;
 import de.tomalbrc.danse.poly.StatuePlayerPartHolder;
 import de.tomalbrc.danse.registry.ItemRegistry;
 import de.tomalbrc.danse.registry.PlayerModelRegistry;
+import de.tomalbrc.danse.util.MinecraftSkinFetcher;
 import de.tomalbrc.danse.util.MinecraftSkinParser;
-import de.tomalbrc.danse.util.TextureCache;
 import de.tomalbrc.danse.util.Util;
 import de.tomalbrc.dialogutils.DialogUtils;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
@@ -32,7 +31,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.image.BufferedImage;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -95,11 +94,12 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
         this.url = valueInput.getStringOr(URL, null);
 
         if (this.url != null && !this.url.isBlank()) {
-            TextureCache.fetch(this.url, this::setTexture);
+            MinecraftSkinFetcher.fetchSkinFromUrl(this.url, image ->
+                    this.setTexture(MinecraftSkinParser.calculate(image)));
         } else if (this.playerName != null || this.playerUuid != null) {
             fetchGameProfile(this::setProfile);
         } else {
-            this.setTexture(Danse.STEVE_TEXTURE);
+            this.setTexture(MinecraftSkinParser.STEVE_SKIN);
         }
         this.holder.setEquipment(this.equipment);
     }
@@ -132,11 +132,18 @@ public class StatuePlayerModelEntity extends ArmorStand implements AnimatedEntit
         this.playerName = profile.name();
         this.playerUuid = profile.id();
 
-        TextureCache.fetch(profile, this::setTexture);
+        var cachedSkin = MinecraftSkinParser.getCachedData(profile.id());
+        if (cachedSkin != null) {
+            setTexture(cachedSkin);
+        } else {
+            MinecraftSkinFetcher.fetchSkinFromProfile(profile, image -> {
+                setTexture(MinecraftSkinParser.calculateAndCache(profile.id(), image));
+            });
+        }
     }
 
-    public void setTexture(BufferedImage image) {
-        MinecraftSkinParser.calculate(playerUuid, image, data -> this.holder.setSkinData(data));
+    public void setTexture(Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> data) {
+        this.holder.setSkinData(data);
     }
 
     public void fetchGameProfile(Consumer<GameProfile> cb) {
