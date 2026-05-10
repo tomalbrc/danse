@@ -2,14 +2,12 @@ package de.tomalbrc.danse.util;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
-import com.mojang.authlib.GameProfile;
 import de.tomalbrc.danse.Danse;
 import it.unimi.dsi.fastutil.booleans.BooleanArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.Services;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomModelData;
@@ -21,17 +19,11 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 
 public class TextureCache {
     private static final Map<CacheKey, CustomModelData> ARMOR_CACHE = new ConcurrentHashMap<>();
