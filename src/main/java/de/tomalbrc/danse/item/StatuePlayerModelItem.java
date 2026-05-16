@@ -1,8 +1,8 @@
 package de.tomalbrc.danse.item;
 
-import de.tomalbrc.danse.Danse;
 import de.tomalbrc.danse.entity.StatuePlayerModelEntity;
 import de.tomalbrc.danse.registry.EntityRegistry;
+import de.tomalbrc.danse.util.MinecraftSkinParser;
 import de.tomalbrc.danse.util.Util;
 import de.tomalbrc.dialogutils.DialogUtils;
 import eu.pb4.polymer.core.api.item.PolymerItem;
@@ -70,7 +70,7 @@ public class StatuePlayerModelItem extends ArmorStandItem implements PolymerItem
                         profile.resolveProfile(DialogUtils.SERVER.services().profileResolver()).thenAccept(statue::setProfile);
                     }
                     else {
-                        statue.setTexture(Danse.STEVE_TEXTURE);
+                        statue.setTexture(MinecraftSkinParser.STEVE_SKIN);
                     }
 
                     float yRot = (float) Mth.floor((Mth.wrapDegrees(useOnContext.getRotation() - 180.0F) + 22.5F) / 45.0F) * 45.0F;

@@ -1,6 +1,7 @@
 package de.tomalbrc.danse.util;
 
 import com.google.common.collect.ImmutableList;
+import de.tomalbrc.danse.Danse;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
@@ -22,12 +23,14 @@ public class MinecraftSkinParser {
     public static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> SLIM_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
 
     private static final Map<UUID, Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData>> PARSED_CACHE = new ConcurrentHashMap<>();
+    public static final Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> STEVE_SKIN;
     public static final ImmutableList<Direction> DIRECTIONS = ImmutableList.of(Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST, Direction.UP, Direction.DOWN);
 
     static {
         defineSteveTextures(CLASSIC_TEXTURE_MAP);
         defineNotchTextures(CLASSIC_TEXTURE_MAP, NOTCH_TEXTURE_MAP);
         defineAlexTextures(CLASSIC_TEXTURE_MAP, SLIM_TEXTURE_MAP);
+        STEVE_SKIN = calculateAndCache(new UUID(0, 0), Danse.STEVE_TEXTURE);
     }
 
     private static void defineNotchTextures(Map<BodyPart, Map<Layer, Map<Direction, int[]>>> classic, Map<BodyPart, Map<Layer, Map<Direction, int[]>>> notch) {
@@ -337,13 +340,7 @@ public class MinecraftSkinParser {
         return new ColorData(rgb);
     }
 
-    public static void calculate(UUID id, BufferedImage image, Consumer<Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData>> onFinish) {
-        var cached = PARSED_CACHE.get(id);
-        if (cached != null) {
-            onFinish.accept(cached);
-            return;
-        }
-
+    public static Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> calculate(BufferedImage image) {
         Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> data = new Object2ObjectArrayMap<>();
         for (MinecraftSkinParser.BodyPart part : MinecraftSkinParser.BodyPart.values()) {
             List<Integer> colors = new ArrayList<>();
@@ -372,11 +369,20 @@ public class MinecraftSkinParser {
             data.put(part, new MinecraftSkinParser.PartData(innerCmd, outerCmd, MinecraftSkinParser.isSlimSkin(image)));
         }
 
-        if (image != null && id != null) PARSED_CACHE.put(id, data);
-        onFinish.accept(data);
+        return data;
     }
 
-    public static void remove(UUID i) {
+    public static Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> calculateAndCache(UUID id, BufferedImage image) {
+        var data = calculate(image);
+        if (image != null && id != null) PARSED_CACHE.put(id, data);
+        return data;
+    }
+
+    public static Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> getCachedData(UUID id) {
+        return PARSED_CACHE.get(id);
+    }
+
+    public static void removeCachedData(UUID i) {
         PARSED_CACHE.remove(i);
     }
 
