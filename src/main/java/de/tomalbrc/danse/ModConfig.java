@@ -24,7 +24,7 @@ public class ModConfig {
     public boolean addGestureDialog = true;
 
     @SerializedName("fancy-hud")
-    public boolean fancyHud = true;
+    public boolean fancyHud = false;
 
     public static ModConfig getInstance() {
         if (instance == null) {
