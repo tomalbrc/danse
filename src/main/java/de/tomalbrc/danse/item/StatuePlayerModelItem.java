@@ -19,6 +19,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.PostSpawnProcessor;
 import net.minecraft.world.item.ArmorStandItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -31,8 +32,6 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.function.Consumer;
 
 public class StatuePlayerModelItem extends ArmorStandItem implements PolymerItem {
 
@@ -57,8 +56,8 @@ public class StatuePlayerModelItem extends ArmorStandItem implements PolymerItem
             AABB aABB = EntityRegistry.PLAYER_STATUE.getDimensions().makeBoundingBox(vec3.x(), vec3.y(), vec3.z());
             if (level.noCollision(null, aABB) && level.getEntities(null, aABB).isEmpty()) {
                 if (level instanceof ServerLevel serverLevel) {
-                    Consumer<StatuePlayerModelEntity> consumer = EntityType.createDefaultStackConfig(serverLevel, itemStack, useOnContext.getPlayer());
-                    StatuePlayerModelEntity statue = EntityRegistry.PLAYER_STATUE.create(serverLevel, consumer, blockPos, EntitySpawnReason.SPAWN_ITEM_USE, true, true);
+                    PostSpawnProcessor<StatuePlayerModelEntity> postSpawnProcessor = EntityType.createDefaultStackConfig(serverLevel, itemStack, useOnContext.getPlayer());
+                    StatuePlayerModelEntity statue = EntityRegistry.PLAYER_STATUE.create(serverLevel, postSpawnProcessor, blockPos, EntitySpawnReason.SPAWN_ITEM_USE, true, true);
                     if (statue == null) {
                         return InteractionResult.FAIL;
                     }
