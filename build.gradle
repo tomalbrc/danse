@@ -10,11 +10,6 @@ loom {
     accessWidenerPath = file("src/main/resources/danse.accesswidener")
 }
 
-configurations {
-    shade
-    implementation.extendsFrom(shade)
-}
-
 repositories {
     mavenLocal()
     mavenCentral()
