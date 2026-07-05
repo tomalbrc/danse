@@ -27,29 +27,50 @@ public class MinecraftSkinFetcher {
     private static final Map<String, CompletableFuture<BufferedImage>> FUTURE_CACHE = new ConcurrentHashMap<>();
     private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
-    public static void fetchSkinFromEncodedProfile(String base64val, Consumer<BufferedImage> callback) {
+    public static void fetchSkinFromEncodedProfile(String base64val, Consumer<MinecraftSkinData> callback) {
         String decodedJson = new String(Base64.getDecoder().decode(base64val));
         JsonObject textureData = gson.fromJson(decodedJson, JsonObject.class);
-        var url = textureData.getAsJsonObject("textures").getAsJsonObject("SKIN").get("url").getAsString();
-        fetchSkinFromUrl(url, callback);
+
+        JsonObject skin = textureData
+                .getAsJsonObject("textures")
+                .getAsJsonObject("SKIN");
+
+        String url = skin.get("url").getAsString();
+
+        JsonObject metadata = skin.getAsJsonObject("metadata");
+
+        String modelStr = (metadata != null && metadata.has("model"))
+                ? metadata.get("model").getAsString()
+                : null;
+
+        MinecraftSkinData.Model model =
+                MinecraftSkinData.Model.from(modelStr);
+
+        fetchSkinImageFromUrl(url,
+                image -> callback.accept(new MinecraftSkinData(image, model)));
     }
 
-    public static void fetchSkinFromProfile(GameProfile profile, Consumer<BufferedImage> onFinish) {
+    public static void fetchSkinFromProfile(GameProfile profile, Consumer<MinecraftSkinData> onFinish) {
         if (!profile.properties().containsKey("textures")) {
-            onFinish.accept(Danse.STEVE_TEXTURE);
+            onFinish.accept(Danse.STEVE_SKIN);
             return;
         }
 
         var skin = Danse.SERVER.services().sessionService().getTextures(profile).skin();
         if (skin == null) {
-            onFinish.accept(Danse.STEVE_TEXTURE);
+            onFinish.accept(Danse.STEVE_SKIN);
             return;
         }
 
-        fetchSkinFromUrl(skin.getUrl(), onFinish);
+        var model = MinecraftSkinData.Model.from(skin.getMetadata("model"));
+        fetchSkinImageFromUrl(skin.getUrl(), image -> onFinish.accept(new MinecraftSkinData(image, model)));
     }
 
-    public static void fetchSkinFromUrl(String url, Consumer<BufferedImage> onFinish) {
+    public static void fetchSkinFromUrl(String url, Consumer<MinecraftSkinData> onFinish) {
+        fetchSkinImageFromUrl(url, image -> onFinish.accept(MinecraftSkinData.from(image)));
+    }
+
+    public static void fetchSkinImageFromUrl(String url, Consumer<BufferedImage> onFinish) {
         FUTURE_CACHE.computeIfAbsent(url, x -> CompletableFuture
                 .supplyAsync(() -> {
                     try {

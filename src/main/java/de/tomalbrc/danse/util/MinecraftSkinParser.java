@@ -16,8 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public class MinecraftSkinParser {
-    private static final int TEXTURE_WIDTH = 64;
-    private static final int TEXTURE_HEIGHT = 64;
+
     public static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> NOTCH_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
     public static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> CLASSIC_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
     public static final Map<BodyPart, Map<Layer, Map<Direction, int[]>>> SLIM_TEXTURE_MAP = new EnumMap<>(BodyPart.class);
@@ -30,7 +29,7 @@ public class MinecraftSkinParser {
         defineSteveTextures(CLASSIC_TEXTURE_MAP);
         defineNotchTextures(CLASSIC_TEXTURE_MAP, NOTCH_TEXTURE_MAP);
         defineAlexTextures(CLASSIC_TEXTURE_MAP, SLIM_TEXTURE_MAP);
-        STEVE_SKIN = calculateAndCache(new UUID(0, 0), Danse.STEVE_TEXTURE);
+        STEVE_SKIN = calculateAndCache(new UUID(0, 0), Danse.STEVE_SKIN);
     }
 
     private static void defineNotchTextures(Map<BodyPart, Map<Layer, Map<Direction, int[]>>> classic, Map<BodyPart, Map<Layer, Map<Direction, int[]>>> notch) {
@@ -252,12 +251,6 @@ public class MinecraftSkinParser {
         map.put(BodyPart.LEFT_LEG, leftLegMap);
     }
 
-    public static boolean isSlimSkin(BufferedImage image) {
-        return image.getWidth() == TEXTURE_WIDTH &&
-                image.getHeight() == TEXTURE_HEIGHT &&
-                image.getRGB(50, 16) == 0;
-    }
-
     public static void extractTextureRGB(BufferedImage image, Map<BodyPart, Map<Layer, Map<Direction, int[]>>> textureMap, BodyPart part, Layer layer, Direction direction, Consumer<ColorData> consumer) {
         Map<Layer, Map<Direction, int[]>> partMap = textureMap.get(part);
         if (partMap == null) return;
@@ -285,10 +278,19 @@ public class MinecraftSkinParser {
         }
     }
 
-    public static void extractTextureRGB(BufferedImage image, BodyPart part, Layer layer, Direction direction, Consumer<ColorData> consumer) {
-        boolean isSlim = isSlimSkin(image);
-        Map<BodyPart, Map<Layer, Map<Direction, int[]>>> textureMap = isSlim ? SLIM_TEXTURE_MAP : image.getHeight() > 32 ? CLASSIC_TEXTURE_MAP : NOTCH_TEXTURE_MAP;
-        extractTextureRGB(image, textureMap, part, layer, direction, consumer);
+    public static void extractTextureRGB(MinecraftSkinData skin, BodyPart part, Layer layer, Direction direction, Consumer<ColorData> consumer
+    ) {
+        Map<BodyPart, Map<Layer, Map<Direction, int[]>>> textureMap;
+
+        if (skin.model() == MinecraftSkinData.Model.SLIM) {
+            textureMap = SLIM_TEXTURE_MAP;
+        } else if (skin.image().getHeight() > 32) {
+            textureMap = CLASSIC_TEXTURE_MAP;
+        } else {
+            textureMap = NOTCH_TEXTURE_MAP;
+        }
+
+        extractTextureRGB(skin.image(), textureMap, part, layer, direction, consumer);
     }
 
     private static void eastTex(BufferedImage image, Consumer<ColorData> consumer, int width, int height, int startX, int startY) {
@@ -340,14 +342,14 @@ public class MinecraftSkinParser {
         return new ColorData(rgb);
     }
 
-    public static Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> calculate(BufferedImage image) {
+    public static Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> calculate(MinecraftSkinData skin) {
         Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> data = new Object2ObjectArrayMap<>();
         for (MinecraftSkinParser.BodyPart part : MinecraftSkinParser.BodyPart.values()) {
             List<Integer> colors = new ArrayList<>();
             List<Boolean> alphas = new ArrayList<>();
 
             for (Direction direction : DIRECTIONS) {
-                MinecraftSkinParser.extractTextureRGB(image, part, MinecraftSkinParser.Layer.INNER, direction, colorData -> {
+                MinecraftSkinParser.extractTextureRGB(skin, part, MinecraftSkinParser.Layer.INNER, direction, colorData -> {
                     colors.add(colorData.color());
                     alphas.add(colorData.alpha());
                 });
@@ -355,9 +357,9 @@ public class MinecraftSkinParser {
 
             List<Integer> colorsOuter = new ArrayList<>();
             List<Boolean> alphasOuter = new ArrayList<>();
-            if (image.getHeight() > 32) {
+            if (skin.image().getHeight() > 32) {
                 for (final Direction direction : DIRECTIONS) {
-                    MinecraftSkinParser.extractTextureRGB(image, part, MinecraftSkinParser.Layer.OUTER, direction, colorData -> {
+                    MinecraftSkinParser.extractTextureRGB(skin, part, MinecraftSkinParser.Layer.OUTER, direction, colorData -> {
                         colorsOuter.add(colorData.color());
                         alphasOuter.add(colorData.alpha());
                     });
@@ -366,15 +368,15 @@ public class MinecraftSkinParser {
 
             CustomModelData innerCmd = new CustomModelData(ImmutableList.of(), alphas, ImmutableList.of(), colors);
             CustomModelData outerCmd = new CustomModelData(ImmutableList.of(), alphasOuter, ImmutableList.of(), colorsOuter);
-            data.put(part, new MinecraftSkinParser.PartData(innerCmd, outerCmd, MinecraftSkinParser.isSlimSkin(image)));
+            data.put(part, new MinecraftSkinParser.PartData(innerCmd, outerCmd, skin.model() == MinecraftSkinData.Model.SLIM));
         }
 
         return data;
     }
 
-    public static Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> calculateAndCache(UUID id, BufferedImage image) {
-        var data = calculate(image);
-        if (image != null && id != null) PARSED_CACHE.put(id, data);
+    public static Map<MinecraftSkinParser.BodyPart, MinecraftSkinParser.PartData> calculateAndCache(UUID id, MinecraftSkinData skin) {
+        var data = calculate(skin);
+        if (skin != null && id != null) PARSED_CACHE.put(id, data);
         return data;
     }
 
