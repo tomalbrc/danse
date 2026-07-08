@@ -11,6 +11,7 @@ import de.tomalbrc.danse.registry.EntityRegistry;
 import de.tomalbrc.danse.registry.ItemRegistry;
 import de.tomalbrc.danse.registry.PlayerModelRegistry;
 import de.tomalbrc.danse.util.GestureDialog;
+import de.tomalbrc.danse.util.MinecraftSkinData;
 import de.tomalbrc.dialogutils.util.FontUtil;
 import eu.pb4.polymer.autohost.impl.AutoHostConfig;
 import eu.pb4.polymer.common.impl.CommonImpl;
@@ -48,6 +49,7 @@ public class Danse implements ModInitializer {
     public static ResourcePackBuilder RESOURCEPACK_BUILDER;
     public static Logger LOGGER = LogUtils.getLogger();
     public static BufferedImage STEVE_TEXTURE;
+    public static MinecraftSkinData STEVE_SKIN;
 
     public static Int2IntArrayMap VIRTUAL_ENTITY_PICK_MAP = new Int2IntArrayMap();
 
@@ -91,6 +93,8 @@ public class Danse implements ModInitializer {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        STEVE_SKIN = new MinecraftSkinData(STEVE_TEXTURE, MinecraftSkinData.Model.WIDE);
 
         ServerPlayConnectionEvents.JOIN.register((serverGamePacketListener, packetSender, minecraftServer) -> GestureController.onConnect(serverGamePacketListener.player));
         ServerPlayConnectionEvents.DISCONNECT.register((serverGamePacketListener, minecraftServer) -> GestureController.onDisconnect(serverGamePacketListener.player));
