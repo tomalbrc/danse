@@ -13,6 +13,7 @@ import eu.pb4.polymer.virtualentity.api.VirtualEntityUtils;
 import eu.pb4.polymer.virtualentity.api.attachment.ChunkAttachment;
 import eu.pb4.polymer.virtualentity.api.data.EntityData;
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.network.protocol.game.*;
@@ -29,7 +30,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public class GestureController {
-    public static final Reference2ObjectOpenHashMap<UUID, GestureCameraHolder> GESTURE_CAMS = new Reference2ObjectOpenHashMap<>();
+    public static final Object2ObjectOpenHashMap<UUID, GestureCameraHolder> GESTURE_CAMS = new Object2ObjectOpenHashMap<>();
 
     public static void onConnect(ServerPlayer serverPlayer) {
         // to have a cached model/texture of players
@@ -56,14 +57,17 @@ public class GestureController {
         var player = camera.getPlayer();
         if (!player.hasDisconnected()) {
             PolymerUtils.reloadInventory(player);
-            for (ServerGamePacketListenerImpl watchingPlayer : camera.getPlayerModel().getHolder().getWatchingPlayers()) {
-                watchingPlayer.send(new ClientboundSetEquipmentPacket(player.getId(), Util.getEquipment(player, false)));
-            }
+        }
 
-            List<SynchedEntityData.DataValue<?>> data = new ObjectArrayList<>();
-            data.add(SynchedEntityData.DataValue.create(EntityData.FLAGS, player.getEntityData().get(EntityData.FLAGS)));
-            camera.getPlayerModel().getHolder().sendPacket(new ClientboundSetEntityDataPacket(player.getId(), data));
+        for (ServerGamePacketListenerImpl watchingPlayer : camera.getPlayerModel().getHolder().getWatchingPlayers()) {
+            watchingPlayer.send(new ClientboundSetEquipmentPacket(player.getId(), Util.getEquipment(player, false)));
+        }
 
+        List<SynchedEntityData.DataValue<?>> data = new ObjectArrayList<>();
+        data.add(SynchedEntityData.DataValue.create(EntityData.FLAGS, player.getEntityData().get(EntityData.FLAGS)));
+        camera.getPlayerModel().getHolder().sendPacket(new ClientboundSetEntityDataPacket(player.getId(), data));
+
+        if (!player.hasDisconnected()) {
             var pmr = new PositionMoveRotation(camera.getOrigin(), Vec3.ZERO, player.getYRot(), player.getXRot());
             var packet = new ClientboundPlayerPositionPacket(player.getId(), pmr, Set.of());
             var p2 = new ClientboundEntityPositionSyncPacket(player.getId(), pmr, true);

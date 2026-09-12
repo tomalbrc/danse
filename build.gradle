@@ -11,7 +11,6 @@ loom {
 }
 
 repositories {
-    mavenLocal()
     mavenCentral()
     maven { url "https://maven.tomalbrc.de" }
     maven { url 'https://maven.nucleoid.xyz' }
@@ -34,8 +33,7 @@ dependencies {
     implementation include("eu.pb4:placeholder-api:${project.papi_version}")
     implementation include("eu.pb4:sgui:${project.sgui_version}")
 
-    // "de.tomalbrc:blockbench-import-library:2.0.6+26.2; no longer available in tom's maven"
-    implementation include("curse.maven:blockbench-import-library-1118767:8267864")
+    implementation include("de.tomalbrc:blockbench-import-library:${project.bil_version}")
     implementation include("de.tomalbrc:DialogUtils:${project.dialogutils_version}")
 }
 
