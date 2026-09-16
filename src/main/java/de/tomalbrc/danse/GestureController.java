@@ -15,13 +15,13 @@ import eu.pb4.polymer.virtualentity.api.data.EntityData;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.PositionMoveRotation;
+import net.minecraft.world.entity.PositionPath;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
@@ -68,9 +68,9 @@ public class GestureController {
         camera.getPlayerModel().getHolder().sendPacket(new ClientboundSetEntityDataPacket(player.getId(), data));
 
         if (!player.hasDisconnected()) {
-            var pmr = new PositionMoveRotation(camera.getOrigin(), Vec3.ZERO, player.getYRot(), player.getXRot());
+            var pmr = new PositionMoveRotation(camera.getPlayerModel().position(), Vec3.ZERO, player.getYRot(), player.getXRot());
             var packet = new ClientboundPlayerPositionPacket(player.getId(), pmr, Set.of());
-            var p2 = new ClientboundEntityPositionSyncPacket(player.getId(), pmr, true);
+            var p2 = new ClientboundEntityPositionSyncPacket(player.getId(), PositionPath.of(camera.getPlayerModel().position()), player.getYRot(), player.getXRot(), camera.getPlayerModel().onGround());
             player.connection.send(
                     new ClientboundBundlePacket(ImmutableList.of(
                             new ClientboundSetCameraPacket(player),
