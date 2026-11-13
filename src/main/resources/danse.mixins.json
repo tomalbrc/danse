@@ -3,7 +3,7 @@
   "minVersion": "0.8",
   "package": "de.tomalbrc.danse.mixin",
   "compatibilityLevel": "JAVA_17",
-  "server": [
+  "mixins": [
     "ArmorStandInvoker",
     "ArmorStandMixin",
     "LivingEntityAccessor",
